@@ -1,0 +1,37 @@
+# Gradle
+.gradle/
+**/build/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# Local config (SDK path, etc)
+local.properties
+
+# Keystore / secrets
+*.jks
+*.keystore
+*.pem
+*.key
+
+# Log files
+*.log
+
+# System
+.DS_Store
+Thumbs.db
+
+# Android Studio captures / native builds
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Kotlin daemon
+.kotlin/
+
+# Firebase
+**/google-services.json
