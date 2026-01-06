@@ -9,9 +9,10 @@ plugins {
 
 android {
     namespace = "ropa.miragaya.sudokupremium"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
+//    compileSdk {
+//        version = release(36)
+//    }
 
     defaultConfig {
         applicationId = "ropa.miragaya.sudokupremium"
