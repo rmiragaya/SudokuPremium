@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -14,10 +15,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -60,7 +60,9 @@ fun GameScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         // TECLADO (Nuevo componente)
-        NumberPad(onNumberClick = viewModel::onNumberInput)
+        NumberPad(
+            onNumberClick = viewModel::onNumberInput,
+            onDeleteClick = viewModel::onDeleteInput)
     }
 }
 
@@ -79,29 +81,24 @@ fun SudokuBoardView(
         board.rows.forEachIndexed { rowIndex, rowCells ->
             Row(modifier = Modifier.weight(1f)) {
                 rowCells.forEachIndexed { colIndex, cell ->
-                    // LÓGICA VISUAL DE BLOQUES 3x3
-                    // Si estamos en la columna 2 o 5, dibujamos una linea derecha más gruesa
+
                     val rightBorder = if (colIndex == 2 || colIndex == 5) 2.dp else 0.5.dp
-                    // Si estamos en la fila 2 o 5, dibujamos linea abajo más gruesa
                     val bottomBorder = if (rowIndex == 2 || rowIndex == 5) 2.dp else 0.5.dp
 
-                    // Usamos un Box contenedor para manejar los bordes "extra" del bloque 3x3
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight()
-                            // Dibujamos bordes selectivos.
-                            // Nota: Esto es un truco simple. Para perfección absoluta se usa Canvas,
-                            // pero esto cumple el objetivo visualmente.
+                            // todo hacerlo con canvas
                             .drawBehind {
-                                // Dibujar linea derecha
+                                // linea derecha
                                 drawLine(
                                     color = Color.Black,
                                     start = Offset(size.width, 0f),
                                     end = Offset(size.width, size.height),
                                     strokeWidth = rightBorder.toPx()
                                 )
-                                // Dibujar linea abajo
+                                // linea abajo
                                 drawLine(
                                     color = Color.Black,
                                     start = Offset(0f, size.height),
@@ -129,9 +126,9 @@ fun CellView(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Colores dinámicos según estado
+    // Colores según estado
     val bgColor = if (isSelected) Color(0xFFBBDEFB) else Color.Transparent
-    val textColor = if (cell.isGiven) Color.Black else Color(0xFF1565C0) // Azul para input usuario
+    val textColor = if (cell.isGiven) Color.Black else Color(0xFF1565C0)
     val weight = if (cell.isGiven) FontWeight.Bold else FontWeight.Medium
 
     Box(
@@ -153,26 +150,69 @@ fun CellView(
 }
 
 @Composable
-fun NumberPad(onNumberClick: (Int) -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly
+fun NumberPad(
+    onNumberClick: (Int) -> Unit,
+    onDeleteClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        (1..9).forEach { number ->
-            Surface(
-                onClick = { onNumberClick(number) },
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.size(40.dp)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text = number.toString(),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+        // 1 al 5
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            (1..5).forEach { number ->
+                SudokuButton(
+                    text = number.toString(),
+                    onClick = { onNumberClick(number) },
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
+
+        // 9 al X
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            (6..9).forEach { number ->
+                SudokuButton(
+                    text = number.toString(),
+                    onClick = { onNumberClick(number) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            // Botón X (Borrar)
+            SudokuButton(
+                text = "X",
+                onClick = onDeleteClick,
+                isDestructive = true,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+fun SudokuButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    isDestructive: Boolean = false
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.height(50.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (isDestructive) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer,
+            contentColor = if (isDestructive) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
+        ),
+        shape = MaterialTheme.shapes.small,
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        Text(text = text, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
     }
 }

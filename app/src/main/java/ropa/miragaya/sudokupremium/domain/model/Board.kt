@@ -8,11 +8,6 @@ data class Board(
         require(cells.size == 81) { "Sudoku debe tener exactamente 81 celdas" }
     }
 
-    // 2. VISTAS PRE-CALCULADAS (Lazy)
-    // Esto es performance pura y comodidad.
-    // En lugar de hacer 'cells.filter { it.row == 3 }' cada vez (lento y feo),
-    // accedés directo a 'board.rows[3]'.
-    // Usamos 'by lazy' para que solo se calculen la primera vez que las pidas.
     val rows: List<List<Cell>> by lazy {
         cells.groupBy { it.row }.toSortedMap().values.toList()
     }
@@ -32,7 +27,17 @@ data class Board(
             if (cell.id == cellId) {
                 cell.copy(value = newValue)
             } else {
+                cell
+            }
+        }
+        return Board(newCells)
+    }
 
+    fun withCellCleared(cellId: Int): Board {
+        val newCells = cells.map { cell ->
+            if (cell.id == cellId) {
+                cell.copy(value = null)
+            } else {
                 cell
             }
         }

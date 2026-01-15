@@ -44,4 +44,20 @@ class GameViewModel : ViewModel() {
             currentState.copy(board = newBoard)
         }
     }
+
+    fun onDeleteInput() {
+        val currentSelectedId = _uiState.value.selectedCellId ?: return
+
+        _uiState.update { currentState ->
+            val currentBoard = currentState.board
+
+            // Validar que no sea una pista inicial
+            val cell = currentBoard.cells.first { it.id == currentSelectedId }
+            if (cell.isGiven) return@update currentState
+
+            val newBoard = currentBoard.withCellCleared(currentSelectedId)
+
+            currentState.copy(board = newBoard)
+        }
+    }
 }
