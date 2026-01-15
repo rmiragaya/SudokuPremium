@@ -43,4 +43,30 @@ data class Board(
         }
         return Board(newCells)
     }
+
+    fun validateConflicts(): Board {
+        val errorIds = mutableSetOf<Int>()
+
+        // Busco duplicados
+        fun checkGroup(group: List<Cell>) {
+
+            val valueCounts = group.filter { it.value != null }.groupBy { it.value }
+
+            valueCounts.forEach { (_, cellsWithSameValue) ->
+                if (cellsWithSameValue.size > 1) {
+                    errorIds.addAll(cellsWithSameValue.map { it.id })
+                }
+            }
+        }
+
+        rows.forEach { checkGroup(it) }
+        cols.forEach { checkGroup(it) }
+        boxes.forEach { checkGroup(it) }
+
+        val newCells = cells.map { cell ->
+            cell.copy(isError = errorIds.contains(cell.id))
+        }
+
+        return Board(newCells)
+    }
 }

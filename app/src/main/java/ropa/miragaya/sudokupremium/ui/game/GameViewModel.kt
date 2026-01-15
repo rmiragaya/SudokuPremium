@@ -38,7 +38,9 @@ class GameViewModel : ViewModel() {
             if (cell.isGiven) return@update currentState
 
             // 3. new board with the new number
-            val newBoard = currentBoard.withCellValue(currentSelectedId, number)
+            val newBoard = currentBoard
+                .withCellValue(currentSelectedId, number)
+                .validateConflicts()
 
             // 4. Emit
             currentState.copy(board = newBoard)
@@ -55,7 +57,9 @@ class GameViewModel : ViewModel() {
             val cell = currentBoard.cells.first { it.id == currentSelectedId }
             if (cell.isGiven) return@update currentState
 
-            val newBoard = currentBoard.withCellCleared(currentSelectedId)
+            val newBoard = currentBoard
+                .withCellCleared(currentSelectedId)
+                .validateConflicts()
 
             currentState.copy(board = newBoard)
         }

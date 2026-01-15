@@ -59,10 +59,11 @@ fun GameScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // TECLADO (Nuevo componente)
+        // TECLADO
         NumberPad(
             onNumberClick = viewModel::onNumberInput,
-            onDeleteClick = viewModel::onDeleteInput)
+            onDeleteClick = viewModel::onDeleteInput
+        )
     }
 }
 
@@ -75,8 +76,8 @@ fun SudokuBoardView(
 
     Column(
         modifier = Modifier
-            .aspectRatio(1f) // Cuadrado perfecto
-            .border(2.dp, Color.Black) // Borde exterior grueso
+            .aspectRatio(1f)
+            .border(2.dp, Color.Black)
     ) {
         board.rows.forEachIndexed { rowIndex, rowCells ->
             Row(modifier = Modifier.weight(1f)) {
@@ -127,8 +128,20 @@ fun CellView(
     modifier: Modifier = Modifier
 ) {
     // Colores según estado
-    val bgColor = if (isSelected) Color(0xFFBBDEFB) else Color.Transparent
-    val textColor = if (cell.isGiven) Color.Black else Color(0xFF1565C0)
+    // Lógica de colores
+    // todo pasar los colores a un file de colores
+    val bgColor = when {
+        cell.isError -> Color(0xFFFFCDD2) // Rojo clarito (error)
+        isSelected -> Color(0xFFBBDEFB)   // Azul clarito (selección)
+        else -> Color.Transparent
+    }
+
+    val textColor = when {
+        cell.isError -> Color(0xFFD32F2F) // Rojo fuerte
+        cell.isGiven -> Color.Black
+        else -> Color(0xFF1565C0) // Azul (input normal)
+    }
+
     val weight = if (cell.isGiven) FontWeight.Bold else FontWeight.Medium
 
     Box(
@@ -213,6 +226,10 @@ fun SudokuButton(
         shape = MaterialTheme.shapes.small,
         contentPadding = PaddingValues(0.dp)
     ) {
-        Text(text = text, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
