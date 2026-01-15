@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -22,9 +23,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -33,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Cell
+import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
 
 @Composable
 fun GameScreen(
@@ -45,7 +50,7 @@ fun GameScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(SudokuPalette.ScreenBackground)
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -74,10 +79,16 @@ fun SudokuBoardView(
     onCellClick: (Int) -> Unit
 ) {
 
+    val selectedCell = remember(board, selectedCellId) {
+        board.cells.find { it.id == selectedCellId }
+    }
+
     Column(
         modifier = Modifier
             .aspectRatio(1f)
-            .border(2.dp, Color.Black)
+            .clip(RoundedCornerShape(15.dp))
+            .background(SudokuPalette.BoardBackground)
+            .border(2.dp, SudokuPalette.GridLine, RoundedCornerShape(15.dp))
     ) {
         board.rows.forEachIndexed { rowIndex, rowCells ->
             Row(modifier = Modifier.weight(1f)) {
@@ -86,22 +97,30 @@ fun SudokuBoardView(
                     val rightBorder = if (colIndex == 2 || colIndex == 5) 2.dp else 0.5.dp
                     val bottomBorder = if (rowIndex == 2 || rowIndex == 5) 2.dp else 0.5.dp
 
+                    val isHighlighted = selectedCell != null &&
+                            selectedCell.value == null &&       // Solo si la elegida está vacía (como pediste)
+                            cell.id != selectedCellId &&        // No resaltamos la propia seleccionada (ya tiene su color)
+                            (cell.row == selectedCell.row ||    // Misma fila
+                                    cell.col == selectedCell.col ||    // Misma columna
+                                    cell.box == selectedCell.box)      // Misma caja 3x3
+
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight()
                             // todo hacerlo con canvas
-                            .drawBehind {
-                                // linea derecha
+                            .drawWithContent {
+                                drawContent()
+                                // Linea derecha
                                 drawLine(
-                                    color = Color.Black,
+                                    color = SudokuPalette.GridLine,
                                     start = Offset(size.width, 0f),
                                     end = Offset(size.width, size.height),
                                     strokeWidth = rightBorder.toPx()
                                 )
-                                // linea abajo
+                                // Linea abajo
                                 drawLine(
-                                    color = Color.Black,
+                                    color = SudokuPalette.GridLine,
                                     start = Offset(0f, size.height),
                                     end = Offset(size.width, size.height),
                                     strokeWidth = bottomBorder.toPx()
@@ -111,6 +130,7 @@ fun SudokuBoardView(
                         CellView(
                             cell = cell,
                             isSelected = cell.id == selectedCellId,
+                            isHighlighted = isHighlighted,
                             onClick = { onCellClick(cell.id) }
                         )
                     }
@@ -124,24 +144,23 @@ fun SudokuBoardView(
 fun CellView(
     cell: Cell,
     isSelected: Boolean,
+    isHighlighted: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Colores según estado
-    // Lógica de colores
-    // todo pasar los colores a un file de colores
+
     val bgColor = when {
-        cell.isError -> Color(0xFFFFCDD2) // Rojo clarito (error)
-        isSelected -> Color(0xFFBBDEFB)   // Azul clarito (selección)
-        else -> Color.Transparent
+        cell.isError -> SudokuPalette.CellErrorBg
+        isSelected -> SudokuPalette.CellSelected
+        isHighlighted -> SudokuPalette.CellHighlight
+        else -> SudokuPalette.CellNormal
     }
 
     val textColor = when {
-        cell.isError -> Color(0xFFD32F2F) // Rojo fuerte
-        cell.isGiven -> Color.Black
-        else -> Color(0xFF1565C0) // Azul (input normal)
+        cell.isError -> SudokuPalette.TextError
+        cell.isGiven -> SudokuPalette.TextPrimary // Blanco (Pista)
+        else -> SudokuPalette.TextAccent          // Azul (Usuario)
     }
-
     val weight = if (cell.isGiven) FontWeight.Bold else FontWeight.Medium
 
     Box(
@@ -216,12 +235,18 @@ fun SudokuButton(
     modifier: Modifier = Modifier,
     isDestructive: Boolean = false
 ) {
+
+    val containerColor =
+        if (isDestructive) SudokuPalette.ButtonDestructive else SudokuPalette.ButtonContainer
+    val contentColor =
+        if (isDestructive) SudokuPalette.ButtonDestructiveContent else SudokuPalette.ButtonContent
+
     Button(
         onClick = onClick,
         modifier = modifier.height(50.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isDestructive) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer,
-            contentColor = if (isDestructive) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
+            containerColor = containerColor,
+            contentColor = contentColor
         ),
         shape = MaterialTheme.shapes.small,
         contentPadding = PaddingValues(0.dp)
