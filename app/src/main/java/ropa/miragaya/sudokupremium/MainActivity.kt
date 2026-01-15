@@ -22,28 +22,18 @@ class MainActivity : ComponentActivity() {
             SudokuPremiumTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     GameScreen(Modifier.padding(innerPadding))
-//                    Greeting(
-//                        name = "Android",
-//                        modifier = Modifier.padding(innerPadding)
-//                    )
                 }
             }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
     SudokuPremiumTheme {
-        Greeting("Android")
+        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+            GameScreen(Modifier.padding(innerPadding))
+        }
     }
 }

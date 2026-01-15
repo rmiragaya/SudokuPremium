@@ -163,7 +163,7 @@ fun NumberPad(onNumberClick: (Int) -> Unit) {
                 onClick = { onNumberClick(number) },
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.size(45.dp)
+                modifier = Modifier.size(40.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(

@@ -1,0 +1,90 @@
+=============================================================================
+ROPA'S GIT CHEATSHEET - MANEJO DE IDENTIDAD Y SUPERVIVENCIA
+=============================================================================
+
+-----------------------------------------------------------------------------
+1. IDENTIDAD - PARA MULTI-PROYECTOS
+-----------------------------------------------------------------------------
+
+# VER quién sos en este proyecto actual:
+git config user.name
+git config user.email
+
+# VER de dónde viene esa config (te dice si es global o local y el archivo):
+git config --show-origin user.email
+
+# SETEAR usuario SOLO para este proyecto:
+git config --local user.name "Yo mismo"
+git config --local user.email "tu.email.personal@gmail.com"
+
+# SETEAR usuario GLOBAL:
+git config --global user.name "Yo mismo"
+git config --global user.email "mi.mail.laboral@dondesea.com"
+
+-----------------------------------------------------------------------------
+2. CONFIGURACIÓN Y ALIAS
+-----------------------------------------------------------------------------
+# Ver TODOS tus alias configurados:
+git config --global --get-regexp alias
+
+# Ver toda la config local de este repo:
+git config --local --list
+
+# Crear alias útiles (Ejecutar una vez en consola):
+# git st -> status
+# git lg -> log lindo
+# git ci -> commit
+# git co -> checkout
+
+-----------------------------------------------------------------------------
+3. FLUJO DIARIO (SIN PENSAR)
+-----------------------------------------------------------------------------
+# Status:
+git status  (o 'git st')
+
+# Add all:
+git add .
+
+# Commit:
+git commit -m "feat: implementamos el viewmodel del sudoku"
+
+# Push:
+git push origin nombre-rama
+
+# Pull:
+git pull origin nombre-rama
+
+-----------------------------------------------------------------------------
+4. RAMAS (MODERNO) - USAR 'SWITCH', NO 'CHECKOUT'
+-----------------------------------------------------------------------------
+# Crear rama y checkout:
+git switch -c feature/nuevo-teclado
+
+# Checkout:
+git switch main
+
+# Delete rama (ya mergeada):
+git branch -d nombre-rama
+
+-----------------------------------------------------------------------------
+5. DESHACER CAGADAS (ZONA DE PELIGRO)
+-----------------------------------------------------------------------------
+# "Restore un archivo":
+git restore app/src/main/java/SudokuViewModel.kt
+
+# "Hice git add, pero NO quería agregarlo todavía":
+git restore --staged app/src/main/java/SudokuViewModel.kt
+
+# "Corregir el mensaje (aun no mergeado)":
+git commit --amend -m "Nuevo mensaje corregido"
+
+-----------------------------------------------------------------------------
+6. TUS ALIAS PERSONALIZADOS (ROPA'S TOOLS MDFK)
+-----------------------------------------------------------------------------
+# Tus comandos para ver configuraciones rápido:
+git global     -> Muestra TODA la configuración global (git config --global -l)
+git cfg-local  -> Muestra la configuración de este repo (git config --local -l)
+
+# Si configurás una PC nueva, corré esto para volver a tenerlos:
+git config --global alias.global "config --global -l"
+git config --global alias.cfg-local "config --local -l"
