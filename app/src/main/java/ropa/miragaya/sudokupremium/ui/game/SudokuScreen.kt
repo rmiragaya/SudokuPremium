@@ -32,6 +32,8 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -44,11 +46,27 @@ fun GameScreen(
     modifier: Modifier = Modifier,
     viewModel: GameViewModel = viewModel()
 ) {
-
     val uiState by viewModel.uiState.collectAsState()
 
+    GameContent(
+        uiState = uiState,
+        onCellClick = viewModel::onCellClicked,
+        onNumberInput = viewModel::onNumberInput,
+        onDeleteInput = viewModel::onDeleteInput,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun GameContent(
+    uiState: GameUiState,
+    onCellClick: (Int) -> Unit,
+    onNumberInput: (Int) -> Unit,
+    onDeleteInput: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(SudokuPalette.ScreenBackground)
             .padding(16.dp),
@@ -61,15 +79,15 @@ fun GameScreen(
             selectedCellId = uiState.selectedCellId,
             highlightedIds = uiState.highlightedCellIds,
             sameValueIds = uiState.sameValueCellIds,
-            onCellClick = viewModel::onCellClicked
+            onCellClick = onCellClick
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
         // TECLADO
         NumberPad(
-            onNumberClick = viewModel::onNumberInput,
-            onDeleteClick = viewModel::onDeleteInput
+            onNumberClick = onNumberInput,
+            onDeleteClick = onDeleteInput
         )
     }
 }
@@ -172,7 +190,7 @@ fun CellView(
         if (cell.value != null) {
             Text(
                 text = cell.value.toString(),
-                fontSize = 20.sp,
+                fontSize = 25.sp,
                 fontWeight = weight,
                 color = textColor
             )
@@ -252,8 +270,25 @@ fun SudokuButton(
     ) {
         Text(
             text = text,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
         )
     }
 }
+
+@Preview(
+    showBackground = true,
+    backgroundColor = 0xFF161823
+)
+@Composable
+fun GameScreenPreview(
+    @PreviewParameter(GamePreviewProvider::class) uiState: GameUiState
+){
+    GameContent(
+        uiState = uiState,
+        onCellClick = {},
+        onNumberInput = {},
+        onDeleteInput = {}
+    )
+}
+
