@@ -20,6 +20,7 @@ data class Board(
         cells.groupBy { it.box }.toSortedMap().values.toList()
     }
 
+    // Por si acaso
     fun getCell(row: Int, col: Int): Cell = cells.first { it.row == row && it.col == col }
 
     fun withCellValue(cellId: Int, newValue: Int): Board {
@@ -68,6 +69,10 @@ data class Board(
         }
 
         return Board(newCells)
+    }
+
+    fun getCellsWithValue(value: Int): Set<Int> {
+        return cells.filter { it.value == value }.map { it.id }.toSet()
     }
 
     fun getPeers(cellId: Int): Set<Int> {

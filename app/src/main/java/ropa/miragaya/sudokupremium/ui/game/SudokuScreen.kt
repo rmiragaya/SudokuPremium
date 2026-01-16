@@ -60,6 +60,7 @@ fun GameScreen(
             board = uiState.board,
             selectedCellId = uiState.selectedCellId,
             highlightedIds = uiState.highlightedCellIds,
+            sameValueIds = uiState.sameValueCellIds,
             onCellClick = viewModel::onCellClicked
         )
 
@@ -78,12 +79,9 @@ fun SudokuBoardView(
     board: Board,
     selectedCellId: Int?,
     highlightedIds: Set<Int>,
+    sameValueIds: Set<Int>,
     onCellClick: (Int) -> Unit
 ) {
-
-//    val selectedCell = remember(board, selectedCellId) {
-//        board.cells.find { it.id == selectedCellId }
-//    }
 
     Column(
         modifier = Modifier
@@ -100,13 +98,7 @@ fun SudokuBoardView(
                     val bottomBorder = if (rowIndex == 2 || rowIndex == 5) 2.dp else 0.5.dp
 
                     val isHighlighted = highlightedIds.contains(cell.id)
-
-//                    val isHighlighted = selectedCell != null &&
-//                            selectedCell.value == null &&       // Solo si la elegida está vacía (como pediste)
-//                            cell.id != selectedCellId &&        // No resaltamos la propia seleccionada (ya tiene su color)
-//                            (cell.row == selectedCell.row ||    // Misma fila
-//                                    cell.col == selectedCell.col ||    // Misma columna
-//                                    cell.box == selectedCell.box)      // Misma caja 3x3
+                    val isSameValue = sameValueIds.contains(cell.id)
 
                     Box(
                         modifier = Modifier
@@ -135,6 +127,7 @@ fun SudokuBoardView(
                             cell = cell,
                             isSelected = cell.id == selectedCellId,
                             isHighlighted = isHighlighted,
+                            isSameValue = isSameValue,
                             onClick = { onCellClick(cell.id) }
                         )
                     }
@@ -149,6 +142,7 @@ fun CellView(
     cell: Cell,
     isSelected: Boolean,
     isHighlighted: Boolean,
+    isSameValue: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -157,6 +151,7 @@ fun CellView(
         cell.isError -> SudokuPalette.CellErrorBg
         isSelected -> SudokuPalette.CellSelected
         isHighlighted -> SudokuPalette.CellHighlight
+        isSameValue -> SudokuPalette.CellSelected
         else -> SudokuPalette.CellNormal
     }
 

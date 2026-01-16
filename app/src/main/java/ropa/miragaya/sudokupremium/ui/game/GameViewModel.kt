@@ -24,15 +24,24 @@ class GameViewModel : ViewModel() {
             // Lógica de Highlight (Solo si hay selección y la celda está vacía)
             val selectedCell = if (newSelection != null) currentState.board.cells.find { it.id == newSelection } else null
 
-            val highlights = if (selectedCell != null && selectedCell.value == null) {
+            // 1. Peers (Tenue): Siempre que haya selección
+            val highlights = if (selectedCell != null) {
                 currentState.board.getPeers(selectedCell.id)
+            } else {
+                emptySet()
+            }
+
+            // 2. Same Value (Fuerte): Solo si la celda tiene valor
+            val sameValues = if (selectedCell != null && selectedCell.value != null) {
+                currentState.board.getCellsWithValue(selectedCell.value) - selectedCell.id
             } else {
                 emptySet()
             }
 
             currentState.copy(
                 selectedCellId = newSelection,
-                highlightedCellIds = highlights
+                highlightedCellIds = highlights,
+                sameValueCellIds = sameValues
             )
         }
     }
