@@ -69,4 +69,16 @@ data class Board(
 
         return Board(newCells)
     }
+
+    fun getPeers(cellId: Int): Set<Int> {
+        val target = cells.find { it.id == cellId } ?: return emptySet()
+
+        // Buscamos IDs de misma fila, columna y caja
+        val rowPeers = rows[target.row].map { it.id }
+        val colPeers = cols[target.col].map { it.id }
+        val boxPeers = boxes[target.box].map { it.id }
+
+        // Unimos toddo en un Set (evita duplicados) y return celda seleccionada
+        return (rowPeers + colPeers + boxPeers).toSet() - target.id
+    }
 }

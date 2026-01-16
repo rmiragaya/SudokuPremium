@@ -59,6 +59,7 @@ fun GameScreen(
         SudokuBoardView(
             board = uiState.board,
             selectedCellId = uiState.selectedCellId,
+            highlightedIds = uiState.highlightedCellIds,
             onCellClick = viewModel::onCellClicked
         )
 
@@ -76,12 +77,13 @@ fun GameScreen(
 fun SudokuBoardView(
     board: Board,
     selectedCellId: Int?,
+    highlightedIds: Set<Int>,
     onCellClick: (Int) -> Unit
 ) {
 
-    val selectedCell = remember(board, selectedCellId) {
-        board.cells.find { it.id == selectedCellId }
-    }
+//    val selectedCell = remember(board, selectedCellId) {
+//        board.cells.find { it.id == selectedCellId }
+//    }
 
     Column(
         modifier = Modifier
@@ -97,12 +99,14 @@ fun SudokuBoardView(
                     val rightBorder = if (colIndex == 2 || colIndex == 5) 2.dp else 0.5.dp
                     val bottomBorder = if (rowIndex == 2 || rowIndex == 5) 2.dp else 0.5.dp
 
-                    val isHighlighted = selectedCell != null &&
-                            selectedCell.value == null &&       // Solo si la elegida está vacía (como pediste)
-                            cell.id != selectedCellId &&        // No resaltamos la propia seleccionada (ya tiene su color)
-                            (cell.row == selectedCell.row ||    // Misma fila
-                                    cell.col == selectedCell.col ||    // Misma columna
-                                    cell.box == selectedCell.box)      // Misma caja 3x3
+                    val isHighlighted = highlightedIds.contains(cell.id)
+
+//                    val isHighlighted = selectedCell != null &&
+//                            selectedCell.value == null &&       // Solo si la elegida está vacía (como pediste)
+//                            cell.id != selectedCellId &&        // No resaltamos la propia seleccionada (ya tiene su color)
+//                            (cell.row == selectedCell.row ||    // Misma fila
+//                                    cell.col == selectedCell.col ||    // Misma columna
+//                                    cell.box == selectedCell.box)      // Misma caja 3x3
 
                     Box(
                         modifier = Modifier

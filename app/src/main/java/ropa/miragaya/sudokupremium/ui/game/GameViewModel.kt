@@ -10,19 +10,30 @@ import ropa.miragaya.sudokupremium.domain.factory.BoardFactory
 
 class GameViewModel : ViewModel() {
 
-    // 1. Tablero inicial. // todo que venga del repositorio
+    // 1. Tablero inicial. // todo Volarlo. Que venga del repo
     private val initialBoard = BoardFactory.fromString(SAMPLE_PUZZLE)
 
-    // 2. El Estado Mutable (Privado)
-    private val _uiState = MutableStateFlow(GameState(board = initialBoard))
-
-    // 3. El Estado Inmutable (Público para la UI)
-    val uiState: StateFlow<GameState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(GameUiState(board = initialBoard))
+    val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
 
     fun onCellClicked(cellId: Int) {
         _uiState.update { currentState ->
+            // Lógica de toggle selección (si toco la misma, deselecciono)
             val newSelection = if (currentState.selectedCellId == cellId) null else cellId
-            currentState.copy(selectedCellId = newSelection)
+
+            // Lógica de Highlight (Solo si hay selección y la celda está vacía)
+            val selectedCell = if (newSelection != null) currentState.board.cells.find { it.id == newSelection } else null
+
+            val highlights = if (selectedCell != null && selectedCell.value == null) {
+                currentState.board.getPeers(selectedCell.id)
+            } else {
+                emptySet()
+            }
+
+            currentState.copy(
+                selectedCellId = newSelection,
+                highlightedCellIds = highlights
+            )
         }
     }
 
@@ -53,7 +64,6 @@ class GameViewModel : ViewModel() {
         _uiState.update { currentState ->
             val currentBoard = currentState.board
 
-            // Validar que no sea una pista inicial
             val cell = currentBoard.cells.first { it.id == currentSelectedId }
             if (cell.isGiven) return@update currentState
 
