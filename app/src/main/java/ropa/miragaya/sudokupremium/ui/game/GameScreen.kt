@@ -15,31 +15,39 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Cell
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
+import ropa.miragaya.sudokupremium.util.toFormattedTime
 
 @Composable
 fun GameScreen(
@@ -48,11 +56,29 @@ fun GameScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> viewModel.resumeTimer()
+                Lifecycle.Event.ON_PAUSE -> viewModel.pauseTimer()
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     GameContent(
         uiState = uiState,
         onCellClick = viewModel::onCellClicked,
         onNumberInput = viewModel::onNumberInput,
         onDeleteInput = viewModel::onDeleteInput,
+        onBackClick = { /* TODO: Navegar atrás */ },
         modifier = modifier
     )
 }
@@ -63,32 +89,46 @@ fun GameContent(
     onCellClick: (Int) -> Unit,
     onNumberInput: (Int) -> Unit,
     onDeleteInput: () -> Unit,
+    onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(SudokuPalette.ScreenBackground)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
     ) {
-        // TABLERO
-        SudokuBoardView(
-            board = uiState.board,
-            selectedCellId = uiState.selectedCellId,
-            highlightedIds = uiState.highlightedCellIds,
-            sameValueIds = uiState.sameValueCellIds,
-            onCellClick = onCellClick
+
+        // 1. TOP BAR
+        GameTopBar(
+            difficulty = uiState.difficulty.name, // O una función para traducirlo bonito
+            elapsedTimeSeconds = uiState.elapsedTimeSeconds,
+            onBackClick = onBackClick
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // TABLERO
+            SudokuBoardView(
+                board = uiState.board,
+                selectedCellId = uiState.selectedCellId,
+                highlightedIds = uiState.highlightedCellIds,
+                sameValueIds = uiState.sameValueCellIds,
+                onCellClick = onCellClick
+            )
 
-        // TECLADO
-        NumberPad(
-            onNumberClick = onNumberInput,
-            onDeleteClick = onDeleteInput
-        )
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // TECLADO
+            NumberPad(
+                onNumberClick = onNumberInput,
+                onDeleteClick = onDeleteInput
+            )
+        }
     }
 }
 
@@ -175,8 +215,8 @@ fun CellView(
 
     val textColor = when {
         cell.isError && !cell.isGiven -> SudokuPalette.TextError
-        cell.isGiven -> SudokuPalette.TextPrimary // Blanco (Pista)
-        else -> SudokuPalette.TextAccent          // Azul (Usuario)
+        cell.isGiven -> SudokuPalette.TextPrimary
+        else -> SudokuPalette.TextAccent
     }
     val weight = if (cell.isGiven) FontWeight.Bold else FontWeight.Medium
 
@@ -276,6 +316,61 @@ fun SudokuButton(
     }
 }
 
+@Composable
+fun GameTopBar(
+    difficulty: String,
+    elapsedTimeSeconds: Long,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Default.ArrowBack,
+            contentDescription = "Volver",
+            tint = SudokuPalette.TextSecondary,
+            modifier = Modifier
+                .clickable { onBackClick() }
+                .padding(8.dp)
+        )
+
+        // 2. Dificultad (Centro)
+        Text(
+            text = difficulty,
+            style = MaterialTheme.typography.titleMedium,
+            color = SudokuPalette.TextPrimary,
+            fontWeight = FontWeight.Bold
+        )
+
+        // 3. Timer (Derecha)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            // Icono de reloj opcional
+            Icon(
+                painter = painterResource(id = android.R.drawable.ic_menu_recent_history), // O un icono de reloj mejor si tenés
+                contentDescription = null,
+                tint = SudokuPalette.TextAccent,
+                modifier = Modifier.size(16.dp)
+            )
+
+            Text(
+                text = elapsedTimeSeconds.toFormattedTime(), // <--- USAMOS LA EXTENSION
+                style = MaterialTheme.typography.titleMedium,
+                color = SudokuPalette.TextAccent, // Azulito para destacar
+                fontFamily = FontFamily.Monospace // Para que los números no bailen cuando cambian
+            )
+        }
+    }
+}
+
 @Preview(
     showBackground = true,
     backgroundColor = 0xFF161823
@@ -288,7 +383,7 @@ fun GameScreenPreview(
         uiState = uiState,
         onCellClick = {},
         onNumberInput = {},
-        onDeleteInput = {}
-    )
+        onDeleteInput = {},
+        onBackClick = {})
 }
 

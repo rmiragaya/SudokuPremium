@@ -58,7 +58,7 @@ class GameViewModel @Inject constructor(
             }
 
             // 3. Arrancamos el reloj
-            startTimer()
+            resumeTimer()
         }
     }
 
@@ -135,14 +135,20 @@ class GameViewModel @Inject constructor(
         saveGame()
     }
 
-    private fun startTimer() {
-        timerJob?.cancel()
+    fun resumeTimer() {
+        if (timerJob?.isActive == true) return
+
         timerJob = viewModelScope.launch {
             while (isActive) {
                 delay(1000L)
                 _uiState.update { it.copy(elapsedTimeSeconds = it.elapsedTimeSeconds + 1) }
             }
         }
+    }
+
+    fun pauseTimer() {
+        timerJob?.cancel()
+        timerJob = null
     }
 
     private fun saveGame() {
@@ -161,7 +167,6 @@ class GameViewModel @Inject constructor(
         }
     }
 
-    // Si salimos de la pantalla, guardamos y paramos el reloj
     override fun onCleared() {
         super.onCleared()
         saveGame()

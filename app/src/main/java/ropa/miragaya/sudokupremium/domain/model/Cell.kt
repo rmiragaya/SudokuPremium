@@ -1,7 +1,7 @@
 package ropa.miragaya.sudokupremium.domain.model
 
 data class Cell(
-    val id: Int,             // Indice 0-80
+    val id: Int, // Indice 0-80
     val row: Int,
     val col: Int,
     val box: Int,
