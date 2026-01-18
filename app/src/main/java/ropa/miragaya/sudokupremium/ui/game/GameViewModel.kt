@@ -1,20 +1,67 @@
 package ropa.miragaya.sudokupremium.ui.game
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import ropa.miragaya.sudokupremium.data.SAMPLE_PUZZLE
 import ropa.miragaya.sudokupremium.domain.factory.BoardFactory
+import ropa.miragaya.sudokupremium.domain.model.Board
+import ropa.miragaya.sudokupremium.domain.model.SavedGame
+import ropa.miragaya.sudokupremium.domain.repository.GameRepository
+import javax.inject.Inject
 
-class GameViewModel : ViewModel() {
+@HiltViewModel
+class GameViewModel @Inject constructor(
+    private val repository: GameRepository
+) : ViewModel() {
 
-    // 1. Tablero inicial. // todo Volarlo. Que venga del repo
-    private val initialBoard = BoardFactory.fromString(SAMPLE_PUZZLE)
-
-    private val _uiState = MutableStateFlow(GameUiState(board = initialBoard))
+    // Estado inicial vacío temporalmente mientras carga la DB
+    private val _uiState = MutableStateFlow(GameUiState(board = Board.createEmpty()))
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
+
+    private var timerJob: Job? = null
+
+    init {
+        initializeGame()
+    }
+
+    private fun initializeGame() {
+        viewModelScope.launch {
+            // 2. CARGA DE DATOS: Preguntamos al repo si hay algo guardado
+            val savedGame = repository.getSavedGame().firstOrNull()
+
+            if (savedGame != null) {
+                // CASO A: Restauramos partida
+                _uiState.update {
+                    it.copy(
+                        board = savedGame.board,
+                        elapsedTimeSeconds = savedGame.elapsedTimeSeconds,
+                        difficulty = savedGame.difficulty
+                    )
+                }
+            } else {
+                // todo que llegue de un repo un sudoku
+                val initialBoard = BoardFactory.fromString(SAMPLE_PUZZLE)
+                _uiState.update {
+                    it.copy(board = initialBoard, elapsedTimeSeconds = 0)
+                }
+                saveGame()
+            }
+
+            // 3. Arrancamos el reloj
+            startTimer()
+        }
+    }
+
 
     fun onCellClicked(cellId: Int) {
         _uiState.update { currentState ->
@@ -65,6 +112,8 @@ class GameViewModel : ViewModel() {
             // 4. Emit
             currentState.copy(board = newBoard)
         }
+
+        saveGame()
     }
 
     fun onDeleteInput() {
@@ -82,5 +131,40 @@ class GameViewModel : ViewModel() {
 
             currentState.copy(board = newBoard)
         }
+
+        saveGame()
+    }
+
+    private fun startTimer() {
+        timerJob?.cancel()
+        timerJob = viewModelScope.launch {
+            while (isActive) {
+                delay(1000L)
+                _uiState.update { it.copy(elapsedTimeSeconds = it.elapsedTimeSeconds + 1) }
+            }
+        }
+    }
+
+    private fun saveGame() {
+        viewModelScope.launch {
+            val currentState = _uiState.value
+            // Validación de seguridad para no guardar tableros vacíos
+            if (currentState.board.cells.isNotEmpty()) {
+                repository.saveGame(
+                    SavedGame(
+                        board = currentState.board,
+                        elapsedTimeSeconds = currentState.elapsedTimeSeconds,
+                        difficulty = currentState.difficulty
+                    )
+                )
+            }
+        }
+    }
+
+    // Si salimos de la pantalla, guardamos y paramos el reloj
+    override fun onCleared() {
+        super.onCleared()
+        saveGame()
+        timerJob?.cancel()
     }
 }

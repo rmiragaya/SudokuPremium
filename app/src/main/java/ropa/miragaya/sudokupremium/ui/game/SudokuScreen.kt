@@ -174,7 +174,7 @@ fun CellView(
     }
 
     val textColor = when {
-        cell.isError -> SudokuPalette.TextError
+        cell.isError && !cell.isGiven -> SudokuPalette.TextError
         cell.isGiven -> SudokuPalette.TextPrimary // Blanco (Pista)
         else -> SudokuPalette.TextAccent          // Azul (Usuario)
     }

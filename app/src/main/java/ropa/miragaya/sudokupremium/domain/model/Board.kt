@@ -8,17 +8,14 @@ data class Board(
         require(cells.size == 81) { "Sudoku debe tener exactamente 81 celdas" }
     }
 
-    val rows: List<List<Cell>> by lazy {
-        cells.groupBy { it.row }.toSortedMap().values.toList()
-    }
+    val rows: List<List<Cell>>
+        get() = cells.groupBy { it.row }.toSortedMap().values.toList()
 
-    val cols: List<List<Cell>> by lazy {
-        cells.groupBy { it.col }.toSortedMap().values.toList()
-    }
+    val cols: List<List<Cell>>
+        get() = cells.groupBy { it.col }.toSortedMap().values.toList()
 
-    val boxes: List<List<Cell>> by lazy {
-        cells.groupBy { it.box }.toSortedMap().values.toList()
-    }
+    val boxes: List<List<Cell>>
+        get() = cells.groupBy { it.box }.toSortedMap().values.toList()
 
     // Por si acaso
     fun getCell(row: Int, col: Int): Cell = cells.first { it.row == row && it.col == col }
@@ -86,4 +83,20 @@ data class Board(
         // Unimos toddo en un Set (evita duplicados) y return celda seleccionada
         return (rowPeers + colPeers + boxPeers).toSet() - target.id
     }
+    companion object {
+        fun createEmpty(): Board {
+            val emptyCells = List(81) { index ->
+                Cell(
+                    id = index,
+                    row = index / 9,
+                    col = index % 9,
+                    box = (index / 9 / 3) * 3 + (index % 9 / 3),
+                    value = null,
+                    isGiven = false
+                )
+            }
+            return Board(emptyCells)
+        }
+    }
+
 }

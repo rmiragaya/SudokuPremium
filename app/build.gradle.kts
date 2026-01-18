@@ -10,9 +10,6 @@ plugins {
 android {
     namespace = "ropa.miragaya.sudokupremium"
     compileSdk = 36
-//    compileSdk {
-//        version = release(36)
-//    }
 
     defaultConfig {
         applicationId = "ropa.miragaya.sudokupremium"
@@ -63,6 +60,11 @@ dependencies {
     ksp(libs.hilt.compiler)
     ksp(libs.kotlin.metadata.jvm)
     implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.gson)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
