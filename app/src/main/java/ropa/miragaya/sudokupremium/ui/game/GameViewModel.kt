@@ -24,7 +24,6 @@ class GameViewModel @Inject constructor(
     private val repository: GameRepository
 ) : ViewModel() {
 
-    // Estado inicial vacío temporalmente mientras carga la DB
     private val _uiState = MutableStateFlow(GameUiState(board = Board.createEmpty()))
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
 
@@ -93,23 +92,31 @@ class GameViewModel @Inject constructor(
         }
     }
 
+    fun toggleNoteMode() {
+        _uiState.update { it.copy(isNoteMode = !it.isNoteMode) }
+    }
+
     fun onNumberInput(number: Int) {
         val currentSelectedId = _uiState.value.selectedCellId ?: return // no selection, no input
 
         _uiState.update { currentState ->
-            // 1. Get actual board
             val currentBoard = currentState.board
-
-            // 2. Check if the cell is a given
             val cell = currentBoard.cells.first { it.id == currentSelectedId }
+
             if (cell.isGiven) return@update currentState
 
-            // 3. new board with the new number
-            val newBoard = currentBoard
-                .withCellValue(currentSelectedId, number)
-                .validateConflicts()
+            val newBoard = if (currentState.isNoteMode) {
+                if (cell.value == null) {
+                    currentBoard.withNoteToggle(currentSelectedId, number)
+                } else {
+                    currentBoard
+                }
+            } else {
+                currentBoard
+                    .withCellValue(currentSelectedId, number)
+                    .validateConflicts()
+            }
 
-            // 4. Emit
             currentState.copy(board = newBoard)
         }
 

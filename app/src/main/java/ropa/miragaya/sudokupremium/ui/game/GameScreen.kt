@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -78,6 +79,7 @@ fun GameScreen(
         onCellClick = viewModel::onCellClicked,
         onNumberInput = viewModel::onNumberInput,
         onDeleteInput = viewModel::onDeleteInput,
+        onToggleNoteMode = viewModel::toggleNoteMode,
         onBackClick = { /* TODO: Navegar atrás */ },
         modifier = modifier
     )
@@ -89,6 +91,7 @@ fun GameContent(
     onCellClick: (Int) -> Unit,
     onNumberInput: (Int) -> Unit,
     onDeleteInput: () -> Unit,
+    onToggleNoteMode: () -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -121,9 +124,17 @@ fun GameContent(
                 onCellClick = onCellClick
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // TECLADO
+            // Herramientas
+            GameControls(
+                isNoteMode = uiState.isNoteMode,
+                onToggleNoteMode = onToggleNoteMode
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Teclado
             NumberPad(
                 onNumberClick = onNumberInput,
                 onDeleteClick = onDeleteInput
@@ -234,6 +245,37 @@ fun CellView(
                 fontWeight = weight,
                 color = textColor
             )
+        } else if (cell.notes.isNotEmpty()) {
+            NotesGrid(notes = cell.notes)
+        }
+    }
+}
+
+@Composable
+fun NotesGrid(notes: Set<Int>) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(2.dp),
+        verticalArrangement = Arrangement.SpaceEvenly
+    ) {
+        repeat(3) { row ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                repeat(3) { col ->
+                    val number = row * 3 + col + 1
+                    if (notes.contains(number)) {
+                        Text(
+                            text = number.toString(),
+                            fontSize = 8.sp,
+                            color = SudokuPalette.TextSecondary,
+                            lineHeight = 8.sp
+                        )
+                    } else {
+                        Spacer(modifier = Modifier.size(8.dp))
+                    }
+                }
+            }
         }
     }
 }
@@ -371,6 +413,46 @@ fun GameTopBar(
     }
 }
 
+@Composable
+fun GameControls(
+    isNoteMode: Boolean,
+    onToggleNoteMode: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        // Notas
+        val containerColor = if (isNoteMode) SudokuPalette.TextAccent else SudokuPalette.ButtonContainer
+        val contentColor = if (isNoteMode) SudokuPalette.ScreenBackground else SudokuPalette.TextAccent
+
+        Button(
+            onClick = onToggleNoteMode,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = containerColor,
+                contentColor = contentColor
+            ),
+            shape = RoundedCornerShape(12.dp),
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = "Modo Notas",
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+            Text(
+                text = if (isNoteMode) "ON" else "OFF",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        // Undo (futuro)
+    }
+}
+
 @Preview(
     showBackground = true,
     backgroundColor = 0xFF161823
@@ -384,6 +466,8 @@ fun GameScreenPreview(
         onCellClick = {},
         onNumberInput = {},
         onDeleteInput = {},
-        onBackClick = {})
+        onBackClick = {},
+        onToggleNoteMode = {}
+    )
 }
 

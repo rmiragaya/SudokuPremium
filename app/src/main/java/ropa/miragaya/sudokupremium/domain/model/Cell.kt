@@ -8,5 +8,5 @@ data class Cell(
     val value: Int?,
     val isGiven: Boolean,
     val isError: Boolean = false,
-    // val candidates: MutableSet<Int> = mutableSetOf() // Todavia no implementar
+    val notes: Set<Int> = emptySet()
 )

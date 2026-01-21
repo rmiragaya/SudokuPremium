@@ -83,6 +83,23 @@ data class Board(
         // Unimos toddo en un Set (evita duplicados) y return celda seleccionada
         return (rowPeers + colPeers + boxPeers).toSet() - target.id
     }
+
+    fun withNoteToggle(cellId: Int, note: Int): Board {
+        val newCells = cells.map { cell ->
+            if (cell.id == cellId) {
+                val newNotes = if (cell.notes.contains(note)) {
+                    cell.notes - note
+                } else {
+                    cell.notes + note
+                }
+                cell.copy(notes = newNotes)
+            } else {
+                cell
+            }
+        }
+        return Board(newCells)
+    }
+
     companion object {
         fun createEmpty(): Board {
             val emptyCells = List(81) { index ->
@@ -92,7 +109,9 @@ data class Board(
                     col = index % 9,
                     box = (index / 9 / 3) * 3 + (index % 9 / 3),
                     value = null,
-                    isGiven = false
+                    isGiven = false,
+                    isError = false,
+                    notes = emptySet()
                 )
             }
             return Board(emptyCells)
