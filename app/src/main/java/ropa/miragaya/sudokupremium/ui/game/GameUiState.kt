@@ -8,8 +8,8 @@ data class GameUiState(
     val elapsedTimeSeconds: Long = 0,
     val difficulty: Difficulty = Difficulty.MEDIUM,
     val selectedCellId: Int? = null,
-    val highlightedCellIds: Set<Int> = emptySet(), // cross-highlighting
+    val highlightedCellIds: Set<Int> = emptySet(),
     val sameValueCellIds: Set<Int> = emptySet(),
-    val isNoteMode: Boolean = false,               // lápiz
+    val isNoteMode: Boolean = false,
     val isComplete: Boolean = false
 )

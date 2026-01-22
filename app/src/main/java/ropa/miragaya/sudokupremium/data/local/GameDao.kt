@@ -17,4 +17,7 @@ interface GameDao {
 
     @Query("DELETE FROM saved_game")
     suspend fun clearSavedGame()
+
+    @Insert
+    suspend fun insertHistory(history: GameHistoryEntity)
 }

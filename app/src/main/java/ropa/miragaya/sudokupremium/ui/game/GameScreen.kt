@@ -49,6 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Cell
+import ropa.miragaya.sudokupremium.ui.game.component.GameWonDialog
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
 import ropa.miragaya.sudokupremium.util.toFormattedTime
 
@@ -74,6 +75,13 @@ fun GameScreen(
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
+    }
+
+    if (uiState.isComplete) {
+        GameWonDialog(
+            elapsedTimeSeconds = uiState.elapsedTimeSeconds,
+            onStartNewGame = { viewModel.startNewGame() }
+        )
     }
 
     GameContent(
@@ -105,9 +113,8 @@ fun GameContent(
             .background(SudokuPalette.ScreenBackground)
     ) {
 
-        // 1. TOP BAR
         GameTopBar(
-            difficulty = uiState.difficulty.name, // O una función para traducirlo bonito
+            difficulty = uiState.difficulty.name,
             elapsedTimeSeconds = uiState.elapsedTimeSeconds,
             onBackClick = onBackClick
         )
@@ -119,7 +126,6 @@ fun GameContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // TABLERO
             SudokuBoardView(
                 board = uiState.board,
                 selectedCellId = uiState.selectedCellId,
@@ -130,7 +136,6 @@ fun GameContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Herramientas
             GameControls(
                 isNoteMode = uiState.isNoteMode,
                 onToggleNoteMode = onToggleNoteMode,
@@ -139,7 +144,6 @@ fun GameContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Teclado
             NumberPad(
                 onNumberClick = onNumberInput,
                 onDeleteClick = onDeleteInput
@@ -181,14 +185,14 @@ fun SudokuBoardView(
                             // todo hacerlo con canvas
                             .drawWithContent {
                                 drawContent()
-                                // Linea derecha
+                                // linea derecha
                                 drawLine(
                                     color = SudokuPalette.GridLine,
                                     start = Offset(size.width, 0f),
                                     end = Offset(size.width, size.height),
                                     strokeWidth = rightBorder.toPx()
                                 )
-                                // Linea abajo
+                                // linea abajo
                                 drawLine(
                                     color = SudokuPalette.GridLine,
                                     start = Offset(0f, size.height),
@@ -321,7 +325,7 @@ fun NumberPad(
                     modifier = Modifier.weight(1f)
                 )
             }
-            // Botón X (Borrar)
+            // boton de borrar
             SudokuButton(
                 text = "X",
                 onClick = onDeleteClick,
@@ -387,7 +391,6 @@ fun GameTopBar(
                 .padding(8.dp)
         )
 
-        // 2. Dificultad (Centro)
         Text(
             text = difficulty,
             style = MaterialTheme.typography.titleMedium,
@@ -395,24 +398,22 @@ fun GameTopBar(
             fontWeight = FontWeight.Bold
         )
 
-        // 3. Timer (Derecha)
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            // Icono de reloj opcional
             Icon(
-                painter = painterResource(id = android.R.drawable.ic_menu_recent_history), // O un icono de reloj mejor si tenés
+                painter = painterResource(id = android.R.drawable.ic_menu_recent_history),
                 contentDescription = null,
                 tint = SudokuPalette.TextAccent,
                 modifier = Modifier.size(16.dp)
             )
 
             Text(
-                text = elapsedTimeSeconds.toFormattedTime(), // <--- USAMOS LA EXTENSION
+                text = elapsedTimeSeconds.toFormattedTime(),
                 style = MaterialTheme.typography.titleMedium,
-                color = SudokuPalette.TextAccent, // Azulito para destacar
-                fontFamily = FontFamily.Monospace // Para que los números no bailen cuando cambian
+                color = SudokuPalette.TextAccent,
+                fontFamily = FontFamily.Monospace
             )
         }
     }
@@ -439,7 +440,6 @@ fun GameControls(
             contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
         ) {
             Icon(
-                // Si no tenes Undo, usa Refresh. Pero intenta buscar 'Undo'
                 imageVector = Icons.AutoMirrored.Filled.Undo,
                 contentDescription = "Deshacer",
                 modifier = Modifier.size(24.dp)
@@ -449,7 +449,7 @@ fun GameControls(
         }
 
 
-        // Notas
+        // notas
         val containerColor = if (isNoteMode) SudokuPalette.TextAccent else SudokuPalette.ButtonContainer
         val contentColor = if (isNoteMode) SudokuPalette.ScreenBackground else SudokuPalette.TextAccent
 

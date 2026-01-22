@@ -4,15 +4,17 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import ropa.miragaya.sudokupremium.data.local.GameDao
 import ropa.miragaya.sudokupremium.data.local.GameEntity
+import ropa.miragaya.sudokupremium.data.local.GameHistoryEntity
+import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.domain.model.SavedGame
 import javax.inject.Inject
 
 interface GameRepository {
-    // Observamos la partida guardada (Flow nos avisa si cambia)
     fun getSavedGame(): Flow<SavedGame?>
 
-    // Guardamos el estado actual
     suspend fun saveGame(game: SavedGame)
+
+    suspend fun saveVictory(time: Long, difficulty: Difficulty)
 }
 
 class GameRepositoryImpl @Inject constructor(
@@ -38,5 +40,16 @@ class GameRepositoryImpl @Inject constructor(
             difficulty = game.difficulty
         )
         dao.saveGame(entity)
+    }
+
+    override suspend fun saveVictory(time: Long, difficulty: Difficulty) {
+        dao.insertHistory(
+            GameHistoryEntity(
+                timeSeconds = time,
+                difficulty = difficulty
+            )
+        )
+
+        dao.clearSavedGame()
     }
 }

@@ -37,11 +37,9 @@
 
         private fun initializeGame() {
             viewModelScope.launch {
-                // 2. CARGA DE DATOS: Preguntamos al repo si hay algo guardado
                 val savedGame = repository.getSavedGame().firstOrNull()
 
                 if (savedGame != null) {
-                    // CASO A: Restauramos partida
                     _uiState.update {
                         it.copy(
                             board = savedGame.board,
@@ -58,7 +56,6 @@
                     saveGame()
                 }
 
-                // 3. Arrancamos el reloj
                 resumeTimer()
             }
         }
@@ -66,20 +63,16 @@
 
         fun onCellClicked(cellId: Int) {
             _uiState.update { currentState ->
-                // Lógica de toggle selección (si toco la misma, deselecciono)
                 val newSelection = if (currentState.selectedCellId == cellId) null else cellId
 
-                // Lógica de Highlight (Solo si hay selección y la celda está vacía)
                 val selectedCell = if (newSelection != null) currentState.board.cells.find { it.id == newSelection } else null
 
-                // 1. Peers (Tenue): Siempre que haya selección
                 val highlights = if (selectedCell != null) {
                     currentState.board.getPeers(selectedCell.id)
                 } else {
                     emptySet()
                 }
 
-                // 2. Same Value (Fuerte): Solo si la celda tiene valor
                 val sameValues = if (selectedCell != null && selectedCell.value != null) {
                     currentState.board.getCellsWithValue(selectedCell.value) - selectedCell.id
                 } else {
@@ -99,7 +92,9 @@
         }
 
         fun onNumberInput(number: Int) {
-            val currentSelectedId = _uiState.value.selectedCellId ?: return // Sin selección no hay paraíso
+            val currentSelectedId = _uiState.value.selectedCellId ?: return // sin selección no hay paraíso
+
+            var justWon = false
 
             _uiState.update { currentState ->
 
@@ -115,10 +110,50 @@
 
                 saveToHistory()
 
-                currentState.copy(board = newBoard)
+                justWon = newBoard.isSolved()
+
+                currentState.copy(
+                    board = newBoard,
+                    isComplete = justWon
+                )
             }
 
-            saveGame()
+            if (justWon) handleVictory() else saveGame()
+        }
+
+        private fun handleVictory() {
+            pauseTimer()
+
+            val finalTime = _uiState.value.elapsedTimeSeconds
+            val difficulty = _uiState.value.difficulty
+
+            viewModelScope.launch {
+                repository.saveVictory(finalTime, difficulty)
+            }
+        }
+
+        fun startNewGame() {
+            viewModelScope.launch {
+                history.clear()
+
+                val newBoard = BoardFactory.fromString(SAMPLE_PUZZLE)
+
+
+                _uiState.update {
+                    it.copy(
+                        board = newBoard,
+                        elapsedTimeSeconds = 0,
+                        isComplete = false,
+                        isNoteMode = false,
+                        selectedCellId = null,
+                        highlightedCellIds = emptySet(),
+                        sameValueCellIds = emptySet()
+                    )
+                }
+
+                saveGame()
+                resumeTimer()
+            }
         }
         fun onDeleteInput() {
             val currentSelectedId = _uiState.value.selectedCellId ?: return
@@ -164,7 +199,7 @@
         private fun saveGame() {
             viewModelScope.launch {
                 val currentState = _uiState.value
-                // Validación de seguridad para no guardar tableros vacíos
+                // para no guardar tableros vacíos
                 if (currentState.board.cells.isNotEmpty()) {
                     repository.saveGame(
                         SavedGame(

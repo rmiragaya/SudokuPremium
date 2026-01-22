@@ -3,7 +3,6 @@ package ropa.miragaya.sudokupremium.domain.model
 data class Board(
     val cells: List<Cell>
 ) {
-    // 1. Validación Board debe tener 81 celdas.
     init {
         require(cells.size == 81) { "Sudoku debe tener exactamente 81 celdas" }
     }
@@ -61,7 +60,7 @@ data class Board(
     fun validateConflicts(): Board {
         val errorIds = mutableSetOf<Int>()
 
-        // Busco duplicados
+        // busco duplicados
         fun checkGroup(group: List<Cell>) {
 
             val valueCounts = group.filter { it.value != null }.groupBy { it.value }
@@ -91,12 +90,12 @@ data class Board(
     fun getPeers(cellId: Int): Set<Int> {
         val target = cells.find { it.id == cellId } ?: return emptySet()
 
-        // Buscamos IDs de misma fila, columna y caja
+        // buscamos IDs de misma fila, columna y caja
         val rowPeers = rows[target.row].map { it.id }
         val colPeers = cols[target.col].map { it.id }
         val boxPeers = boxes[target.box].map { it.id }
 
-        // Unimos toddo en un Set (evita duplicados) y return celda seleccionada
+        // unimos toddo en un Set (evita duplicados) y return celda seleccionada
         return (rowPeers + colPeers + boxPeers).toSet() - target.id
     }
 
@@ -114,6 +113,10 @@ data class Board(
             }
         }
         return Board(newCells)
+    }
+
+    fun isSolved(): Boolean {
+        return cells.none { it.value == null } && cells.none { it.isError }
     }
 
     companion object {
