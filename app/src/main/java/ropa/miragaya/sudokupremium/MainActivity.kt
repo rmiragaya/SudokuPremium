@@ -10,8 +10,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import ropa.miragaya.sudokupremium.ui.game.GameScreen
+import ropa.miragaya.sudokupremium.ui.home.HomeScreen
+import ropa.miragaya.sudokupremium.ui.navigation.GameRoute
+import ropa.miragaya.sudokupremium.ui.navigation.HomeRoute
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPremiumTheme
 
 @AndroidEntryPoint
@@ -21,8 +27,36 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             SudokuPremiumTheme {
+                val navController = rememberNavController()
+
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    GameScreen(Modifier.padding(innerPadding))
+
+                    NavHost(
+                        navController = navController,
+                        startDestination = HomeRoute,
+                        modifier = Modifier.padding(innerPadding)
+                    ) {
+
+                        composable<HomeRoute> {
+                            HomeScreen(
+                                onNewGameClick = {
+                                    // TODO: Limpiar la DB para generar un juego nuevo
+                                    navController.navigate(GameRoute)
+                                },
+                                onContinueClick = {
+                                    navController.navigate(GameRoute)
+                                }
+                            )
+                        }
+
+                        composable<GameRoute> {
+                            GameScreen(
+                                onBackClick = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -34,7 +68,7 @@ class MainActivity : ComponentActivity() {
 fun GreetingPreview() {
     SudokuPremiumTheme {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-            GameScreen(Modifier.padding(innerPadding))
+            GameScreen(Modifier.padding(innerPadding)) {}
         }
     }
 }

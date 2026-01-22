@@ -42,11 +42,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Cell
 import ropa.miragaya.sudokupremium.ui.game.component.GameWonDialog
@@ -56,7 +56,8 @@ import ropa.miragaya.sudokupremium.util.toFormattedTime
 @Composable
 fun GameScreen(
     modifier: Modifier = Modifier,
-    viewModel: GameViewModel = viewModel()
+    viewModel: GameViewModel = hiltViewModel(),
+    onBackClick: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -91,7 +92,7 @@ fun GameScreen(
         onDeleteInput = viewModel::onDeleteInput,
         onToggleNoteMode = viewModel::toggleNoteMode,
         onUndo = viewModel::onUndo,
-        onBackClick = { /* TODO: Navegar atrás */ },
+        onBackClick = onBackClick,
         modifier = modifier
     )
 }
