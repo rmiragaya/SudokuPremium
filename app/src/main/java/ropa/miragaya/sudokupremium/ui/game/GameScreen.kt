@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -44,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Cell
@@ -55,7 +57,7 @@ fun GameScreen(
     modifier: Modifier = Modifier,
     viewModel: GameViewModel = viewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -80,6 +82,7 @@ fun GameScreen(
         onNumberInput = viewModel::onNumberInput,
         onDeleteInput = viewModel::onDeleteInput,
         onToggleNoteMode = viewModel::toggleNoteMode,
+        onUndo = viewModel::onUndo,
         onBackClick = { /* TODO: Navegar atrás */ },
         modifier = modifier
     )
@@ -92,6 +95,7 @@ fun GameContent(
     onNumberInput: (Int) -> Unit,
     onDeleteInput: () -> Unit,
     onToggleNoteMode: () -> Unit,
+    onUndo: () -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -129,7 +133,8 @@ fun GameContent(
             // Herramientas
             GameControls(
                 isNoteMode = uiState.isNoteMode,
-                onToggleNoteMode = onToggleNoteMode
+                onToggleNoteMode = onToggleNoteMode,
+                onUndo = onUndo
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -417,12 +422,33 @@ fun GameTopBar(
 fun GameControls(
     isNoteMode: Boolean,
     onToggleNoteMode: () -> Unit,
+    onUndo: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
+        Button(
+            onClick = onUndo,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = SudokuPalette.ButtonContainer,
+                contentColor = SudokuPalette.ButtonContent
+            ),
+            shape = RoundedCornerShape(12.dp),
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
+        ) {
+            Icon(
+                // Si no tenes Undo, usa Refresh. Pero intenta buscar 'Undo'
+                imageVector = Icons.AutoMirrored.Filled.Undo,
+                contentDescription = "Deshacer",
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+            Text("Undo", style = MaterialTheme.typography.labelLarge)
+        }
+
+
         // Notas
         val containerColor = if (isNoteMode) SudokuPalette.TextAccent else SudokuPalette.ButtonContainer
         val contentColor = if (isNoteMode) SudokuPalette.ScreenBackground else SudokuPalette.TextAccent
@@ -448,8 +474,6 @@ fun GameControls(
                 fontWeight = FontWeight.Bold
             )
         }
-
-        // Undo (futuro)
     }
 }
 
@@ -467,7 +491,8 @@ fun GameScreenPreview(
         onNumberInput = {},
         onDeleteInput = {},
         onBackClick = {},
-        onToggleNoteMode = {}
+        onToggleNoteMode = {},
+        onUndo = {}
     )
 }
 

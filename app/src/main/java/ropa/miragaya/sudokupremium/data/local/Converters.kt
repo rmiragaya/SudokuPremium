@@ -15,7 +15,6 @@ class Converters {
 
     @TypeConverter
     fun toBoard(json: String): Board {
-        // Truco: Gson necesita saber la clase exacta
         return gson.fromJson(json, Board::class.java)
     }
 

@@ -20,6 +20,22 @@ data class Board(
     // Por si acaso
     fun getCell(row: Int, col: Int): Cell = cells.first { it.row == row && it.col == col }
 
+    fun playMove(cellId: Int, number: Int, isNoteMode: Boolean): Board {
+
+        val cell = cells.find { it.id == cellId } ?: return this
+
+        if (cell.isGiven) return this
+
+        return if (isNoteMode) {
+            if (cell.value == null) {
+                withNoteToggle(cellId, number)
+            } else {
+                this
+            }
+        } else {
+            withCellValue(cellId, number).validateConflicts()
+        }
+    }
     fun withCellValue(cellId: Int, newValue: Int): Board {
         val newCells = cells.map { cell ->
             if (cell.id == cellId) {
