@@ -16,9 +16,6 @@ data class Board(
     val boxes: List<List<Cell>>
         get() = cells.groupBy { it.box }.toSortedMap().values.toList()
 
-    // Por si acaso
-    fun getCell(row: Int, col: Int): Cell = cells.first { it.row == row && it.col == col }
-
     fun playMove(cellId: Int, number: Int, isNoteMode: Boolean): Board {
 
         val cell = cells.find { it.id == cellId } ?: return this

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -15,7 +16,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,10 +33,23 @@ fun HomeScreen(
 ) {
     val hasSavedGame by viewModel.hasSavedGame.collectAsStateWithLifecycle()
 
+    HomeScreenContent(
+        hasSavedGame = hasSavedGame,
+        onNewGameClick = onNewGameClick,
+        onContinueClick = onContinueClick
+    )
+}
+
+@Composable
+fun HomeScreenContent(
+    hasSavedGame: Boolean,
+    onNewGameClick: () -> Unit,
+    onContinueClick: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(SudokuPalette.ScreenBackground),
+            .background(brush = SudokuPalette.MainGradient),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -68,16 +85,37 @@ fun MenuButton(
     onClick: () -> Unit,
     isPrimary: Boolean
 ) {
+
+    val buttonShape = RoundedCornerShape(16.dp)
+
     Button(
         onClick = onClick,
+        shape = buttonShape,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isPrimary) SudokuPalette.TextAccent else SudokuPalette.ButtonContainer,
-            contentColor = if (isPrimary) SudokuPalette.ScreenBackground else SudokuPalette.TextPrimary
+            containerColor = if (isPrimary) Color.Transparent else SudokuPalette.ButtonContainer,
+            contentColor = if (isPrimary) Color.White else SudokuPalette.TextPrimary
         ),
         modifier = Modifier
             .width(200.dp)
             .height(50.dp)
+            // APLICAMOS EL GRADIENTE ACÁ 👇
+            .background(
+                brush = if (isPrimary) SudokuPalette.ButtonGradient else SolidColor(Color.Transparent),
+                shape = buttonShape
+            )
     ) {
-        Text(text = text, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
     }
+}
+
+
+
+@Preview
+@Composable
+fun HomeScreenPreview() {
+    HomeScreenContent(hasSavedGame = true, onNewGameClick = {}, onContinueClick = {})
 }

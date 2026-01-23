@@ -1,5 +1,6 @@
 package ropa.miragaya.sudokupremium.ui.theme
 
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
 object SudokuPalette {
@@ -27,4 +28,18 @@ object SudokuPalette {
 
     val ButtonDestructive = Color(0xFF2D1F1F)
     val ButtonDestructiveContent = Color(0xFFE57373)
+
+    val MainGradient = Brush.verticalGradient(
+        colors = listOf(
+            Color(0xFF12141C),
+            Color(0xFF131528)
+        )
+    )
+
+    val ButtonGradient = Brush.verticalGradient(
+        colors = listOf(
+            Color(0xFF1363F7),
+            Color(0xFF236DF1)
+        )
+    )
 }
