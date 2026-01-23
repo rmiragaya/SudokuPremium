@@ -32,7 +32,7 @@ data class Board(
             withCellValue(cellId, number).validateConflicts()
         }
     }
-    fun withCellValue(cellId: Int, newValue: Int): Board {
+    fun withCellValue(cellId: Int, newValue: Int?): Board {
         val newCells = cells.map { cell ->
             if (cell.id == cellId) {
                 cell.copy(value = newValue)

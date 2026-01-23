@@ -1,0 +1,28 @@
+package ropa.miragaya.sudokupremium
+
+import junit.framework.TestCase.assertTrue
+import org.junit.Test
+import ropa.miragaya.sudokupremium.domain.generator.SudokuGenerator
+import ropa.miragaya.sudokupremium.domain.model.Difficulty
+import ropa.miragaya.sudokupremium.domain.solver.Solver
+
+class SudokuGeneratorTest {
+
+    @Test
+    fun `generate produces a solvable puzzle`() {
+        val solver = Solver()
+        val generator = SudokuGenerator(solver)
+
+        val puzzle = generator.generate(Difficulty.EASY)
+
+        assertTrue("El puzzle debe tener celdas vacías", puzzle.board.cells.any { it.value == null })
+
+        val solveResult = solver.solve(puzzle.board)
+        assertTrue("El puzzle generado debe ser resoluble", solveResult is ropa.miragaya.sudokupremium.domain.solver.SolveResult.Success)
+
+        val clues = puzzle.board.cells.count { it.value != null }
+        println("Puzzle generado!")
+        println("Dificultad: ${puzzle.difficulty}")
+        println("Pistas iniciales: $clues")
+    }
+}
