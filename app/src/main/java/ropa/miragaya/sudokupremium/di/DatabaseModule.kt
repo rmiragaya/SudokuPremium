@@ -23,7 +23,7 @@ object DatabaseModule {
             AppDatabase::class.java,
             "sudoku_db"
         )
-            .fallbackToDestructiveMigration() // util para desarrollo. Volar despues obviamente
+            .fallbackToDestructiveMigration(true) // util para desarrollo. Volar despues obviamente
             .build()
     }
 

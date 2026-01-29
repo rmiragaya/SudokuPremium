@@ -3,6 +3,7 @@
     import androidx.lifecycle.ViewModel
     import androidx.lifecycle.viewModelScope
     import dagger.hilt.android.lifecycle.HiltViewModel
+    import kotlinx.coroutines.Dispatchers
     import kotlinx.coroutines.Job
     import kotlinx.coroutines.delay
     import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,14 +15,17 @@
     import kotlinx.coroutines.launch
     import ropa.miragaya.sudokupremium.data.SAMPLE_PUZZLE
     import ropa.miragaya.sudokupremium.domain.factory.BoardFactory
+    import ropa.miragaya.sudokupremium.domain.generator.SudokuGenerator
     import ropa.miragaya.sudokupremium.domain.model.Board
+    import ropa.miragaya.sudokupremium.domain.model.Difficulty
     import ropa.miragaya.sudokupremium.domain.model.SavedGame
     import ropa.miragaya.sudokupremium.domain.repository.GameRepository
     import javax.inject.Inject
 
     @HiltViewModel
     class GameViewModel @Inject constructor(
-        private val repository: GameRepository
+        private val repository: GameRepository,
+        private val generator: SudokuGenerator
     ) : ViewModel() {
 
         private val _uiState = MutableStateFlow(GameUiState(board = Board.createEmpty()))
@@ -37,26 +41,25 @@
 
         private fun initializeGame() {
             viewModelScope.launch {
+                // Intentamos recuperar la partida guardada
                 val savedGame = repository.getSavedGame().firstOrNull()
 
                 if (savedGame != null) {
+                    // SI HAY PARTIDA: La cargamos en memoria
                     _uiState.update {
                         it.copy(
                             board = savedGame.board,
+                            solvedBoard = savedGame.solvedBoard, // <--- IMPORTANTE: Recuperamos la solución
                             elapsedTimeSeconds = savedGame.elapsedTimeSeconds,
-                            difficulty = savedGame.difficulty
+                            difficulty = savedGame.difficulty,
+                            isLoading = false
                         )
                     }
+                    resumeTimer()
                 } else {
-                    // todo que llegue de un repo un sudoku
-                    val initialBoard = BoardFactory.fromString(SAMPLE_PUZZLE)
-                    _uiState.update {
-                        it.copy(board = initialBoard, elapsedTimeSeconds = 0)
-                    }
-                    saveGame()
+                    // SI NO HAY PARTIDA: Generamos una nueva desde cero
+                    startNewGame(Difficulty.EASY)
                 }
-
-                resumeTimer()
             }
         }
 
@@ -93,7 +96,6 @@
 
         fun onNumberInput(number: Int) {
             val currentSelectedId = _uiState.value.selectedCellId ?: return // sin selección no hay paraíso
-
             var justWon = false
 
             _uiState.update { currentState ->
@@ -199,11 +201,15 @@
         private fun saveGame() {
             viewModelScope.launch {
                 val currentState = _uiState.value
+
+                val solution = currentState.solvedBoard ?: return@launch
+
                 // para no guardar tableros vacíos
                 if (currentState.board.cells.isNotEmpty()) {
                     repository.saveGame(
                         SavedGame(
                             board = currentState.board,
+                            solvedBoard = solution,
                             elapsedTimeSeconds = currentState.elapsedTimeSeconds,
                             difficulty = currentState.difficulty
                         )
@@ -228,6 +234,34 @@
                 it.copy(board = previousBoard)
             }
             saveGame()
+        }
+
+        fun startNewGame(difficulty: Difficulty) {
+            viewModelScope.launch(Dispatchers.Default) {
+                _uiState.update { it.copy(isLoading = true) }
+
+                history.clear()
+
+                val puzzle = generator.generate(difficulty)
+
+                _uiState.update {
+                    it.copy(
+                        board = puzzle.board,
+                        solvedBoard = puzzle.solvedBoard,
+                        difficulty = puzzle.difficulty,
+                        elapsedTimeSeconds = 0,
+                        isComplete = false,
+                        isNoteMode = false,
+                        selectedCellId = null,
+                        highlightedCellIds = emptySet(),
+                        sameValueCellIds = emptySet(),
+                        isLoading = false
+                    )
+                }
+
+                saveGame()
+                resumeTimer()
+            }
         }
 
         override fun onCleared() {

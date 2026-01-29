@@ -3,8 +3,9 @@ package ropa.miragaya.sudokupremium.domain.repository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import ropa.miragaya.sudokupremium.data.local.GameDao
-import ropa.miragaya.sudokupremium.data.local.GameEntity
 import ropa.miragaya.sudokupremium.data.local.GameHistoryEntity
+import ropa.miragaya.sudokupremium.data.mapper.toDomain
+import ropa.miragaya.sudokupremium.data.mapper.toEntity
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.domain.model.SavedGame
 import javax.inject.Inject
@@ -23,23 +24,12 @@ class GameRepositoryImpl @Inject constructor(
 
     override fun getSavedGame(): Flow<SavedGame?> {
         return dao.getSavedGame().map { entity ->
-            entity?.let {
-                SavedGame(
-                    board = it.board,
-                    elapsedTimeSeconds = it.elapsedTimeSeconds,
-                    difficulty = it.difficulty
-                )
-            }
+            entity?.toDomain()
         }
     }
 
     override suspend fun saveGame(game: SavedGame) {
-        val entity = GameEntity(
-            board = game.board,
-            elapsedTimeSeconds = game.elapsedTimeSeconds,
-            difficulty = game.difficulty
-        )
-        dao.saveGame(entity)
+        dao.saveGame(game.toEntity())
     }
 
     override suspend fun saveVictory(time: Long, difficulty: Difficulty) {

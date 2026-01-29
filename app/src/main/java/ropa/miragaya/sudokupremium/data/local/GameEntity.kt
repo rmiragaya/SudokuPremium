@@ -9,7 +9,8 @@ import ropa.miragaya.sudokupremium.domain.model.Difficulty
 data class GameEntity(
     @PrimaryKey val id: Int = 1,
     val board: Board,
+    val solvedBoard: Board,
     val elapsedTimeSeconds: Long = 0,
     val difficulty: Difficulty = Difficulty.MEDIUM,
-    val lastPlayed: Long = System.currentTimeMillis()
+    val lastPlayed: Long = System.currentTimeMillis(),
 )

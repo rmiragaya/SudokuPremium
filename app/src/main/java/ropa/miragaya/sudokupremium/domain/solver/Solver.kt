@@ -19,7 +19,7 @@ class Solver {
         var currentBoard = initialBoard
         var logicApplied = true
 
-        // Empezamos asumiendo que es Facilísimo
+        // Empezamos asumiendo que es easy peace lemon squizi
         var maxDifficulty = Difficulty.EASY
 
         while (logicApplied && !currentBoard.isSolved()) {
