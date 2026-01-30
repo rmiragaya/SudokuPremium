@@ -41,10 +41,10 @@ class MainActivity : ComponentActivity() {
                             HomeScreen(
                                 onNewGameClick = {
                                     // TODO: Limpiar la DB para generar un juego nuevo
-                                    navController.navigate(GameRoute)
+                                    navController.navigate(GameRoute(true))
                                 },
                                 onContinueClick = {
-                                    navController.navigate(GameRoute)
+                                    navController.navigate(GameRoute(false))
                                 }
                             )
                         }

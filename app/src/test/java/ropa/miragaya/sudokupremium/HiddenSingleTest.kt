@@ -4,7 +4,7 @@ import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
 import org.junit.Test
 import ropa.miragaya.sudokupremium.domain.model.Board
-import ropa.miragaya.sudokupremium.domain.solver.HiddenSingleStrategy
+import ropa.miragaya.sudokupremium.domain.solver.strategies.HiddenSingleStrategy
 
 class HiddenSingleTest {
 

@@ -48,6 +48,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Cell
+import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.ui.game.component.GameWonDialog
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
 import ropa.miragaya.sudokupremium.util.toFormattedTime
@@ -80,7 +81,7 @@ fun GameScreen(
     if (uiState.isComplete) {
         GameWonDialog(
             elapsedTimeSeconds = uiState.elapsedTimeSeconds,
-            onStartNewGame = { viewModel.startNewGame() }
+            onStartNewGame = { viewModel.startNewGame(Difficulty.EASY) } // todo seleccionar dificultad
         )
     }
 

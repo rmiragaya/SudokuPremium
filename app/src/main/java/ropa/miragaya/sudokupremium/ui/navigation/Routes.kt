@@ -8,4 +8,4 @@ object HomeRoute
 
 // Sudoku
 @Serializable
-object GameRoute
+data class GameRoute(val createNew: Boolean = false)

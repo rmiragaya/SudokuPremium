@@ -13,7 +13,7 @@ class GamePreviewProvider : PreviewParameterProvider<GameUiState> {
                 row = index / 9,
                 col = index % 9,
                 box = (index / 9 / 3) * 3 + (index % 9 / 3),
-                value = if (index % 7 == 0) (index % 9) + 1 else null, // Algunos números
+                value = if (index % 7 == 0) (index % 9) + 1 else null, // algunos números
                 isGiven = index % 7 == 0,
                 isError = index == 10 || index == 11 // error simulado
             )

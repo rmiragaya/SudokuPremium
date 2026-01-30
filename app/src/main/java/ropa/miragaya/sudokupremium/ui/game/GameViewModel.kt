@@ -1,7 +1,9 @@
     package ropa.miragaya.sudokupremium.ui.game
 
+    import androidx.lifecycle.SavedStateHandle
     import androidx.lifecycle.ViewModel
     import androidx.lifecycle.viewModelScope
+    import androidx.navigation.toRoute
     import dagger.hilt.android.lifecycle.HiltViewModel
     import kotlinx.coroutines.Dispatchers
     import kotlinx.coroutines.Job
@@ -13,19 +15,20 @@
     import kotlinx.coroutines.flow.update
     import kotlinx.coroutines.isActive
     import kotlinx.coroutines.launch
-    import ropa.miragaya.sudokupremium.data.SAMPLE_PUZZLE
-    import ropa.miragaya.sudokupremium.domain.factory.BoardFactory
     import ropa.miragaya.sudokupremium.domain.generator.SudokuGenerator
     import ropa.miragaya.sudokupremium.domain.model.Board
     import ropa.miragaya.sudokupremium.domain.model.Difficulty
     import ropa.miragaya.sudokupremium.domain.model.SavedGame
     import ropa.miragaya.sudokupremium.domain.repository.GameRepository
+    import ropa.miragaya.sudokupremium.domain.solver.utils.SudokuDebugUtils
+    import ropa.miragaya.sudokupremium.ui.navigation.GameRoute
     import javax.inject.Inject
 
     @HiltViewModel
     class GameViewModel @Inject constructor(
         private val repository: GameRepository,
-        private val generator: SudokuGenerator
+        private val generator: SudokuGenerator,
+        savedStateHandle: SavedStateHandle
     ) : ViewModel() {
 
         private val _uiState = MutableStateFlow(GameUiState(board = Board.createEmpty()))
@@ -36,20 +39,26 @@
         private val history = ArrayDeque<Board>()
 
         init {
-            initializeGame()
+            val args = savedStateHandle.toRoute<GameRoute>()
+
+            if (args.createNew) {
+//                startNewGame(Difficulty.EASY) // todo seleccionar dificultad
+                startNewGame(Difficulty.MEDIUM) // todo seleccionar dificultad
+            } else {
+                initializeGame()
+            }
         }
 
         private fun initializeGame() {
             viewModelScope.launch {
-                // Intentamos recuperar la partida guardada
+                // recuperamos partida guardada (si hay)
                 val savedGame = repository.getSavedGame().firstOrNull()
 
                 if (savedGame != null) {
-                    // SI HAY PARTIDA: La cargamos en memoria
                     _uiState.update {
                         it.copy(
                             board = savedGame.board,
-                            solvedBoard = savedGame.solvedBoard, // <--- IMPORTANTE: Recuperamos la solución
+                            solvedBoard = savedGame.solvedBoard,
                             elapsedTimeSeconds = savedGame.elapsedTimeSeconds,
                             difficulty = savedGame.difficulty,
                             isLoading = false
@@ -57,8 +66,7 @@
                     }
                     resumeTimer()
                 } else {
-                    // SI NO HAY PARTIDA: Generamos una nueva desde cero
-                    startNewGame(Difficulty.EASY)
+                    startNewGame(Difficulty.EASY) // todo seleccionar dificultad
                 }
             }
         }
@@ -134,29 +142,6 @@
             }
         }
 
-        fun startNewGame() {
-            viewModelScope.launch {
-                history.clear()
-
-                val newBoard = BoardFactory.fromString(SAMPLE_PUZZLE)
-
-
-                _uiState.update {
-                    it.copy(
-                        board = newBoard,
-                        elapsedTimeSeconds = 0,
-                        isComplete = false,
-                        isNoteMode = false,
-                        selectedCellId = null,
-                        highlightedCellIds = emptySet(),
-                        sameValueCellIds = emptySet()
-                    )
-                }
-
-                saveGame()
-                resumeTimer()
-            }
-        }
         fun onDeleteInput() {
             val currentSelectedId = _uiState.value.selectedCellId ?: return
 
@@ -243,6 +228,8 @@
                 history.clear()
 
                 val puzzle = generator.generate(difficulty)
+
+                SudokuDebugUtils.logPuzzleGenerated(puzzle)
 
                 _uiState.update {
                     it.copy(

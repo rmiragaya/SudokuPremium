@@ -1,10 +1,12 @@
 package ropa.miragaya.sudokupremium.domain.generator
 
+import android.util.Log
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.domain.model.SudokuPuzzle
 import ropa.miragaya.sudokupremium.domain.solver.SolveResult
 import ropa.miragaya.sudokupremium.domain.solver.Solver
+import ropa.miragaya.sudokupremium.domain.solver.utils.SudokuDebugUtils
 import javax.inject.Inject
 import kotlin.random.Random
 
@@ -32,56 +34,45 @@ class SudokuGenerator @Inject constructor(
         return bestPuzzle!!
     }
 
-    private fun generateRandomPuzzle(targetDifficulty: Difficulty): SudokuPuzzle {
+    private fun generateRandomPuzzle(maxDifficultyAllowed: Difficulty): SudokuPuzzle {
         val solvedBoard = BoardGenerator.generateFilledBoard()
         var currentBoard = solvedBoard
-
         val cellIndices = (0..80).toMutableList().shuffled(Random)
+
+        // asumimos es easy
         var currentDifficulty = Difficulty.EASY
 
-        val stopAtCluesCount = when (targetDifficulty) {
-            Difficulty.EASY -> 40
-            Difficulty.MEDIUM -> 32
-            Difficulty.HARD -> 24
-        }
-
-        var cluesCount = 81
-
         for (index in cellIndices) {
-            if (cluesCount <= stopAtCluesCount) break
-
             if (currentBoard.cells[index].value == null) continue
 
+            // borramos un nuero
             val nextBoard = currentBoard.withCellValue(index, null)
 
+            // solver intenta resolverlo
             val result = solver.solve(nextBoard)
 
             when (result) {
                 is SolveResult.Success -> {
-                    if (result.difficulty.ordinal <= targetDifficulty.ordinal) {
+                    // resuelto y dentro de la misma dificultad anterior
+                    if (result.difficulty.ordinal <= maxDifficultyAllowed.ordinal) {
                         currentBoard = nextBoard
                         currentDifficulty = result.difficulty
-                        cluesCount--
                     }
+                    // resuelto pero mas dificil que la dificultad anterior
                 }
                 is SolveResult.Failure, SolveResult.Invalid -> {
+                    Log.d("SUDOKU_SOLVER", "Solve Result: ${result.javaClass.simpleName}")
                 }
             }
         }
 
-        // las celdas que tenemos son las fijas para el sudoku (isGiven)
+        // guardamos los valores generados como isGiven
         val finalCells = currentBoard.cells.map { cell ->
-            if (cell.value != null) {
-                cell.copy(isGiven = true)
-            } else {
-                cell
-            }
+            if (cell.value != null) cell.copy(isGiven = true) else cell
         }
 
-        val finalBoard = Board(finalCells)
-
         return SudokuPuzzle(
-            board = finalBoard,
+            board = Board(finalCells),
             solvedBoard = solvedBoard,
             difficulty = currentDifficulty
         )

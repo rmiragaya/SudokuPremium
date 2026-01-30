@@ -2,7 +2,7 @@ package ropa.miragaya.sudokupremium.domain.solver
 
 import ropa.miragaya.sudokupremium.domain.model.Board
 
-// Calcula los posibles números (1-9) para una celda específica
+// calcula los posibles números (1-9) para una celda específica
 fun Board.calculateCandidates(cellId: Int): Set<Int> {
     val targetCell = cells.find { it.id == cellId } ?: return emptySet()
 

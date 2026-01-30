@@ -1,4 +1,4 @@
-package ropa.miragaya.sudokupremium.domain.solver
+package ropa.miragaya.sudokupremium.domain.solver.strategies
 
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty

@@ -98,7 +98,6 @@ fun MenuButton(
         modifier = Modifier
             .width(200.dp)
             .height(50.dp)
-            // APLICAMOS EL GRADIENTE ACÁ 👇
             .background(
                 brush = if (isPrimary) SudokuPalette.ButtonGradient else SolidColor(Color.Transparent),
                 shape = buttonShape

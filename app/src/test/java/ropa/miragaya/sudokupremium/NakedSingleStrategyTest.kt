@@ -4,7 +4,7 @@ import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
 import org.junit.Test
 import ropa.miragaya.sudokupremium.domain.model.Board
-import ropa.miragaya.sudokupremium.domain.solver.NakedSingleStrategy
+import ropa.miragaya.sudokupremium.domain.solver.strategies.NakedSingleStrategy
 
 class NakedSingleTest {
 
@@ -18,11 +18,9 @@ class NakedSingleTest {
             board = board.withCellValue(colIndex, colIndex + 1)
         }
 
-        // 2. EXECUTE
         val strategy = NakedSingleStrategy()
         val newBoard = strategy.apply(board)
 
-        // 3. ASSERT
         assertNotNull("La estrategia debería haber encontrado un movimiento", newBoard)
 
         val targetCell = newBoard!!.cells.find { it.id == 8 }

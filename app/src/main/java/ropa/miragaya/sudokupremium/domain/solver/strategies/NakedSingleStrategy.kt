@@ -1,7 +1,8 @@
-package ropa.miragaya.sudokupremium.domain.solver
+package ropa.miragaya.sudokupremium.domain.solver.strategies
 
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
+import ropa.miragaya.sudokupremium.domain.solver.calculateCandidates
 
 class NakedSingleStrategy : SolvingStrategy {
     override val name = "Naked Single"
@@ -9,16 +10,11 @@ class NakedSingleStrategy : SolvingStrategy {
 
     /** Devuelve un Board nuevo, con el cambio aplicado, o null si no encontró nada. */
     override fun apply(board: Board): Board? {
-        val emptyCells = board.cells.filter { it.value == null }
+        val singleNoteCell = board.cells.find { it.value == null && it.notes.size == 1 }
 
-        for (cell in emptyCells) {
-            val candidates = board.calculateCandidates(cell.id)
-
-            if (candidates.size == 1) {
-                val valueToPlace = candidates.first()
-
-                return board.withCellValue(cell.id, valueToPlace)
-            }
+        if (singleNoteCell != null) {
+            val valueToPlace = singleNoteCell.notes.first()
+            return board.withCellValue(singleNoteCell.id, valueToPlace)
         }
         return null
     }
