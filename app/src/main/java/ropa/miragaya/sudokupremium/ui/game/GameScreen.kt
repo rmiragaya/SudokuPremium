@@ -1,5 +1,10 @@
 package ropa.miragaya.sudokupremium.ui.game
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -50,6 +55,7 @@ import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Cell
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.ui.game.component.GameWonDialog
+import ropa.miragaya.sudokupremium.ui.game.component.SudokuDecodingBoard
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
 import ropa.miragaya.sudokupremium.util.toFormattedTime
 
@@ -127,13 +133,28 @@ fun GameContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            SudokuBoardView(
-                board = uiState.board,
-                selectedCellId = uiState.selectedCellId,
-                highlightedIds = uiState.highlightedCellIds,
-                sameValueIds = uiState.sameValueCellIds,
-                onCellClick = onCellClick
-            )
+            AnimatedContent(
+                targetState = uiState.isLoading,
+                transitionSpec = {
+                    (fadeIn(animationSpec = tween(600)))
+                        .togetherWith(
+                            fadeOut(animationSpec = tween(600))
+                        )
+                },
+                label = "BoardTransition"
+            ) { isLoading ->
+                if (isLoading) {
+                    SudokuDecodingBoard()
+                } else {
+                    SudokuBoardView(
+                        board = uiState.board,
+                        selectedCellId = uiState.selectedCellId,
+                        highlightedIds = uiState.highlightedCellIds,
+                        sameValueIds = uiState.sameValueCellIds,
+                        onCellClick = onCellClick
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -264,7 +285,9 @@ fun CellView(
 @Composable
 fun NotesGrid(notes: Set<Int>) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(2.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(2.dp),
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
         repeat(3) { row ->
@@ -451,8 +474,10 @@ fun GameControls(
 
 
         // notas
-        val containerColor = if (isNoteMode) SudokuPalette.TextAccent else SudokuPalette.ButtonContainer
-        val contentColor = if (isNoteMode) SudokuPalette.ScreenBackground else SudokuPalette.TextAccent
+        val containerColor =
+            if (isNoteMode) SudokuPalette.TextAccent else SudokuPalette.ButtonContainer
+        val contentColor =
+            if (isNoteMode) SudokuPalette.ScreenBackground else SudokuPalette.TextAccent
 
         Button(
             onClick = onToggleNoteMode,
@@ -485,7 +510,7 @@ fun GameControls(
 @Composable
 fun GameScreenPreview(
     @PreviewParameter(GamePreviewProvider::class) uiState: GameUiState
-){
+) {
     GameContent(
         uiState = uiState,
         onCellClick = {},

@@ -40,7 +40,6 @@ class MainActivity : ComponentActivity() {
                         composable<HomeRoute> {
                             HomeScreen(
                                 onNewGameClick = {
-                                    // TODO: Limpiar la DB para generar un juego nuevo
                                     navController.navigate(GameRoute(true))
                                 },
                                 onContinueClick = {
