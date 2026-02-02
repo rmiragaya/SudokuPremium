@@ -42,7 +42,6 @@
             val args = savedStateHandle.toRoute<GameRoute>()
 
             if (args.createNew) {
-//                startNewGame(Difficulty.EASY) // todo seleccionar dificultad
                 startNewGame(Difficulty.MEDIUM) // todo seleccionar dificultad
             } else {
                 initializeGame()
@@ -66,7 +65,7 @@
                     }
                     resumeTimer()
                 } else {
-                    startNewGame(Difficulty.EASY) // todo seleccionar dificultad
+                    startNewGame(Difficulty.MEDIUM) // todo seleccionar dificultad
                 }
             }
         }

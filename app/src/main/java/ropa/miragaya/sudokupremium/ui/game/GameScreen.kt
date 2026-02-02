@@ -87,7 +87,7 @@ fun GameScreen(
     if (uiState.isComplete) {
         GameWonDialog(
             elapsedTimeSeconds = uiState.elapsedTimeSeconds,
-            onStartNewGame = { viewModel.startNewGame(Difficulty.EASY) } // todo seleccionar dificultad
+            onStartNewGame = { viewModel.startNewGame(Difficulty.MEDIUM) } // todo seleccionar dificultad
         )
     }
 

@@ -55,6 +55,9 @@ class SudokuGenerator @Inject constructor(
                 is SolveResult.Success -> {
                     // resuelto y dentro de la misma dificultad anterior
                     if (result.difficulty.ordinal <= maxDifficultyAllowed.ordinal) {
+                        if (result.difficulty.ordinal > currentDifficulty.ordinal) {
+                            Log.d("SUDOKU_SOLVER", "🚀 EL PUZZLE SUBIÓ DE NIVEL: ${currentDifficulty.name} -> ${result.difficulty.name}")
+                        }
                         currentBoard = nextBoard
                         currentDifficulty = result.difficulty
                     }

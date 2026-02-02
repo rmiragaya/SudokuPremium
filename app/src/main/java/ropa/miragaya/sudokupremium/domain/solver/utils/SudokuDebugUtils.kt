@@ -12,7 +12,7 @@ object SudokuDebugUtils {
         val changes = mutableListOf<String>()
         var valueChanged = false
 
-        // Comparamos celda por celda
+        // comparamos celda por celda
         for (i in 0 until 81) {
             val oldCell = oldBoard.cells[i]
             val newCell = newBoard.cells[i]
@@ -33,7 +33,7 @@ object SudokuDebugUtils {
         Log.d(TAG, "⚡ ESTRATEGIA: $strategyName")
         changes.forEach { Log.d(TAG, "   $it") }
 
-        // Si se puso un número, mostramos el tablero completo para ver el progreso
+        // si se puso un número, mostramos el tablero completo para ver el progreso
         if (valueChanged) {
             printBoard(newBoard)
         }

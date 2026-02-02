@@ -47,7 +47,6 @@ class Solver {
                     logicApplied = true
                     if (strategy.difficulty.ordinal > maxDifficulty.ordinal) {
                         maxDifficulty = strategy.difficulty
-                        Log.d("SUDOKU_SOLVER", "dificultad nueva: $maxDifficulty")
                     }
 
                     break
