@@ -14,6 +14,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,19 +26,32 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
 
 @Composable
 fun HomeScreen(
-    onNewGameClick: () -> Unit,
+    onNewGameClick: (Difficulty) -> Unit,
     onContinueClick: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val hasSavedGame by viewModel.hasSavedGame.collectAsStateWithLifecycle()
 
+    var showDifficultySheet by remember { mutableStateOf(false) }
+
+    if (showDifficultySheet) {
+        DifficultySelectionSheet(
+            onDismiss = { showDifficultySheet = false },
+            onDifficultySelected = { difficulty ->
+                showDifficultySheet = false
+                onNewGameClick(difficulty)
+            }
+        )
+    }
+
     HomeScreenContent(
         hasSavedGame = hasSavedGame,
-        onNewGameClick = onNewGameClick,
+        onNewGameClick = { showDifficultySheet = true },
         onContinueClick = onContinueClick
     )
 }

@@ -39,8 +39,10 @@ class MainActivity : ComponentActivity() {
 
                         composable<HomeRoute> {
                             HomeScreen(
-                                onNewGameClick = {
-                                    navController.navigate(GameRoute(true))
+                                onNewGameClick = { difficulty ->
+                                    navController.navigate(
+                                        GameRoute(createNew = true, difficulty = difficulty)
+                                    )
                                 },
                                 onContinueClick = {
                                     navController.navigate(GameRoute(false))

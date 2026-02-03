@@ -42,7 +42,7 @@
             val args = savedStateHandle.toRoute<GameRoute>()
 
             if (args.createNew) {
-                startNewGame(Difficulty.MEDIUM) // todo seleccionar dificultad
+                startNewGame(args.difficulty)
             } else {
                 initializeGame()
             }
@@ -222,13 +222,20 @@
 
         fun startNewGame(difficulty: Difficulty) {
             viewModelScope.launch(Dispatchers.Default) {
+
                 _uiState.update { it.copy(isLoading = true) }
 
                 history.clear()
 
+                val minLoadingTimeJob = launch {
+                    delay(2000)
+                }
+
                 val puzzle = generator.generate(difficulty)
 
                 SudokuDebugUtils.logPuzzleGenerated(puzzle)
+
+                minLoadingTimeJob.join()
 
                 _uiState.update {
                     it.copy(
