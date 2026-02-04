@@ -26,6 +26,11 @@ class SudokuGenerator @Inject constructor(
             val puzzle = generateRandomPuzzle(targetDifficulty)
 
             if (puzzle.difficulty == targetDifficulty) {
+
+                Log.d("SUDOKU_TRACE", "--- REPRODUCIENDO SOLUCIÓN PASO A PASO ---")
+                solver.solve(puzzle.board, logSteps = true)
+
+                SudokuDebugUtils.logPuzzleGenerated(puzzle)
                 return puzzle
             }
             bestPuzzle = puzzle

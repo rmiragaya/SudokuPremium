@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -55,6 +56,7 @@ import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Cell
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.ui.game.component.GameWonDialog
+import ropa.miragaya.sudokupremium.ui.game.component.HintDialog
 import ropa.miragaya.sudokupremium.ui.game.component.SudokuDecodingBoard
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
 import ropa.miragaya.sudokupremium.util.toFormattedTime
@@ -91,6 +93,13 @@ fun GameScreen(
         )
     }
 
+    if (uiState.activeHint != null) {
+        HintDialog(
+            hint = uiState.activeHint!!,
+            onDismiss = viewModel::onDismissHint
+        )
+    }
+
     GameContent(
         uiState = uiState,
         onCellClick = viewModel::onCellClicked,
@@ -99,6 +108,7 @@ fun GameScreen(
         onToggleNoteMode = viewModel::toggleNoteMode,
         onUndo = viewModel::onUndo,
         onBackClick = onBackClick,
+        onHintClick = viewModel::onRequestHint,
         modifier = modifier
     )
 }
@@ -112,6 +122,7 @@ fun GameContent(
     onToggleNoteMode: () -> Unit,
     onUndo: () -> Unit,
     onBackClick: () -> Unit,
+    onHintClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -123,7 +134,8 @@ fun GameContent(
         GameTopBar(
             difficulty = uiState.difficulty.name,
             elapsedTimeSeconds = uiState.elapsedTimeSeconds,
-            onBackClick = onBackClick
+            onBackClick = onBackClick,
+            onHintClick = onHintClick
         )
 
         Column(
@@ -396,6 +408,7 @@ fun GameTopBar(
     difficulty: String,
     elapsedTimeSeconds: Long,
     onBackClick: () -> Unit,
+    onHintClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -421,6 +434,22 @@ fun GameTopBar(
             color = SudokuPalette.TextPrimary,
             fontWeight = FontWeight.Bold
         )
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+
+            // 👇 NUEVO BOTÓN DE PISTA
+            Icon(
+                imageVector = Icons.Default.Lightbulb,
+                contentDescription = "Pedir Pista",
+                tint = SudokuPalette.TextAccent,
+                modifier = Modifier
+                    .size(28.dp)
+                    .clickable { onHintClick() }
+            )
+        }
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -518,6 +547,7 @@ fun GameScreenPreview(
         onDeleteInput = {},
         onBackClick = {},
         onToggleNoteMode = {},
+        onHintClick = {},
         onUndo = {}
     )
 }

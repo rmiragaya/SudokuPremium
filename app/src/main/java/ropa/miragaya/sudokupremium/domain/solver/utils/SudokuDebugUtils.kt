@@ -6,38 +6,27 @@ import ropa.miragaya.sudokupremium.domain.model.SudokuPuzzle
 
 object SudokuDebugUtils {
 
-    private const val TAG = "SUDOKU_SOLVER"
+    private const val TAG = "SUDOKU_TRACE"
 
     fun logStep(strategyName: String, oldBoard: Board, newBoard: Board) {
-        val changes = mutableListOf<String>()
-        var valueChanged = false
 
-        // comparamos celda por celda
         for (i in 0 until 81) {
             val oldCell = oldBoard.cells[i]
             val newCell = newBoard.cells[i]
 
+            val coord = "(${oldCell.row + 1}, ${oldCell.col + 1})"
+
             if (oldCell.value != newCell.value) {
-                changes.add("✍️ PUSO un [${newCell.value}] en (${oldCell.row}, ${oldCell.col}) - Box ${oldCell.box}")
-                valueChanged = true
+                Log.d(TAG, "✅ [${strategyName.padEnd(18)}] PUSO ${newCell.value} en $coord")
             }
 
             if (oldCell.notes != newCell.notes) {
                 val removed = oldCell.notes - newCell.notes
                 if (removed.isNotEmpty()) {
-                    changes.add("❌ BORRÓ nota(s) $removed en (${oldCell.row}, ${oldCell.col})")
+                    Log.d(TAG, "🧹 [${strategyName.padEnd(18)}] BORRÓ $removed en $coord")
                 }
             }
         }
-
-        Log.d(TAG, "⚡ ESTRATEGIA: $strategyName")
-        changes.forEach { Log.d(TAG, "   $it") }
-
-        // si se puso un número, mostramos el tablero completo para ver el progreso
-        if (valueChanged) {
-            printBoard(newBoard)
-        }
-        Log.d(TAG, "--------------------------------------------------")
     }
 
     fun logPuzzleGenerated(puzzle: SudokuPuzzle) {

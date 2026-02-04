@@ -2,6 +2,7 @@ package ropa.miragaya.sudokupremium.ui.game
 
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
+import ropa.miragaya.sudokupremium.domain.model.SudokuHint
 
 data class GameUiState(
     val board: Board,
@@ -13,5 +14,7 @@ data class GameUiState(
     val sameValueCellIds: Set<Int> = emptySet(),
     val isNoteMode: Boolean = false,
     val isComplete: Boolean = false,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val activeHint: SudokuHint? = null,
+    val showNoHintFound: Boolean = false
 )
