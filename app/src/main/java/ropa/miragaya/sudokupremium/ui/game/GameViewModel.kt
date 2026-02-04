@@ -223,7 +223,12 @@
         fun startNewGame(difficulty: Difficulty) {
             viewModelScope.launch(Dispatchers.Default) {
 
-                _uiState.update { it.copy(isLoading = true) }
+                _uiState.update {
+                    it.copy(
+                        isLoading = true,
+                        difficulty = difficulty
+                    )
+                }
 
                 history.clear()
 
