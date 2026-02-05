@@ -4,6 +4,7 @@ import android.util.Log
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.domain.model.SudokuPuzzle
+import ropa.miragaya.sudokupremium.domain.model.analytics.GenerationMetrics
 import ropa.miragaya.sudokupremium.domain.solver.SolveResult
 import ropa.miragaya.sudokupremium.domain.solver.Solver
 import ropa.miragaya.sudokupremium.domain.solver.utils.SudokuDebugUtils
@@ -19,24 +20,54 @@ class SudokuGenerator @Inject constructor(
      * Como el proceso es aleatorio, ponemos un límite de intentos.
      */
     fun generate(targetDifficulty: Difficulty): SudokuPuzzle {
-
+        val startTime = System.currentTimeMillis()
         var bestPuzzle: SudokuPuzzle? = null
 
-        repeat(10) {
+        val maxAttempts = 50
+
+        for (attempt in 1..maxAttempts) {
             val puzzle = generateRandomPuzzle(targetDifficulty)
 
+            // Encontramos la dificultad exacta
             if (puzzle.difficulty == targetDifficulty) {
+                val endTime = System.currentTimeMillis()
 
-                Log.d("SUDOKU_TRACE", "--- REPRODUCIENDO SOLUCIÓN PASO A PASO ---")
+                // 📝 LOGUEAMOS EL ÉXITO
+                val metrics = GenerationMetrics(
+                    success = true,
+                    targetDifficulty = targetDifficulty,
+                    actualDifficulty = puzzle.difficulty,
+                    attempts = attempt,
+                    durationMs = endTime - startTime,
+                    boardString = puzzle.board.toGridString()
+                )
+                Log.i("SUDOKU_ANALYTICS", metrics.toString())
+
+                Log.d("SUDOKU_TRACE", "--- REPRODUCIENDO SOLUCIÓN ---")
                 solver.solve(puzzle.board, logSteps = true)
 
                 SudokuDebugUtils.logPuzzleGenerated(puzzle)
                 return puzzle
             }
-            bestPuzzle = puzzle
+
+            if (bestPuzzle == null || puzzle.difficulty.ordinal > bestPuzzle.difficulty.ordinal) {
+                bestPuzzle = puzzle
+            }
         }
 
-        return bestPuzzle!!
+        // 📝 LOGUEAMOS EL "FALLO" (Aproximación)
+        val endTime = System.currentTimeMillis()
+        val metrics = GenerationMetrics(
+            success = false,
+            targetDifficulty = targetDifficulty,
+            actualDifficulty = bestPuzzle!!.difficulty,
+            attempts = maxAttempts,
+            durationMs = endTime - startTime,
+            boardString = bestPuzzle.board.toGridString()
+        )
+        Log.w("SUDOKU_ANALYTICS", metrics.toString())
+
+        return bestPuzzle
     }
 
     private fun generateRandomPuzzle(maxDifficultyAllowed: Difficulty): SudokuPuzzle {
@@ -50,10 +81,8 @@ class SudokuGenerator @Inject constructor(
         for (index in cellIndices) {
             if (currentBoard.cells[index].value == null) continue
 
-            // borramos un nuero
             val nextBoard = currentBoard.withCellValue(index, null)
 
-            // solver intenta resolverlo
             val result = solver.solve(nextBoard)
 
             when (result) {
@@ -61,13 +90,17 @@ class SudokuGenerator @Inject constructor(
                     // resuelto y dentro de la misma dificultad anterior
                     if (result.difficulty.ordinal <= maxDifficultyAllowed.ordinal) {
                         if (result.difficulty.ordinal > currentDifficulty.ordinal) {
-                            Log.d("SUDOKU_SOLVER", "🚀 EL PUZZLE SUBIÓ DE NIVEL: ${currentDifficulty.name} -> ${result.difficulty.name}")
+                            Log.d(
+                                "SUDOKU_SOLVER",
+                                "🚀 EL PUZZLE SUBIÓ DE NIVEL: ${currentDifficulty.name} -> ${result.difficulty.name}"
+                            )
                         }
                         currentBoard = nextBoard
                         currentDifficulty = result.difficulty
                     }
                     // resuelto pero mas dificil que la dificultad anterior
                 }
+
                 is SolveResult.Failure, SolveResult.Invalid -> {
                     Log.d("SUDOKU_SOLVER", "Solve Result: ${result.javaClass.simpleName}")
                 }

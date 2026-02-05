@@ -14,7 +14,7 @@ object SudokuPalette {
 
     val CellSelected = Color(0xFF3E7BFA).copy(alpha = 0.35f)
 
-    val CellHighlight = Color(0xFF3E7BFA).copy(alpha = 0.05f)
+    val CellHighlight = Color(0xFF3E7BFA).copy(alpha = 0.15f)
 
     val CellErrorBg = Color(0xFFCF6679).copy(alpha = 0.30f)
 

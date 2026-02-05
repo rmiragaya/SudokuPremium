@@ -116,6 +116,27 @@ data class Board(
         return cells.none { it.value == null } && cells.none { it.isError }
     }
 
+    fun toGridString(): String {
+        val sb = StringBuilder()
+        sb.append("\n┌───────┬───────┬───────┐\n")
+
+        for (row in 0 until 9) {
+            sb.append("│ ")
+            for (col in 0 until 9) {
+                val cell = cells[row * 9 + col]
+                val value = cell.value?.toString() ?: "."
+                sb.append("$value ")
+                if ((col + 1) % 3 == 0 && col < 8) sb.append("│ ")
+            }
+            sb.append("│\n")
+            if ((row + 1) % 3 == 0 && row < 8) {
+                sb.append("├───────┼───────┼───────┤\n")
+            }
+        }
+        sb.append("└───────┴───────┴───────┘")
+        return sb.toString()
+    }
+
     companion object {
         fun createEmpty(): Board {
             val emptyCells = List(81) { index ->

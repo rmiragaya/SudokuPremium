@@ -67,7 +67,7 @@
                     }
                     resumeTimer()
                 } else {
-                    startNewGame(Difficulty.MEDIUM) // todo seleccionar dificultad
+                    startNewGame(Difficulty.MEDIUM) // Fail-Safe si no logra cargar la partida guardada
                 }
             }
         }
@@ -239,8 +239,6 @@
                 }
 
                 val puzzle = generator.generate(difficulty)
-
-                SudokuDebugUtils.logPuzzleGenerated(puzzle)
 
                 minLoadingTimeJob.join()
 

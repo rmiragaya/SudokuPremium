@@ -54,7 +54,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Cell
-import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.ui.game.component.GameWonDialog
 import ropa.miragaya.sudokupremium.ui.game.component.HintDialog
 import ropa.miragaya.sudokupremium.ui.game.component.SudokuDecodingBoard
@@ -89,7 +88,7 @@ fun GameScreen(
     if (uiState.isComplete) {
         GameWonDialog(
             elapsedTimeSeconds = uiState.elapsedTimeSeconds,
-            onStartNewGame = { viewModel.startNewGame(Difficulty.MEDIUM) } // todo seleccionar dificultad
+            onStartNewGame = { viewModel.startNewGame(uiState.difficulty) }
         )
     }
 
@@ -170,10 +169,13 @@ fun GameContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            val controlsEnabled = !uiState.isLoading
+
             GameControls(
                 isNoteMode = uiState.isNoteMode,
                 onToggleNoteMode = onToggleNoteMode,
-                onUndo = onUndo
+                onUndo = onUndo,
+                enabled = controlsEnabled
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -440,7 +442,6 @@ fun GameTopBar(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // 👇 NUEVO BOTÓN DE PISTA
             Icon(
                 imageVector = Icons.Default.Lightbulb,
                 contentDescription = "Pedir Pista",
@@ -449,35 +450,36 @@ fun GameTopBar(
                     .size(28.dp)
                     .clickable { onHintClick() }
             )
-        }
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Icon(
-                painter = painterResource(id = android.R.drawable.ic_menu_recent_history),
-                contentDescription = null,
-                tint = SudokuPalette.TextAccent,
-                modifier = Modifier.size(16.dp)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = android.R.drawable.ic_menu_recent_history),
+                    contentDescription = null,
+                    tint = SudokuPalette.TextAccent,
+                    modifier = Modifier.size(16.dp)
+                )
 
-            Text(
-                text = elapsedTimeSeconds.toFormattedTime(),
-                style = MaterialTheme.typography.titleMedium,
-                color = SudokuPalette.TextAccent,
-                fontFamily = FontFamily.Monospace
-            )
+                Text(
+                    text = elapsedTimeSeconds.toFormattedTime(),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = SudokuPalette.TextAccent,
+                    fontFamily = FontFamily.Monospace
+                )
+            }
         }
     }
 }
 
 @Composable
 fun GameControls(
+    modifier: Modifier = Modifier,
     isNoteMode: Boolean,
     onToggleNoteMode: () -> Unit,
     onUndo: () -> Unit,
-    modifier: Modifier = Modifier
+    enabled: Boolean = true
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -485,6 +487,7 @@ fun GameControls(
     ) {
         Button(
             onClick = onUndo,
+            enabled = enabled,
             colors = ButtonDefaults.buttonColors(
                 containerColor = SudokuPalette.ButtonContainer,
                 contentColor = SudokuPalette.ButtonContent
@@ -500,7 +503,6 @@ fun GameControls(
             Spacer(modifier = Modifier.size(8.dp))
             Text("Undo", style = MaterialTheme.typography.labelLarge)
         }
-
 
         // notas
         val containerColor =

@@ -37,29 +37,17 @@ object SudokuDebugUtils {
         Log.d(TAG, "╚════════════════════════════════════════════╝")
 
         Log.d(TAG, "🙈 SOLUCIÓN (Spoilers):")
-        printBoard(puzzle.solvedBoard)
+        Log.d(TAG, puzzle.solvedBoard.toGridString())
 
         Log.d(TAG, "==============================================")
+
+        logSeed(puzzle)
+
     }
 
-    private fun printBoard(board: Board) {
-        val sb = StringBuilder()
-        sb.append("\n┌───────┬───────┬───────┐\n")
-
-        for (row in 0 until 9) {
-            sb.append("│ ")
-            for (col in 0 until 9) {
-                val cell = board.cells.first { it.row == row && it.col == col }
-                val value = cell.value?.toString() ?: "."
-                sb.append("$value ")
-                if ((col + 1) % 3 == 0 && col < 8) sb.append("│ ")
-            }
-            sb.append("│\n")
-            if ((row + 1) % 3 == 0 && row < 8) {
-                sb.append("├───────┼───────┼───────┤\n")
-            }
-        }
-        sb.append("└───────┴───────┴───────┘")
-        Log.d(TAG, sb.toString())
+    private fun logSeed(puzzle: SudokuPuzzle) {
+        Log.d(TAG, "🧬 SEMILLA (Copiar esto para Seeds.kt):")
+        val rawString = puzzle.board.cells.joinToString("") { it.value?.toString() ?: "0" }
+        Log.d(TAG, "\"$rawString\"")
     }
 }
