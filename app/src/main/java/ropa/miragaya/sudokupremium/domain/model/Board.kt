@@ -153,6 +153,33 @@ data class Board(
             }
             return Board(emptyCells)
         }
+
+        /**
+         * Crea un tablero desde un string de 81 caracteres (0 o . para vacíos)
+         */
+        fun fromGridString(str: String): Board {
+            val cleanStr = str.replace(Regex("[^0-9.]"), "")
+
+            val cells = cleanStr.mapIndexed { index, char ->
+                val digit = if (char == '.') 0 else char.digitToInt()
+                val value = if (digit == 0) null else digit
+
+                val row = index / 9
+                val col = index % 9
+                val box = (row / 3) * 3 + (col / 3)
+
+                Cell(
+                    id = index,
+                    row = row,
+                    col = col,
+                    box = box,
+                    value = value,
+                    isGiven = value != null // Si viene en la semilla, es una pista fija
+                )
+            }
+            return Board(cells)
+        }
+
     }
 
 }

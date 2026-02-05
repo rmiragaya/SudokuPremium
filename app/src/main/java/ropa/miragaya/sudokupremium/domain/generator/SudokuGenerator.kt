@@ -12,41 +12,80 @@ import javax.inject.Inject
 import kotlin.random.Random
 
 class SudokuGenerator @Inject constructor(
-    private val solver: Solver
+    private val solver: Solver,
+    private val transformer: SudokuTransformer
 ) {
 
-    /**
-     * Intenta generar un puzzle que coincida con la dificultad deseada.
-     * Como el proceso es aleatorio, ponemos un límite de intentos.
-     */
     fun generate(targetDifficulty: Difficulty): SudokuPuzzle {
+
+        Log.d("SUDOKU_TRACE", "--- Iniciamos generación ---")
+
+        // generacion por seeds
+        val seedPuzzle = generateFromSeeds(targetDifficulty)
+        if (seedPuzzle != null) return seedPuzzle
+
+        // generacion por fuerza bruta
+        return generateProcedural(targetDifficulty)
+    }
+
+    private fun generateFromSeeds(targetDifficulty: Difficulty): SudokuPuzzle? {
+        val seeds = when (targetDifficulty) {
+            Difficulty.EXPERT -> Seeds.EXPERT_SEEDS
+            Difficulty.HARD -> Seeds.HARD_SEEDS
+            else -> emptyList()
+        }
+
+        if (seeds.isEmpty()) return null
+
+        val startTime = System.currentTimeMillis()
+
+        val randomSeedString = seeds.random()
+        val baseBoard = Board.fromGridString(randomSeedString)
+        val newBoard = transformer.transform(baseBoard)
+
+        val solvedResult = solver.solve(newBoard)
+        val solvedBoard = (solvedResult as? SolveResult.Success)?.board ?: newBoard
+
+        val puzzle = SudokuPuzzle(newBoard, solvedBoard, targetDifficulty)
+
+        logMetrics(
+            success = true,
+            target = targetDifficulty,
+            actual = targetDifficulty,
+            attempts = 1,
+            startTime = startTime,
+            board = newBoard
+        )
+
+        // Debug visual
+        // todo solo enviar en debug
+        SudokuDebugUtils.logPuzzleGenerated(puzzle)
+
+        return puzzle
+    }
+
+    private fun generateProcedural(targetDifficulty: Difficulty): SudokuPuzzle {
         val startTime = System.currentTimeMillis()
         var bestPuzzle: SudokuPuzzle? = null
-
         val maxAttempts = 50
 
         for (attempt in 1..maxAttempts) {
             val puzzle = generateRandomPuzzle(targetDifficulty)
 
-            // Encontramos la dificultad exacta
             if (puzzle.difficulty == targetDifficulty) {
-                val endTime = System.currentTimeMillis()
-
-                // 📝 LOGUEAMOS EL ÉXITO
-                val metrics = GenerationMetrics(
+                logMetrics(
                     success = true,
-                    targetDifficulty = targetDifficulty,
-                    actualDifficulty = puzzle.difficulty,
+                    target = targetDifficulty,
+                    actual = puzzle.difficulty,
                     attempts = attempt,
-                    durationMs = endTime - startTime,
-                    boardString = puzzle.board.toGridString()
+                    startTime = startTime,
+                    board = puzzle.board
                 )
-                Log.i("SUDOKU_ANALYTICS", metrics.toString())
 
                 Log.d("SUDOKU_TRACE", "--- REPRODUCIENDO SOLUCIÓN ---")
                 solver.solve(puzzle.board, logSteps = true)
-
                 SudokuDebugUtils.logPuzzleGenerated(puzzle)
+
                 return puzzle
             }
 
@@ -55,59 +94,72 @@ class SudokuGenerator @Inject constructor(
             }
         }
 
-        // 📝 LOGUEAMOS EL "FALLO" (Aproximación)
-        val endTime = System.currentTimeMillis()
-        val metrics = GenerationMetrics(
-            success = false,
-            targetDifficulty = targetDifficulty,
-            actualDifficulty = bestPuzzle!!.difficulty,
-            attempts = maxAttempts,
-            durationMs = endTime - startTime,
-            boardString = bestPuzzle.board.toGridString()
-        )
-        Log.w("SUDOKU_ANALYTICS", metrics.toString())
+        val finalPuzzle = bestPuzzle!!
 
-        return bestPuzzle
+        logMetrics(
+            success = false,
+            target = targetDifficulty,
+            actual = finalPuzzle.difficulty,
+            attempts = maxAttempts,
+            startTime = startTime,
+            board = finalPuzzle.board
+        )
+        Log.w("SUDOKU_ANALYTICS", "⚠️ Devolviendo aproximación.")
+
+        return finalPuzzle
+    }
+
+    private fun logMetrics(
+        success: Boolean,
+        target: Difficulty,
+        actual: Difficulty,
+        attempts: Int,
+        startTime: Long,
+        board: Board
+    ) {
+        val duration = System.currentTimeMillis() - startTime
+        val metrics = GenerationMetrics(
+            success = success,
+            targetDifficulty = target,
+            actualDifficulty = actual,
+            attempts = attempts,
+            durationMs = duration,
+            boardString = board.toGridString()
+        )
+
+        val tag = "SUDOKU_ANALYTICS"
+        if (success) {
+            Log.i(tag, metrics.toString())
+        } else {
+            Log.w(tag, metrics.toString())
+        }
     }
 
     private fun generateRandomPuzzle(maxDifficultyAllowed: Difficulty): SudokuPuzzle {
         val solvedBoard = BoardGenerator.generateFilledBoard()
         var currentBoard = solvedBoard
         val cellIndices = (0..80).toMutableList().shuffled(Random)
-
-        // asumimos es easy
         var currentDifficulty = Difficulty.EASY
 
         for (index in cellIndices) {
             if (currentBoard.cells[index].value == null) continue
 
             val nextBoard = currentBoard.withCellValue(index, null)
-
             val result = solver.solve(nextBoard)
 
             when (result) {
                 is SolveResult.Success -> {
-                    // resuelto y dentro de la misma dificultad anterior
                     if (result.difficulty.ordinal <= maxDifficultyAllowed.ordinal) {
-                        if (result.difficulty.ordinal > currentDifficulty.ordinal) {
-                            Log.d(
-                                "SUDOKU_SOLVER",
-                                "🚀 EL PUZZLE SUBIÓ DE NIVEL: ${currentDifficulty.name} -> ${result.difficulty.name}"
-                            )
-                        }
                         currentBoard = nextBoard
                         currentDifficulty = result.difficulty
                     }
-                    // resuelto pero mas dificil que la dificultad anterior
                 }
 
                 is SolveResult.Failure, SolveResult.Invalid -> {
-                    Log.d("SUDOKU_SOLVER", "Solve Result: ${result.javaClass.simpleName}")
                 }
             }
         }
 
-        // guardamos los valores generados como isGiven
         val finalCells = currentBoard.cells.map { cell ->
             if (cell.value != null) cell.copy(isGiven = true) else cell
         }

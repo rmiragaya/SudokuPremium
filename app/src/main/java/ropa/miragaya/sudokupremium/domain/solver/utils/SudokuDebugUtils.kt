@@ -40,14 +40,5 @@ object SudokuDebugUtils {
         Log.d(TAG, puzzle.solvedBoard.toGridString())
 
         Log.d(TAG, "==============================================")
-
-        logSeed(puzzle)
-
-    }
-
-    private fun logSeed(puzzle: SudokuPuzzle) {
-        Log.d(TAG, "🧬 SEMILLA (Copiar esto para Seeds.kt):")
-        val rawString = puzzle.board.cells.joinToString("") { it.value?.toString() ?: "0" }
-        Log.d(TAG, "\"$rawString\"")
     }
 }

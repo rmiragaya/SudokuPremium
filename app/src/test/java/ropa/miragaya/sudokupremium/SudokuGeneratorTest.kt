@@ -3,6 +3,7 @@ package ropa.miragaya.sudokupremium
 import junit.framework.TestCase.assertTrue
 import org.junit.Test
 import ropa.miragaya.sudokupremium.domain.generator.SudokuGenerator
+import ropa.miragaya.sudokupremium.domain.generator.SudokuTransformer
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.domain.solver.SolveResult.Success
 import ropa.miragaya.sudokupremium.domain.solver.Solver
@@ -12,7 +13,8 @@ class SudokuGeneratorTest {
     @Test
     fun `generate produces a solvable puzzle`() {
         val solver = Solver()
-        val generator = SudokuGenerator(solver)
+        val sudokuTransformer = SudokuTransformer()
+        val generator = SudokuGenerator(solver, sudokuTransformer)
 
         val puzzle = generator.generate(Difficulty.EASY)
 
