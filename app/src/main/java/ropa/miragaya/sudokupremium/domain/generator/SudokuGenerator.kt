@@ -57,7 +57,6 @@ class SudokuGenerator @Inject constructor(
             board = newBoard
         )
 
-        // Debug visual
         // todo solo enviar en debug
         SudokuDebugUtils.logPuzzleGenerated(puzzle)
 

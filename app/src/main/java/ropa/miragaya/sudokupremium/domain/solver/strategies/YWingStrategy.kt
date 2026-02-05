@@ -16,7 +16,7 @@ class YWingStrategy : SolvingStrategy {
         if (biValueCells.size < 3) return null
 
         for (pivot in biValueCells) {
-            val pivotNotes = pivot.notes.toList() // Ej: [A, B]
+            val pivotNotes = pivot.notes.toList()
             val noteA = pivotNotes[0]
             val noteB = pivotNotes[1]
 
