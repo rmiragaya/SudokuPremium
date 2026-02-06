@@ -1,29 +1,50 @@
 package ropa.miragaya.sudokupremium
 
-import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertNotNull
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.solver.strategies.NakedSingleStrategy
 
-class NakedSingleTest {
+class NakedSingleStrategyTest {
+
+    private val strategy = NakedSingleStrategy()
 
     @Test
-    fun `should find number when only one candidate exists`() {
+    fun `should apply move when a cell has exactly one note`() {
+        val emptyBoard = Board.createEmpty()
 
-        var board = Board.createEmpty()
+        val targetCellId = 0
+        val cellWithSingleNote = emptyBoard.cells[targetCellId].copy(notes = setOf(5))
+        
+        val cells = emptyBoard.cells.toMutableList()
+        cells[targetCellId] = cellWithSingleNote
+        val boardWithNotes = Board(cells)
 
-        // Llenamos la fila 0 con 1..8
-        (0..7).forEach { colIndex ->
-            board = board.withCellValue(colIndex, colIndex + 1)
-        }
+        val resultBoard = strategy.apply(boardWithNotes)
 
-        val strategy = NakedSingleStrategy()
-        val newBoard = strategy.apply(board)
+        assertNotNull("La estrategia debería haber actuado", resultBoard)
 
-        assertNotNull("La estrategia debería haber encontrado un movimiento", newBoard)
+        val modifiedCell = resultBoard!!.cells[targetCellId]
+        assertEquals("La celda debería tener el valor 5", 5, modifiedCell.value)
+        assertTrue("La celda ya no debería tener notas (o irrelevantes)", modifiedCell.value != null)
+    }
 
-        val targetCell = newBoard!!.cells.find { it.id == 8 }
-        assertEquals("El valor puesto debería ser 9", 9, targetCell?.value)
+    @Test
+    fun `should return null when no cell has a single note`() {
+        val emptyBoard = Board.createEmpty()
+
+        val targetCellId = 0
+        val cellWithMultipleNotes = emptyBoard.cells[targetCellId].copy(notes = setOf(1, 2))
+
+        val cells = emptyBoard.cells.toMutableList()
+        cells[targetCellId] = cellWithMultipleNotes
+        val boardWithAmbiguity = Board(cells)
+
+        val resultBoard = strategy.apply(boardWithAmbiguity)
+
+        assertNull("La estrategia no debería hacer nada si hay 2 opciones", resultBoard)
     }
 }

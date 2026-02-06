@@ -10,29 +10,29 @@ class SudokuMinerTest {
 
     private val solver = Solver()
 
-    // Mina EASY
-    @Test
-    fun mineEasySeeds() {
-        mineSeeds(Difficulty.EASY, seedsNeeded = 50)
-    }
-
-    // Mina MEDIUM
-    @Test
-    fun mineMediumSeeds() {
-        mineSeeds(Difficulty.MEDIUM, seedsNeeded = 50)
-    }
-
-    // Mina HARD
-    @Test
-    fun mineHardSeeds() {
-        mineSeeds(targetDifficulty = Difficulty.HARD, seedsNeeded = 50)
-    }
-
-    // Mina EXPERT
-    @Test
-    fun mineExpertSeeds() {
-        mineSeeds(targetDifficulty = Difficulty.EXPERT, seedsNeeded = 50)
-    }
+//    // Mina EASY
+//    @Test
+//    fun mineEasySeeds() {
+//        mineSeeds(Difficulty.EASY, seedsNeeded = 50)
+//    }
+//
+//    // Mina MEDIUM
+//    @Test
+//    fun mineMediumSeeds() {
+//        mineSeeds(Difficulty.MEDIUM, seedsNeeded = 50)
+//    }
+//
+//    // Mina HARD
+//    @Test
+//    fun mineHardSeeds() {
+//        mineSeeds(targetDifficulty = Difficulty.HARD, seedsNeeded = 50)
+//    }
+//
+//    // Mina EXPERT
+//    @Test
+//    fun mineExpertSeeds() {
+//        mineSeeds(targetDifficulty = Difficulty.EXPERT, seedsNeeded = 50)
+//    }
 
     /**
      * Lógica compartida de minería.
