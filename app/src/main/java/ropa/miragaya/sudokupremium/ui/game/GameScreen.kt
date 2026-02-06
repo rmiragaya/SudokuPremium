@@ -207,7 +207,8 @@ fun GameContent(
 
             NumberPad(
                 onNumberClick = onNumberInput,
-                onDeleteClick = onDeleteInput
+                onDeleteClick = onDeleteInput,
+                completedNumbers = uiState.completedNumbers
             )
         }
     }
@@ -371,6 +372,7 @@ fun NotesGrid(notes: Set<Int>) {
 fun NumberPad(
     onNumberClick: (Int) -> Unit,
     onDeleteClick: () -> Unit,
+    completedNumbers: Set<Int>,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -386,7 +388,8 @@ fun NumberPad(
                 SudokuButton(
                     text = number.toString(),
                     onClick = { onNumberClick(number) },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    enabled = !completedNumbers.contains(number)
                 )
             }
         }
@@ -400,7 +403,8 @@ fun NumberPad(
                 SudokuButton(
                     text = number.toString(),
                     onClick = { onNumberClick(number) },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    enabled = !completedNumbers.contains(number)
                 )
             }
             // boton de borrar
@@ -419,6 +423,7 @@ fun SudokuButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     isDestructive: Boolean = false
 ) {
 
@@ -434,6 +439,7 @@ fun SudokuButton(
             containerColor = containerColor,
             contentColor = contentColor
         ),
+        enabled = enabled,
         shape = MaterialTheme.shapes.small,
         contentPadding = PaddingValues(0.dp)
     ) {

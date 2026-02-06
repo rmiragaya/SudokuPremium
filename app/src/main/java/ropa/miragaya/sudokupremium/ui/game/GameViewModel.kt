@@ -61,7 +61,8 @@ class GameViewModel @Inject constructor(
                         solvedBoard = savedGame.solvedBoard,
                         elapsedTimeSeconds = savedGame.elapsedTimeSeconds,
                         difficulty = savedGame.difficulty,
-                        isLoading = false
+                        isLoading = false,
+                        completedNumbers = calculateCompletedNumbers(savedGame.board)
                     )
                 }
                 resumeTimer()
@@ -130,7 +131,8 @@ class GameViewModel @Inject constructor(
 
             currentState.copy(
                 board = finalBoard,
-                isComplete = justWon
+                isComplete = justWon,
+                completedNumbers = calculateCompletedNumbers(finalBoard)
             )
         }
 
@@ -180,7 +182,9 @@ class GameViewModel @Inject constructor(
                 .withCellCleared(currentSelectedId)
                 .validateConflicts()
 
-            currentState.copy(board = newBoard)
+            currentState.copy(
+                board = newBoard,
+                completedNumbers = calculateCompletedNumbers(newBoard))
         }
 
         saveGame()
@@ -235,7 +239,10 @@ class GameViewModel @Inject constructor(
 
         val previousBoard = history.removeLast()
         _uiState.update {
-            it.copy(board = previousBoard)
+            it.copy(
+                board = previousBoard,
+                completedNumbers = calculateCompletedNumbers(previousBoard)
+            )
         }
         saveGame()
     }
@@ -271,7 +278,8 @@ class GameViewModel @Inject constructor(
                     selectedCellId = null,
                     highlightedCellIds = emptySet(),
                     sameValueCellIds = emptySet(),
-                    isLoading = false
+                    isLoading = false,
+                    completedNumbers = calculateCompletedNumbers(puzzle.board)
                 )
             }
 
@@ -346,6 +354,18 @@ class GameViewModel @Inject constructor(
 
     fun onDismissMistakeDialog() {
         _uiState.update { it.copy(showMistakeError = false) }
+    }
+
+    private fun calculateCompletedNumbers(board: Board): Set<Int> {
+        val counts = mutableMapOf<Int, Int>()
+
+        board.cells.forEach { cell ->
+            if (cell.value != null) {
+                counts[cell.value] = (counts[cell.value] ?: 0) + 1
+            }
+        }
+
+        return counts.filter { it.value >= 9 }.keys
     }
 
     override fun onCleared() {

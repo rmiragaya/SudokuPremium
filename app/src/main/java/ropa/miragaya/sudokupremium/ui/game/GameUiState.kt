@@ -18,5 +18,6 @@ data class GameUiState(
     val activeHint: SudokuHint? = null,
     val showNoHintFound: Boolean = false,
     val showMistakeError: Boolean = false,
-    val mistakeCount: Int = 0
+    val mistakeCount: Int = 0,
+    val completedNumbers: Set<Int> = emptySet(),
 )
