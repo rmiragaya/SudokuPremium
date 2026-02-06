@@ -54,8 +54,9 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Cell
+import ropa.miragaya.sudokupremium.domain.model.SudokuHint
 import ropa.miragaya.sudokupremium.ui.game.component.GameWonDialog
-import ropa.miragaya.sudokupremium.ui.game.component.HintDialog
+import ropa.miragaya.sudokupremium.ui.game.component.HintOverlayCard
 import ropa.miragaya.sudokupremium.ui.game.component.SudokuDecodingBoard
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
 import ropa.miragaya.sudokupremium.util.toFormattedTime
@@ -92,24 +93,38 @@ fun GameScreen(
         )
     }
 
-    if (uiState.activeHint != null) {
-        HintDialog(
-            hint = uiState.activeHint!!,
-            onDismiss = viewModel::onDismissHint
-        )
-    }
+    Box(modifier = Modifier.fillMaxSize()) {
 
-    GameContent(
-        uiState = uiState,
-        onCellClick = viewModel::onCellClicked,
-        onNumberInput = viewModel::onNumberInput,
-        onDeleteInput = viewModel::onDeleteInput,
-        onToggleNoteMode = viewModel::toggleNoteMode,
-        onUndo = viewModel::onUndo,
-        onBackClick = onBackClick,
-        onHintClick = viewModel::onRequestHint,
-        modifier = modifier
-    )
+        GameContent(
+            uiState = uiState,
+            onCellClick = viewModel::onCellClicked,
+            onNumberInput = viewModel::onNumberInput,
+            onDeleteInput = viewModel::onDeleteInput,
+            onToggleNoteMode = viewModel::toggleNoteMode,
+            onUndo = viewModel::onUndo,
+            onBackClick = onBackClick,
+            onHintClick = viewModel::onRequestHint,
+            modifier = modifier
+        )
+
+        if (uiState.activeHint != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.5f))
+                    .clickable { viewModel.onDismissHint() }
+            )
+
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+                Box(modifier = Modifier.clickable(enabled = false) {}) {
+                    HintOverlayCard(
+                        hint = uiState.activeHint!!,
+                        onDismiss = viewModel::onDismissHint
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -162,6 +177,7 @@ fun GameContent(
                         selectedCellId = uiState.selectedCellId,
                         highlightedIds = uiState.highlightedCellIds,
                         sameValueIds = uiState.sameValueCellIds,
+                        activeHint = uiState.activeHint,
                         onCellClick = onCellClick
                     )
                 }
@@ -194,6 +210,7 @@ fun SudokuBoardView(
     selectedCellId: Int?,
     highlightedIds: Set<Int>,
     sameValueIds: Set<Int>,
+    activeHint: SudokuHint?,
     onCellClick: (Int) -> Unit
 ) {
 
@@ -213,6 +230,10 @@ fun SudokuBoardView(
 
                     val isHighlighted = highlightedIds.contains(cell.id)
                     val isSameValue = sameValueIds.contains(cell.id)
+
+                    val isHintTarget = activeHint != null &&
+                            activeHint.row == rowIndex &&
+                            activeHint.col == colIndex
 
                     Box(
                         modifier = Modifier
@@ -242,6 +263,7 @@ fun SudokuBoardView(
                             isSelected = cell.id == selectedCellId,
                             isHighlighted = isHighlighted,
                             isSameValue = isSameValue,
+                            isHintTarget = isHintTarget,
                             onClick = { onCellClick(cell.id) }
                         )
                     }
@@ -257,11 +279,13 @@ fun CellView(
     isSelected: Boolean,
     isHighlighted: Boolean,
     isSameValue: Boolean,
+    isHintTarget: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
 
     val bgColor = when {
+        isHintTarget -> SudokuPalette.CellHint
         cell.isError -> SudokuPalette.CellErrorBg
         isSelected -> SudokuPalette.CellSelected
         isHighlighted -> SudokuPalette.CellHighlight
@@ -276,8 +300,15 @@ fun CellView(
     }
     val weight = if (cell.isGiven) FontWeight.Bold else FontWeight.Medium
 
+    val cellModifier = if (isHintTarget) {
+        modifier
+            .border(2.dp, SudokuPalette.CellHintBorder) // Borde Dorado
+    } else {
+        modifier
+    }
+
     Box(
-        modifier = modifier
+        modifier = cellModifier
             .fillMaxSize()
             .background(bgColor)
             .clickable { onClick() },
