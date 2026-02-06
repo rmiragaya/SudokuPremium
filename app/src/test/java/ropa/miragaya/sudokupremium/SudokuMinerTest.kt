@@ -10,6 +10,18 @@ class SudokuMinerTest {
 
     private val solver = Solver()
 
+    // Mina EASY
+    @Test
+    fun mineEasySeeds() {
+        mineSeeds(Difficulty.EASY, seedsNeeded = 50)
+    }
+
+    // Mina MEDIUM
+    @Test
+    fun mineMediumSeeds() {
+        mineSeeds(Difficulty.MEDIUM, seedsNeeded = 50)
+    }
+
     // Mina HARD
     @Test
     fun mineHardSeeds() {

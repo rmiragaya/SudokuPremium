@@ -6,7 +6,6 @@ data class GenerationMetrics(
     val success: Boolean,
     val targetDifficulty: Difficulty,
     val actualDifficulty: Difficulty,
-    val attempts: Int,
     val durationMs: Long,
     val boardString: String,
     val timestamp: Long = System.currentTimeMillis()
@@ -17,7 +16,6 @@ data class GenerationMetrics(
             ----------------------------------------
             Result: ${if (success) "✅ SUCCESS" else "⚠️ APPROXIMATION"}
             Target: $targetDifficulty | Actual: $actualDifficulty
-            Attempts: $attempts
             Time: ${durationMs}ms (${durationMs / 1000}s)
             ----------------------------------------
         """.trimIndent()
