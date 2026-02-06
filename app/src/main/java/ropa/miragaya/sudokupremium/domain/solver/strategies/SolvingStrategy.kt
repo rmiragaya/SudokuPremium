@@ -13,4 +13,9 @@ interface SolvingStrategy {
      * o null si esta estrategia no encontró nada.
      */
     fun apply(board: Board): Board?
+
+    fun findAll(board: Board): List<Board> {
+        val result = apply(board)
+        return if (result != null) listOf(result) else emptyList()
+    }
 }

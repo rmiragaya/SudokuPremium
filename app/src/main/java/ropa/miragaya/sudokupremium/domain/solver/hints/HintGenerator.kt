@@ -11,20 +11,21 @@ class HintGenerator @Inject constructor(
     private val messageFactory: HintMessageFactory
 ) {
 
-    fun findNextHint(board: Board): SudokuHint? {
+    fun findAllHints(board: Board): List<SudokuHint> {
         val currentBoard = board.initializeCandidates()
         val strategies = solver.strategies
 
         for (strategy in strategies) {
-            val nextBoard = strategy.apply(currentBoard)
+            val boardsFound = strategy.findAll(currentBoard)
 
-            if (nextBoard != null) {
-                return createHintFromDiff(strategy.name, currentBoard, nextBoard)
+            if (boardsFound.isNotEmpty()) {
+                return boardsFound.mapNotNull { newBoard ->
+                    createHintFromDiff(strategy.name, currentBoard, newBoard)
+                }
             }
         }
-        return null
+        return emptyList()
     }
-
     private fun createHintFromDiff(strategyName: String, oldBoard: Board, newBoard: Board): SudokuHint? {
         for (i in 0 until 81) {
             val oldCell = oldBoard.cells[i]

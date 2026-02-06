@@ -15,9 +15,13 @@ data class GameUiState(
     val isNoteMode: Boolean = false,
     val isComplete: Boolean = false,
     val isLoading: Boolean = false,
-    val activeHint: SudokuHint? = null,
+    val activeHints: List<SudokuHint> = emptyList(),
+    val currentHintIndex: Int = 0,
     val showNoHintFound: Boolean = false,
     val showMistakeError: Boolean = false,
     val mistakeCount: Int = 0,
     val completedNumbers: Set<Int> = emptySet(),
-)
+) {
+    val activeHint: SudokuHint?
+        get() = if (activeHints.isNotEmpty()) activeHints[currentHintIndex] else null
+}

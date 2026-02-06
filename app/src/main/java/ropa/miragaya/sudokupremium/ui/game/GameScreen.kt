@@ -128,7 +128,11 @@ fun GameScreen(
                 Box(modifier = Modifier.clickable(enabled = false) {}) {
                     HintOverlayCard(
                         hint = uiState.activeHint!!,
-                        onDismiss = viewModel::onDismissHint
+                        currentStep = uiState.currentHintIndex,
+                        totalSteps = uiState.activeHints.size,
+                        onDismiss = viewModel::onDismissHint,
+                        onNext = viewModel::onNextHint,
+                        onPrev = viewModel::onPrevHint
                     )
                 }
             }

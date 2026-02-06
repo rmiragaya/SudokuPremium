@@ -289,34 +289,48 @@ class GameViewModel @Inject constructor(
     }
 
     fun onRequestHint() {
-
         val currentState = _uiState.value
-        val solution = currentState.solvedBoard
-
-        if (solution == null) return
+        val solution = currentState.solvedBoard ?: return
 
         val errorCount = getMistakeCount(currentState.board, solution)
-
         if (errorCount > 0) {
-            _uiState.update {
-                it.copy(
-                    showMistakeError = true,
-                    mistakeCount = errorCount
-                )
-            }
+            _uiState.update { it.copy(showMistakeError = true, mistakeCount = errorCount) }
             return
         }
 
         viewModelScope.launch(Dispatchers.Default) {
-            val hint = hintGenerator.findNextHint(_uiState.value.board)
+
+            val hints = hintGenerator.findAllHints(currentState.board)
 
             _uiState.update {
-                if (hint != null) {
-                    it.copy(activeHint = hint)
+                if (hints.isNotEmpty()) {
+                    it.copy(
+                        activeHints = hints,
+                        currentHintIndex = 0,
+                        showNoHintFound = false
+                    )
                 } else {
                     it.copy(showNoHintFound = true)
                 }
             }
+        }
+    }
+
+    fun onNextHint() {
+        _uiState.update {
+            if (it.activeHints.isNotEmpty()) {
+                val nextIndex = (it.currentHintIndex + 1) % it.activeHints.size
+                it.copy(currentHintIndex = nextIndex)
+            } else it
+        }
+    }
+
+    fun onPrevHint() {
+        _uiState.update {
+            if (it.activeHints.isNotEmpty()) {
+                val prevIndex = if (it.currentHintIndex - 1 < 0) it.activeHints.lastIndex else it.currentHintIndex - 1
+                it.copy(currentHintIndex = prevIndex)
+            } else it
         }
     }
 
@@ -328,7 +342,7 @@ class GameViewModel @Inject constructor(
     }
 
     fun onDismissHint() {
-        _uiState.update { it.copy(activeHint = null, showNoHintFound = false) }
+        _uiState.update { it.copy(activeHints = emptyList(), showNoHintFound = false) }
     }
 
     fun onRevealMistakes() {
