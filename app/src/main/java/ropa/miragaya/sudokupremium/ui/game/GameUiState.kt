@@ -16,5 +16,7 @@ data class GameUiState(
     val isComplete: Boolean = false,
     val isLoading: Boolean = false,
     val activeHint: SudokuHint? = null,
-    val showNoHintFound: Boolean = false
+    val showNoHintFound: Boolean = false,
+    val showMistakeError: Boolean = false,
+    val mistakeCount: Int = 0
 )

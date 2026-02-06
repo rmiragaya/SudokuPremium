@@ -19,7 +19,6 @@ class SudokuGenerator @Inject constructor(
     fun generate(targetDifficulty: Difficulty): SudokuPuzzle {
         val startTime = System.currentTimeMillis()
 
-        // 1. Selección
         val seeds = when (targetDifficulty) {
             Difficulty.EASY -> Seeds.EASY_SEEDS
             Difficulty.MEDIUM -> Seeds.MEDIUM_SEEDS
@@ -29,19 +28,15 @@ class SudokuGenerator @Inject constructor(
 
         if (seeds.isEmpty()) throw IllegalStateException("Faltan semillas para $targetDifficulty")
 
-        // 2. Transformación
         val randomSeedString = seeds.random()
         val baseBoard = Board.fromGridString(randomSeedString)
         val newBoard = transformer.transform(baseBoard)
 
-        // 3. Solución
-        val solvedResult = solver.solve(newBoard)
+        val solvedResult = solver.solve(newBoard, logSteps = true) // todo build debug false
         val solvedBoard = (solvedResult as? SolveResult.Success)?.board ?: newBoard
 
-        // 4. Construcción
         val puzzle = SudokuPuzzle(newBoard, solvedBoard, targetDifficulty)
 
-        // 5. Reporte (Ahora queda limpio acá)
         logMetrics(startTime, puzzle)
 
         return puzzle

@@ -57,6 +57,7 @@ import ropa.miragaya.sudokupremium.domain.model.Cell
 import ropa.miragaya.sudokupremium.domain.model.SudokuHint
 import ropa.miragaya.sudokupremium.ui.game.component.GameWonDialog
 import ropa.miragaya.sudokupremium.ui.game.component.HintOverlayCard
+import ropa.miragaya.sudokupremium.ui.game.component.MistakeDialog
 import ropa.miragaya.sudokupremium.ui.game.component.SudokuDecodingBoard
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
 import ropa.miragaya.sudokupremium.util.toFormattedTime
@@ -90,6 +91,14 @@ fun GameScreen(
         GameWonDialog(
             elapsedTimeSeconds = uiState.elapsedTimeSeconds,
             onStartNewGame = { viewModel.startNewGame(uiState.difficulty) }
+        )
+    }
+
+    if (uiState.showMistakeError) {
+        MistakeDialog(
+            mistakeCount = uiState.mistakeCount,
+            onDismiss = viewModel::onDismissMistakeDialog,
+            onConfirm = viewModel::onRevealMistakes
         )
     }
 
