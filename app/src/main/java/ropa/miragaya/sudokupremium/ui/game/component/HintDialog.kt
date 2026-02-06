@@ -1,5 +1,6 @@
 package ropa.miragaya.sudokupremium.ui.game.component
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,35 +40,36 @@ fun HintDialog(
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+
                 Text(
-                    text = "💡 Pista Premium",
+                    text = "💡 ${hint.strategyName}",
                     style = MaterialTheme.typography.headlineSmall,
                     color = SudokuPalette.TextAccent,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Técnica: ${hint.strategyName}",
+                    text = "📍 Fila ${hint.row + 1}, Columna ${hint.col + 1}",
                     style = MaterialTheme.typography.labelLarge,
-                    color = SudokuPalette.TextSecondary
+                    color = SudokuPalette.TextSecondary,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .background(SudokuPalette.GridLine.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                val actionText = if (hint.value != null) {
-                    "Poné un ${hint.value} en la fila ${hint.row + 1}, columna ${hint.col + 1}."
-                } else {
-                    "En la fila ${hint.row + 1}, columna ${hint.col + 1}, podés borrar las notas: ${hint.notesRemoved}."
-                }
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = actionText,
+                    text = hint.description,
                     style = MaterialTheme.typography.bodyLarge,
                     color = SudokuPalette.TextPrimary,
                     textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.2
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -76,7 +78,7 @@ fun HintDialog(
                     onClick = onDismiss,
                     colors = ButtonDefaults.buttonColors(containerColor = SudokuPalette.TextAccent)
                 ) {
-                    Text("¡Entendido!", color = SudokuPalette.BoardBackground)
+                    Text("¡Ok!", color = SudokuPalette.BoardBackground)
                 }
             }
         }

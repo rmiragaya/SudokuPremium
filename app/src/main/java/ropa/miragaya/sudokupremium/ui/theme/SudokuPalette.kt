@@ -29,6 +29,9 @@ object SudokuPalette {
     val ButtonDestructive = Color(0xFF2D1F1F)
     val ButtonDestructiveContent = Color(0xFFE57373)
 
+    val CellHint = Color(0xFFFFD700).copy(alpha = 0.5f)
+    val CellHintBorder = Color(0xFFFFD700)
+
     val MainGradient = Brush.verticalGradient(
         colors = listOf(
             Color(0xFF12141C),

@@ -20,8 +20,7 @@
     import ropa.miragaya.sudokupremium.domain.model.Difficulty
     import ropa.miragaya.sudokupremium.domain.model.SavedGame
     import ropa.miragaya.sudokupremium.domain.repository.GameRepository
-    import ropa.miragaya.sudokupremium.domain.solver.Solver
-    import ropa.miragaya.sudokupremium.domain.solver.utils.SudokuDebugUtils
+    import ropa.miragaya.sudokupremium.domain.solver.hints.HintGenerator
     import ropa.miragaya.sudokupremium.ui.navigation.GameRoute
     import javax.inject.Inject
 
@@ -29,7 +28,7 @@
     class GameViewModel @Inject constructor(
         private val repository: GameRepository,
         private val generator: SudokuGenerator,
-        private val solver: Solver,
+        private val hintGenerator: HintGenerator,
         savedStateHandle: SavedStateHandle
     ) : ViewModel() {
 
@@ -71,7 +70,6 @@
                 }
             }
         }
-
 
         fun onCellClicked(cellId: Int) {
             _uiState.update { currentState ->
@@ -264,8 +262,7 @@
 
         fun onRequestHint() {
             viewModelScope.launch(Dispatchers.Default) {
-
-                val hint = solver.findNextHint(_uiState.value.board)
+                val hint = hintGenerator.findNextHint(_uiState.value.board)
 
                 _uiState.update {
                     if (hint != null) {

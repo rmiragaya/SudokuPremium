@@ -20,7 +20,7 @@ import javax.inject.Inject
 class Solver @Inject constructor() {
 
     // lista de estrategias para resolver
-    private val strategies: List<SolvingStrategy> = listOf(
+    val strategies: List<SolvingStrategy> = listOf(
         NakedSingleStrategy(),              // EASY
         HiddenSingleStrategy(),             // EASY
         IntersectionRemovalStrategy(),      // MEDIUM
@@ -75,47 +75,5 @@ class Solver @Inject constructor() {
         } else {
             SolveResult.Failure(currentBoard)
         }
-    }
-
-    fun findNextHint(board: Board): SudokuHint? {
-
-        val currentBoard = board.initializeCandidates()
-
-        for (strategy in strategies) {
-            val nextBoard = strategy.apply(currentBoard)
-
-            if (nextBoard != null) {
-
-                for (i in 0 until 81) {
-                    val oldCell = currentBoard.cells[i]
-                    val newCell = nextBoard.cells[i]
-
-                    if (oldCell.value != newCell.value) {
-                        return SudokuHint(
-                            strategyName = strategy.name,
-                            description = "Esta celda solo tiene una opción posible.", // todo Personalizar esto según la estrategia
-                            row = oldCell.row,
-                            col = oldCell.col,
-                            value = newCell.value
-                        )
-                    }
-
-                    if (oldCell.notes != newCell.notes) {
-                        val removed = oldCell.notes - newCell.notes
-                        if (removed.isNotEmpty()) {
-                            return SudokuHint(
-                                strategyName = strategy.name,
-                                description = "Los números $removed no pueden ir aquí por lógica de ${strategy.name}.",
-                                row = oldCell.row,
-                                col = oldCell.col,
-                                value = null,
-                                notesRemoved = removed.toList()
-                            )
-                        }
-                    }
-                }
-            }
-        }
-        return null
     }
 }
