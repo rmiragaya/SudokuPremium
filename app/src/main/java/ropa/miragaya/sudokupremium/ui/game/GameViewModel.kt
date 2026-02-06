@@ -103,33 +103,51 @@ class GameViewModel @Inject constructor(
     }
 
     fun onNumberInput(number: Int) {
-        val currentSelectedId =
-            _uiState.value.selectedCellId ?: return // sin selección no hay paraíso
+        val currentSelectedId = _uiState.value.selectedCellId ?: return
         var justWon = false
 
         _uiState.update { currentState ->
 
-            val newBoard = currentState.board.playMove(
+            val boardAfterMove = currentState.board.playMove(
                 cellId = currentSelectedId,
                 number = number,
                 isNoteMode = currentState.isNoteMode
             )
 
-            if (newBoard == currentState.board) {
+            if (boardAfterMove == currentState.board) {
                 return@update currentState
+            }
+
+            val finalBoard = if (!currentState.isNoteMode) {
+                autoCleanNotes(boardAfterMove, currentSelectedId, number)
+            } else {
+                boardAfterMove
             }
 
             saveToHistory()
 
-            justWon = newBoard.isSolved()
+            justWon = finalBoard.isSolved()
 
             currentState.copy(
-                board = newBoard,
+                board = finalBoard,
                 isComplete = justWon
             )
         }
 
         if (justWon) handleVictory() else saveGame()
+    }
+
+    private fun autoCleanNotes(board: Board, cellId: Int, number: Int): Board {
+        val peers = board.getPeers(cellId)
+
+        val newCells = board.cells.map { cell ->
+            if (peers.contains(cell.id) && cell.notes.contains(number)) {
+                cell.copy(notes = cell.notes - number)
+            } else {
+                cell
+            }
+        }
+        return Board(newCells)
     }
 
     private fun handleVictory() {
