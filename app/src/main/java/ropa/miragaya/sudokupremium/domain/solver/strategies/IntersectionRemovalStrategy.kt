@@ -79,7 +79,7 @@ class IntersectionRemovalStrategy @Inject constructor() : SolvingStrategy {
             }
         }
 
-        return foundBoards
+        return foundBoards.distinct()
     }
 
     private fun removeNotes(board: Board, cellIds: List<Int>, noteToRemove: Int): Board {
