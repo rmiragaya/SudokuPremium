@@ -41,8 +41,7 @@ class HintGenerator @Inject constructor(
                 }
             }
         }
-
-        return cleaningHints
+        return cleaningHints.take(1)
     }
 
     private fun calculateImpactScore(hint: SudokuHint, originalBoard: Board): Int {
