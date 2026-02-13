@@ -4,8 +4,6 @@ import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.SudokuHint
 import ropa.miragaya.sudokupremium.domain.model.initializeCandidates
 import ropa.miragaya.sudokupremium.domain.solver.Solver
-import ropa.miragaya.sudokupremium.domain.solver.strategies.HiddenSingleStrategy
-import ropa.miragaya.sudokupremium.domain.solver.strategies.NakedSingleStrategy
 import javax.inject.Inject
 
 class HintGenerator @Inject constructor(
@@ -13,60 +11,81 @@ class HintGenerator @Inject constructor(
     private val messageFactory: HintMessageFactory
 ) {
 
-    private val nakedChecker = NakedSingleStrategy()
-    private val hiddenChecker = HiddenSingleStrategy()
-
     fun findAllHints(board: Board): List<SudokuHint> {
-        val currentBoard = board.initializeCandidates()
+        val finalHint = findDeepNumberHint(board)
+
+        if (finalHint != null) {
+            return listOf(finalHint)
+        } else {
+            return emptyList()
+        }
+    }
+
+    private fun findDeepNumberHint(board: Board): SudokuHint? {
+        var currentBoard = board.initializeCandidates()
         val strategies = solver.strategies
 
-        val cleaningHints = mutableListOf<SudokuHint>()
 
-        for (strategy in strategies) {
-            val boardsFound = strategy.findAll(currentBoard)
+        val explanationSteps = mutableListOf<String>()
+        var firstCleanupHint: SudokuHint? = null
 
-            if (boardsFound.isNotEmpty()) {
-                val strategyHints = boardsFound.mapNotNull { newBoard ->
-                    createHintFromDiff(strategy.name, currentBoard, newBoard)
-                }
+        var safetyCounter = 20
 
-                for (hint in strategyHints) {
-                    val score = calculateImpactScore(hint, currentBoard)
+        while (safetyCounter > 0) {
+            var progressMade = false
 
-                    if (score > 0) {
-                        return listOf(hint)
+            for (strategy in strategies) {
+
+                val boardsFound = strategy.findAll(currentBoard)
+
+                if (boardsFound.isNotEmpty()) {
+
+                    val newBoard = boardsFound.first()
+                    val hintDiff = createHintFromDiff(strategy.name, currentBoard, newBoard)
+
+                    if (hintDiff != null) {
+                        if (hintDiff.value != null) {
+
+                            val finalDesc = buildString {
+                                if (explanationSteps.isNotEmpty()) {
+                                    append("Para llegar a este número, deducciones previas:\n")
+                                    explanationSteps.forEach { append("• $it\n") }
+                                    append("\n👉 Finalmente: ")
+                                }
+                                append(hintDiff.description)
+                            }
+                            return hintDiff.copy(description = finalDesc.trim())
+                        } else {
+
+                            if (firstCleanupHint == null) {
+                                firstCleanupHint = hintDiff
+                            }
+                            explanationSteps.add(hintDiff.description)
+                            currentBoard = newBoard
+                            progressMade = true
+                            break // Rompe el for, vuelve al while
+                        }
                     } else {
-                        cleaningHints.add(hint)
+                        println("[HINT_DEBUG] ERROR RARO: '${strategy.name}' devolvió un tablero pero el Diff no encontró diferencias.")
                     }
                 }
             }
+
+            if (!progressMade) {
+                println("[HINT_DEBUG] NINGUNA estrategia pudo avanzar en este ciclo. El Solver está atascado.")
+                break
+            }
         }
-        return cleaningHints.take(1)
-    }
 
-    private fun calculateImpactScore(hint: SudokuHint, originalBoard: Board): Int {
-        if (hint.value != null) return 3
+        if (safetyCounter == 0) {
+            println("[HINT_DEBUG] ADVERTENCIA: Se alcanzó el límite de $safetyCounter ciclos. Posible bucle infinito.")
+        }
 
-        val boardAfterHint = applyHintToBoard(originalBoard, hint)
+        if (firstCleanupHint != null) {
+            println("[HINT_DEBUG] Devolviendo pista de limpieza de emergencia (Fallback).")
+        }
 
-        if (nakedChecker.apply(boardAfterHint) != null) return 2
-
-        if (hiddenChecker.apply(boardAfterHint) != null) return 1
-
-        return 0
-    }
-
-    private fun applyHintToBoard(board: Board, hint: SudokuHint): Board {
-        if (hint.notesRemoved.isEmpty()) return board
-
-        val targetIndex = (hint.row * 9) + hint.col
-        val cell = board.cells[targetIndex]
-        val newNotes = cell.notes - hint.notesRemoved.toSet()
-
-        val newCells = board.cells.toMutableList()
-        newCells[targetIndex] = cell.copy(notes = newNotes)
-
-        return Board(newCells)
+        return firstCleanupHint
     }
 
     private fun createHintFromDiff(strategyName: String, oldBoard: Board, newBoard: Board): SudokuHint? {

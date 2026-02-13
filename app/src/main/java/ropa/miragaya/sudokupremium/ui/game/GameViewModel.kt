@@ -1,5 +1,6 @@
 package ropa.miragaya.sudokupremium.ui.game
 
+import ropa.miragaya.sudokupremium.BuildConfig
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -20,15 +21,19 @@ import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.domain.model.SavedGame
 import ropa.miragaya.sudokupremium.domain.repository.GameRepository
+import ropa.miragaya.sudokupremium.domain.solver.SolveResult
+import ropa.miragaya.sudokupremium.domain.solver.Solver
 import ropa.miragaya.sudokupremium.domain.solver.hints.HintGenerator
 import ropa.miragaya.sudokupremium.ui.navigation.GameRoute
 import javax.inject.Inject
 
+private const val DEBUG_BOARD_JSON = "{\"cells\":[{\"box\":0,\"col\":0,\"id\":0,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":0},{\"box\":0,\"col\":1,\"id\":1,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":0},{\"box\":0,\"col\":2,\"id\":2,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":0,\"value\":6},{\"box\":1,\"col\":3,\"id\":3,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":0},{\"box\":1,\"col\":4,\"id\":4,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":0,\"value\":7},{\"box\":1,\"col\":5,\"id\":5,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":0},{\"box\":2,\"col\":6,\"id\":6,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":0,\"value\":2},{\"box\":2,\"col\":7,\"id\":7,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":0,\"value\":1},{\"box\":2,\"col\":8,\"id\":8,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":0,\"value\":8},{\"box\":0,\"col\":0,\"id\":9,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":1},{\"box\":0,\"col\":1,\"id\":10,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":1,\"value\":8},{\"box\":0,\"col\":2,\"id\":11,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":1},{\"box\":1,\"col\":3,\"id\":12,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":1,\"value\":2},{\"box\":1,\"col\":4,\"id\":13,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":1,\"value\":1},{\"box\":1,\"col\":5,\"id\":14,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":1},{\"box\":2,\"col\":6,\"id\":15,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":1,\"value\":9},{\"box\":2,\"col\":7,\"id\":16,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":1,\"value\":6},{\"box\":2,\"col\":8,\"id\":17,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":1,\"value\":5},{\"box\":0,\"col\":0,\"id\":18,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":2},{\"box\":0,\"col\":1,\"id\":19,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":2,\"value\":2},{\"box\":0,\"col\":2,\"id\":20,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":2},{\"box\":1,\"col\":3,\"id\":21,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":2,\"value\":6},{\"box\":1,\"col\":4,\"id\":22,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":2},{\"box\":1,\"col\":5,\"id\":23,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":2,\"value\":8},{\"box\":2,\"col\":6,\"id\":24,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":2,\"value\":4},{\"box\":2,\"col\":7,\"id\":25,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":2,\"value\":7},{\"box\":2,\"col\":8,\"id\":26,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":2,\"value\":3},{\"box\":3,\"col\":0,\"id\":27,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":3,\"value\":2},{\"box\":3,\"col\":1,\"id\":28,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":3},{\"box\":3,\"col\":2,\"id\":29,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":3,\"value\":5},{\"box\":4,\"col\":3,\"id\":30,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":3,\"value\":7},{\"box\":4,\"col\":4,\"id\":31,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":3,\"value\":6},{\"box\":4,\"col\":5,\"id\":32,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":3,\"value\":9},{\"box\":5,\"col\":6,\"id\":33,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":3},{\"box\":5,\"col\":7,\"id\":34,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":3,\"value\":8},{\"box\":5,\"col\":8,\"id\":35,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":3,\"value\":4},{\"box\":3,\"col\":0,\"id\":36,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":4},{\"box\":3,\"col\":1,\"id\":37,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":4},{\"box\":3,\"col\":2,\"id\":38,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":4},{\"box\":4,\"col\":3,\"id\":39,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":4},{\"box\":4,\"col\":4,\"id\":40,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":4,\"value\":3},{\"box\":4,\"col\":5,\"id\":41,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":4},{\"box\":5,\"col\":6,\"id\":42,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":4},{\"box\":5,\"col\":7,\"id\":43,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":4},{\"box\":5,\"col\":8,\"id\":44,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":4,\"value\":9},{\"box\":3,\"col\":0,\"id\":45,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":5},{\"box\":3,\"col\":1,\"id\":46,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":5,\"value\":9},{\"box\":3,\"col\":2,\"id\":47,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":5},{\"box\":4,\"col\":3,\"id\":48,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":5},{\"box\":4,\"col\":4,\"id\":49,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":5},{\"box\":4,\"col\":5,\"id\":50,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":5},{\"box\":5,\"col\":6,\"id\":51,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":5},{\"box\":5,\"col\":7,\"id\":52,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":5},{\"box\":5,\"col\":8,\"id\":53,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":5,\"value\":7},{\"box\":6,\"col\":0,\"id\":54,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":6},{\"box\":6,\"col\":1,\"id\":55,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":6,\"value\":5},{\"box\":6,\"col\":2,\"id\":56,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":6},{\"box\":7,\"col\":3,\"id\":57,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":6},{\"box\":7,\"col\":4,\"id\":58,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":6,\"value\":2},{\"box\":7,\"col\":5,\"id\":59,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":6,\"value\":7},{\"box\":8,\"col\":6,\"id\":60,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":6,\"value\":8},{\"box\":8,\"col\":7,\"id\":61,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":6,\"value\":3},{\"box\":8,\"col\":8,\"id\":62,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":6,\"value\":6},{\"box\":6,\"col\":0,\"id\":63,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":7},{\"box\":6,\"col\":1,\"id\":64,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":7,\"value\":6},{\"box\":6,\"col\":2,\"id\":65,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":7,\"value\":2},{\"box\":7,\"col\":3,\"id\":66,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":7},{\"box\":7,\"col\":4,\"id\":67,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":7},{\"box\":7,\"col\":5,\"id\":68,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":7},{\"box\":8,\"col\":6,\"id\":69,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":7,\"value\":7},{\"box\":8,\"col\":7,\"id\":70,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":7,\"value\":4},{\"box\":8,\"col\":8,\"id\":71,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":7,\"value\":1},{\"box\":6,\"col\":0,\"id\":72,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":8,\"value\":8},{\"box\":6,\"col\":1,\"id\":73,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":8,\"value\":7},{\"box\":6,\"col\":2,\"id\":74,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":8},{\"box\":7,\"col\":3,\"id\":75,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":8},{\"box\":7,\"col\":4,\"id\":76,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":8,\"value\":4},{\"box\":7,\"col\":5,\"id\":77,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":8,\"value\":6},{\"box\":8,\"col\":6,\"id\":78,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":8,\"value\":5},{\"box\":8,\"col\":7,\"id\":79,\"isError\":false,\"isGiven\":true,\"notes\":[],\"row\":8,\"value\":9},{\"box\":8,\"col\":8,\"id\":80,\"isError\":false,\"isGiven\":false,\"notes\":[],\"row\":8,\"value\":2}]}"
 @HiltViewModel
 class GameViewModel @Inject constructor(
     private val repository: GameRepository,
     private val generator: SudokuGenerator,
     private val hintGenerator: HintGenerator,
+    private val solver: Solver,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -50,6 +55,34 @@ class GameViewModel @Inject constructor(
     }
 
     private fun initializeGame() {
+
+        if (BuildConfig.DEBUG && DEBUG_BOARD_JSON.isNotEmpty()) {
+            val debugBoard = com.google.gson.Gson().fromJson(DEBUG_BOARD_JSON, Board::class.java)
+
+            val startingCells = debugBoard.cells.map {
+                if (it.isGiven) it else it.copy(value = null, notes = emptySet())
+            }
+            val startingBoard = Board(startingCells)
+
+            val solveResult = solver.solve(startingBoard)
+            val solvedDebugBoard = if (solveResult is SolveResult.Success) {
+                solveResult.board
+            } else {
+                println("[DEBUG] 🛑 EL TABLERO INYECTADO NO TIENE SOLUCIÓN VÁLIDA")
+                null
+            }
+
+            _uiState.update {
+                it.copy(
+                    board = debugBoard,
+                    solvedBoard = solvedDebugBoard,
+                    isLoading = false,
+                    completedNumbers = calculateCompletedNumbers(debugBoard)
+                )
+            }
+            return
+        }
+
         viewModelScope.launch {
             // recuperamos partida guardada (si hay)
             val savedGame = repository.getSavedGame().firstOrNull()
@@ -289,27 +322,37 @@ class GameViewModel @Inject constructor(
     }
 
     fun onRequestHint() {
+        println("[HINT_DEBUG] --- BOTON PISTA PRESIONADO ---")
         val currentState = _uiState.value
-        val solution = currentState.solvedBoard ?: return
+        val solution = currentState.solvedBoard
+
+        if (solution == null) {
+            println("[HINT_DEBUG] 🛑 ERROR: solvedBoard es NULL. Abortando.")
+            return
+        }
 
         val errorCount = getMistakeCount(currentState.board, solution)
         if (errorCount > 0) {
+            println("[HINT_DEBUG] 🛑 ERROR: Hay $errorCount casilleros mal puestos. Abortando.")
             _uiState.update { it.copy(showMistakeError = true, mistakeCount = errorCount) }
             return
         }
 
+        println("[HINT_DEBUG] Validaciones pasadas. Llamando al HintGenerator...")
         viewModelScope.launch(Dispatchers.Default) {
 
             val hints = hintGenerator.findAllHints(currentState.board)
 
             _uiState.update {
                 if (hints.isNotEmpty()) {
+                    println("[HINT_DEBUG] UI Actualizada con ${hints.size} pistas.")
                     it.copy(
                         activeHints = hints,
                         currentHintIndex = 0,
                         showNoHintFound = false
                     )
                 } else {
+                    println("[HINT_DEBUG] UI Actualizada: No se encontraron pistas.")
                     it.copy(showNoHintFound = true)
                 }
             }
@@ -380,6 +423,19 @@ class GameViewModel @Inject constructor(
         }
 
         return counts.filter { it.value >= 9 }.keys
+    }
+
+    fun getDebugDump(): String {
+        val currentBoard = _uiState.value.board
+        val visualGrid = currentBoard.toGridString()
+        val jsonString = com.google.gson.Gson().toJson(currentBoard)
+
+        return """
+        === SUDOKU DEBUG DUMP ===
+        $visualGrid
+        -- JSON --
+        $jsonString
+    """.trimIndent()
     }
 
     override fun onCleared() {

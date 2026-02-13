@@ -22,6 +22,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("boolean", "DEBUG", "true")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -41,6 +44,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     testOptions {

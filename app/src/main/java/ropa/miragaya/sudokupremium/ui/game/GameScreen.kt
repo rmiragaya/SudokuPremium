@@ -1,5 +1,9 @@
 package ropa.miragaya.sudokupremium.ui.game
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -40,6 +44,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color.Companion.Green
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -52,6 +58,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import ropa.miragaya.sudokupremium.BuildConfig
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Cell
 import ropa.miragaya.sudokupremium.domain.model.SudokuHint
@@ -71,6 +78,8 @@ fun GameScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val lifecycleOwner = LocalLifecycleOwner.current
+
+    val context = LocalContext.current // todo solo lo uso para debug, tiene sentido que este aca asi?
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -113,6 +122,7 @@ fun GameScreen(
             onUndo = viewModel::onUndo,
             onBackClick = onBackClick,
             onHintClick = viewModel::onRequestHint,
+            onGetDebugDumpClick = getDebugDump(viewModel, context),
             modifier = modifier
         )
 
@@ -141,6 +151,20 @@ fun GameScreen(
 }
 
 @Composable
+private fun getDebugDump(
+    viewModel: GameViewModel,
+    context: Context
+): () -> Unit = {
+    val dumpString = viewModel.getDebugDump()
+
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    val clip = ClipData.newPlainText("SudokuDump", dumpString)
+    clipboard.setPrimaryClip(clip)
+
+    Toast.makeText(context, "¡JSON copiado!", Toast.LENGTH_SHORT).show()
+}
+
+@Composable
 fun GameContent(
     uiState: GameUiState,
     onCellClick: (Int) -> Unit,
@@ -150,6 +174,7 @@ fun GameContent(
     onUndo: () -> Unit,
     onBackClick: () -> Unit,
     onHintClick: () -> Unit,
+    onGetDebugDumpClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -162,7 +187,8 @@ fun GameContent(
             difficulty = uiState.difficulty.name,
             elapsedTimeSeconds = uiState.elapsedTimeSeconds,
             onBackClick = onBackClick,
-            onHintClick = onHintClick
+            onHintClick = onHintClick,
+            onGetDebugDumpClick = onGetDebugDumpClick
         )
 
         Column(
@@ -461,6 +487,7 @@ fun GameTopBar(
     elapsedTimeSeconds: Long,
     onBackClick: () -> Unit,
     onHintClick: () -> Unit,
+    onGetDebugDumpClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -500,6 +527,15 @@ fun GameTopBar(
                     .size(28.dp)
                     .clickable { onHintClick() }
             )
+
+            if (BuildConfig.DEBUG) {
+                Button(
+                    onClick = onGetDebugDumpClick,
+                    colors = ButtonDefaults.buttonColors(containerColor = Green)
+                ) {
+                    Text("🐛")
+                }
+            }
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -600,6 +636,7 @@ fun GameScreenPreview(
         onBackClick = {},
         onToggleNoteMode = {},
         onHintClick = {},
+        onGetDebugDumpClick = {},
         onUndo = {}
     )
 }

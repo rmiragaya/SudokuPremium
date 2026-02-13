@@ -17,7 +17,6 @@ interface GameRepository {
 
     suspend fun saveVictory(time: Long, difficulty: Difficulty)
 }
-
 class GameRepositoryImpl @Inject constructor(
     private val dao: GameDao
 ) : GameRepository {
