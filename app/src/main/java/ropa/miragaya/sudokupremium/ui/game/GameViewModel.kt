@@ -68,7 +68,6 @@ class GameViewModel @Inject constructor(
             val solvedDebugBoard = if (solveResult is SolveResult.Success) {
                 solveResult.board
             } else {
-                println("[DEBUG] 🛑 EL TABLERO INYECTADO NO TIENE SOLUCIÓN VÁLIDA")
                 null
             }
 
@@ -322,37 +321,29 @@ class GameViewModel @Inject constructor(
     }
 
     fun onRequestHint() {
-        println("[HINT_DEBUG] --- BOTON PISTA PRESIONADO ---")
         val currentState = _uiState.value
         val solution = currentState.solvedBoard
 
-        if (solution == null) {
-            println("[HINT_DEBUG] 🛑 ERROR: solvedBoard es NULL. Abortando.")
-            return
-        }
+        if (solution == null) return
 
         val errorCount = getMistakeCount(currentState.board, solution)
         if (errorCount > 0) {
-            println("[HINT_DEBUG] 🛑 ERROR: Hay $errorCount casilleros mal puestos. Abortando.")
             _uiState.update { it.copy(showMistakeError = true, mistakeCount = errorCount) }
             return
         }
 
-        println("[HINT_DEBUG] Validaciones pasadas. Llamando al HintGenerator...")
         viewModelScope.launch(Dispatchers.Default) {
 
             val hints = hintGenerator.findAllHints(currentState.board)
 
             _uiState.update {
                 if (hints.isNotEmpty()) {
-                    println("[HINT_DEBUG] UI Actualizada con ${hints.size} pistas.")
                     it.copy(
                         activeHints = hints,
                         currentHintIndex = 0,
                         showNoHintFound = false
                     )
                 } else {
-                    println("[HINT_DEBUG] UI Actualizada: No se encontraron pistas.")
                     it.copy(showNoHintFound = true)
                 }
             }

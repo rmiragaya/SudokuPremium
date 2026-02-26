@@ -211,8 +211,10 @@ fun GameContent(
                 if (isLoading) {
                     SudokuDecodingBoard()
                 } else {
+                    val displayBoard = uiState.activeHint?.stepBoard ?: uiState.board
+
                     SudokuBoardView(
-                        board = uiState.board,
+                        board = displayBoard,
                         selectedCellId = uiState.selectedCellId,
                         highlightedIds = uiState.highlightedCellIds,
                         sameValueIds = uiState.sameValueCellIds,
@@ -271,9 +273,16 @@ fun SudokuBoardView(
                     val isHighlighted = highlightedIds.contains(cell.id)
                     val isSameValue = sameValueIds.contains(cell.id)
 
-                    val isHintTarget = activeHint != null &&
-                            activeHint.row == rowIndex &&
-                            activeHint.col == colIndex
+                    // NUEVA LÓGICA DE PISTAS:
+                    // 1. ¿Es la celda donde se va a poner el número final?
+                    val isTargetCell = activeHint?.targetCellIndex == cell.id
+
+                    // 2. ¿Es una celda a la que se le van a borrar notas?
+                    val notesToRemoveInThisCell = activeHint?.notesToRemove?.get(cell.id) ?: emptyList()
+                    val hasNotesToRemove = notesToRemoveInThisCell.isNotEmpty()
+
+                    // 3. ¿Es una celda que queremos iluminar como "explicación"?
+                    val isExplanationCell = activeHint?.highlightCells?.contains(cell.id) == true
 
                     Box(
                         modifier = Modifier
@@ -303,7 +312,8 @@ fun SudokuBoardView(
                             isSelected = cell.id == selectedCellId,
                             isHighlighted = isHighlighted,
                             isSameValue = isSameValue,
-                            isHintTarget = isHintTarget,
+                            isHintTarget = isTargetCell || hasNotesToRemove || isExplanationCell,
+                            notesToCrossOut = notesToRemoveInThisCell, // Pasamos las notas a borrar
                             onClick = { onCellClick(cell.id) }
                         )
                     }
@@ -312,20 +322,20 @@ fun SudokuBoardView(
         }
     }
 }
-
 @Composable
 fun CellView(
     cell: Cell,
     isSelected: Boolean,
     isHighlighted: Boolean,
     isSameValue: Boolean,
-    isHintTarget: Boolean,
+    isHintTarget: Boolean, // Ahora esto significa "estoy involucrado en la pista de alguna forma"
+    notesToCrossOut: List<Int> = emptyList(), // Nueva variable para saber qué notas pintar de rojo
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
 
     val bgColor = when {
-        isHintTarget -> SudokuPalette.CellHint
+        isHintTarget -> SudokuPalette.CellHint // Fondo doradito para celdas de la pista
         cell.isError -> SudokuPalette.CellErrorBg
         isSelected -> SudokuPalette.CellSelected
         isHighlighted -> SudokuPalette.CellHighlight
@@ -340,9 +350,8 @@ fun CellView(
     }
     val weight = if (cell.isGiven) FontWeight.Bold else FontWeight.Medium
 
-    val cellModifier = if (isHintTarget) {
-        modifier
-            .border(2.dp, SudokuPalette.CellHintBorder) // Borde Dorado
+    val cellModifier = if (isHintTarget && cell.value == null && notesToCrossOut.isEmpty()) {
+        modifier.border(2.dp, SudokuPalette.CellHintBorder)
     } else {
         modifier
     }
@@ -362,7 +371,49 @@ fun CellView(
                 color = textColor
             )
         } else if (cell.notes.isNotEmpty()) {
-            NotesGrid(notes = cell.notes)
+            // Le pasamos al grid las notas que están marcadas para morir
+            NotesGrid(notes = cell.notes, notesToCrossOut = notesToCrossOut)
+        }
+    }
+}
+
+@Composable
+fun NotesGrid(
+    notes: Set<Int>,
+    notesToCrossOut: List<Int> = emptyList() // Recibimos la lista de la muerte
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(2.dp),
+        verticalArrangement = Arrangement.SpaceEvenly
+    ) {
+        repeat(3) { row ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                repeat(3) { col ->
+                    val number = row * 3 + col + 1
+
+                    if (notes.contains(number)) {
+                        // Si la nota está en la lista de borrado, la pintamos de rojo intenso
+                        val isCrossedOut = notesToCrossOut.contains(number)
+                        val noteColor = if (isCrossedOut) androidx.compose.ui.graphics.Color.Red else SudokuPalette.TextSecondary
+                        val noteWeight = if (isCrossedOut) FontWeight.Bold else FontWeight.Normal
+
+                        Text(
+                            text = number.toString(),
+                            fontSize = 8.sp,
+                            color = noteColor,
+                            fontWeight = noteWeight,
+                            lineHeight = 8.sp
+                        )
+                    } else {
+                        Spacer(modifier = Modifier.size(8.dp))
+                    }
+                }
+            }
         }
     }
 }

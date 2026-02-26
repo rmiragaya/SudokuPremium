@@ -12,113 +12,81 @@ class HintGenerator @Inject constructor(
 ) {
 
     fun findAllHints(board: Board): List<SudokuHint> {
-        val finalHint = findDeepNumberHint(board)
-
-        if (finalHint != null) {
-            return listOf(finalHint)
-        } else {
-            return emptyList()
-        }
-    }
-
-    private fun findDeepNumberHint(board: Board): SudokuHint? {
         var currentBoard = board.initializeCandidates()
         val strategies = solver.strategies
 
-
-        val explanationSteps = mutableListOf<String>()
-        var firstCleanupHint: SudokuHint? = null
+        val hintChain = mutableListOf<SudokuHint>()
 
         var safetyCounter = 20
 
         while (safetyCounter > 0) {
+            safetyCounter--
             var progressMade = false
 
             for (strategy in strategies) {
-
                 val boardsFound = strategy.findAll(currentBoard)
 
                 if (boardsFound.isNotEmpty()) {
-
                     val newBoard = boardsFound.first()
-                    val hintDiff = createHintFromDiff(strategy.name, currentBoard, newBoard)
+                    val hint = createFullDiffHint(strategy.name, currentBoard, newBoard)
 
-                    if (hintDiff != null) {
-                        if (hintDiff.value != null) {
+                    if (hint != null) {
+                        hintChain.add(hint)
 
-                            val finalDesc = buildString {
-                                if (explanationSteps.isNotEmpty()) {
-                                    append("Para llegar a este número, deducciones previas:\n")
-                                    explanationSteps.forEach { append("• $it\n") }
-                                    append("\n👉 Finalmente: ")
-                                }
-                                append(hintDiff.description)
-                            }
-                            return hintDiff.copy(description = finalDesc.trim())
-                        } else {
+                        // tenemos pista que agrega un numero, devolvemos la lista de pistas al usuario
+                        if (hint.valueToSet != null) return hintChain
 
-                            if (firstCleanupHint == null) {
-                                firstCleanupHint = hintDiff
-                            }
-                            explanationSteps.add(hintDiff.description)
-                            currentBoard = newBoard
-                            progressMade = true
-                            break // Rompe el for, vuelve al while
-                        }
-                    } else {
-                        println("[HINT_DEBUG] ERROR RARO: '${strategy.name}' devolvió un tablero pero el Diff no encontró diferencias.")
+                        currentBoard = newBoard
+                        progressMade = true
+                        break
                     }
                 }
             }
 
-            if (!progressMade) {
-                println("[HINT_DEBUG] NINGUNA estrategia pudo avanzar en este ciclo. El Solver está atascado.")
-                break
-            }
+            if (!progressMade) break
         }
 
-        if (safetyCounter == 0) {
-            println("[HINT_DEBUG] ADVERTENCIA: Se alcanzó el límite de $safetyCounter ciclos. Posible bucle infinito.")
-        }
-
-        if (firstCleanupHint != null) {
-            println("[HINT_DEBUG] Devolviendo pista de limpieza de emergencia (Fallback).")
-        }
-
-        return firstCleanupHint
+        return hintChain
     }
 
-    private fun createHintFromDiff(strategyName: String, oldBoard: Board, newBoard: Board): SudokuHint? {
+    private fun createFullDiffHint(strategyName: String, oldBoard: Board, newBoard: Board): SudokuHint? {
+        var targetCellIndex: Int? = null
+        var valueToSet: Int? = null
+        val notesToRemoveMap = mutableMapOf<Int, List<Int>>()
+
         for (i in 0 until 81) {
             val oldCell = oldBoard.cells[i]
             val newCell = newBoard.cells[i]
 
             if (oldCell.value != newCell.value && newCell.value != null) {
-                return SudokuHint(
-                    strategyName = strategyName,
-                    description = messageFactory.getSuccessMessage(strategyName, newCell.value),
-                    row = oldCell.row,
-                    col = oldCell.col,
-                    value = newCell.value,
-                    notesRemoved = emptyList()
-                )
+                targetCellIndex = i
+                valueToSet = newCell.value
+                break
             }
 
             if (oldCell.notes != newCell.notes) {
                 val removed = (oldCell.notes - newCell.notes).toList()
-                val kept = newCell.notes.toList()
-
                 if (removed.isNotEmpty()) {
-                    return SudokuHint(
-                        strategyName = strategyName,
-                        description = messageFactory.getEliminationMessage(strategyName, removed, kept),
-                        row = oldCell.row,
-                        col = oldCell.col,
-                        value = null,
-                        notesRemoved = removed
-                    )
+                    notesToRemoveMap[i] = removed
                 }
             }
+        }
+
+        if (targetCellIndex != null && valueToSet != null) {
+            return SudokuHint(
+                strategyName = strategyName,
+                description = messageFactory.getSuccessMessage(strategyName, valueToSet),
+                targetCellIndex = targetCellIndex,
+                valueToSet = valueToSet,
+                stepBoard = oldBoard
+            )
+        } else if (notesToRemoveMap.isNotEmpty()) {
+            return SudokuHint(
+                strategyName = strategyName,
+                description = messageFactory.getEliminationMessage(strategyName, notesToRemoveMap),
+                notesToRemove = notesToRemoveMap,
+                stepBoard = oldBoard
+            )
         }
         return null
     }
