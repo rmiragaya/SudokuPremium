@@ -1,6 +1,7 @@
 package ropa.miragaya.sudokupremium.domain.solver.hints
 
 import ropa.miragaya.sudokupremium.domain.model.Board
+import ropa.miragaya.sudokupremium.domain.model.StrategyContext
 import ropa.miragaya.sudokupremium.domain.model.SudokuHint
 import ropa.miragaya.sudokupremium.domain.model.initializeCandidates
 import ropa.miragaya.sudokupremium.domain.solver.Solver
@@ -24,16 +25,18 @@ class HintGenerator @Inject constructor(
             var progressMade = false
 
             for (strategy in strategies) {
-                val boardsFound = strategy.findAll(currentBoard)
+                val resultsFound = strategy.findAll(currentBoard)
 
-                if (boardsFound.isNotEmpty()) {
-                    val newBoard = boardsFound.first()
-                    val hint = createFullDiffHint(strategy.name, currentBoard, newBoard)
+                if (resultsFound.isNotEmpty()) {
+                    val firstResult = resultsFound.first()
+                    val newBoard = firstResult.newBoard
+                    val context = firstResult.context
+
+                    val hint = createFullDiffHint(context, currentBoard, newBoard)
 
                     if (hint != null) {
                         hintChain.add(hint)
 
-                        // tenemos pista que agrega un numero, devolvemos la lista de pistas al usuario
                         if (hint.valueToSet != null) return hintChain
 
                         currentBoard = newBoard
@@ -49,7 +52,7 @@ class HintGenerator @Inject constructor(
         return hintChain
     }
 
-    private fun createFullDiffHint(strategyName: String, oldBoard: Board, newBoard: Board): SudokuHint? {
+    private fun createFullDiffHint(context: StrategyContext, oldBoard: Board, newBoard: Board): SudokuHint? {
         var targetCellIndex: Int? = null
         var valueToSet: Int? = null
         val notesToRemoveMap = mutableMapOf<Int, List<Int>>()
@@ -74,16 +77,16 @@ class HintGenerator @Inject constructor(
 
         if (targetCellIndex != null && valueToSet != null) {
             return SudokuHint(
-                strategyName = strategyName,
-                description = messageFactory.getSuccessMessage(strategyName, valueToSet),
+                strategyName = context.name,
+                description = messageFactory.getSuccessMessage(context, valueToSet),
                 targetCellIndex = targetCellIndex,
                 valueToSet = valueToSet,
                 stepBoard = oldBoard
             )
         } else if (notesToRemoveMap.isNotEmpty()) {
             return SudokuHint(
-                strategyName = strategyName,
-                description = messageFactory.getEliminationMessage(strategyName, notesToRemoveMap),
+                strategyName = context.name,
+                description = messageFactory.getEliminationMessage(context, notesToRemoveMap),
                 notesToRemove = notesToRemoveMap,
                 stepBoard = oldBoard
             )

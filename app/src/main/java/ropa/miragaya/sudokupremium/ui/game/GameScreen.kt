@@ -224,7 +224,7 @@ fun GameContent(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(30.dp))
 
             val controlsEnabled = !uiState.isLoading
 
@@ -242,6 +242,8 @@ fun GameContent(
                 onDeleteClick = onDeleteInput,
                 completedNumbers = uiState.completedNumbers
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

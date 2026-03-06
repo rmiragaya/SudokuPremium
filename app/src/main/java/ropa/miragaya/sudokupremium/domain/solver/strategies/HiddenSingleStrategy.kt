@@ -2,20 +2,24 @@ package ropa.miragaya.sudokupremium.domain.solver.strategies
 
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
-import ropa.miragaya.sudokupremium.domain.solver.calculateCandidates
-import kotlin.collections.iterator
+import ropa.miragaya.sudokupremium.domain.model.StrategyContext
 
 class HiddenSingleStrategy : SolvingStrategy {
     override val name = "Hidden Single"
     override val difficulty = Difficulty.EASY
 
-    override fun apply(board: Board): Board? {
+    override fun apply(board: Board): StrategyResult? {
 
         val allGroups = board.rows + board.cols + board.boxes
 
         for (group in allGroups) {
-            val result = findHiddenSingleInGroup(board, group.map { it.id })
-            if (result != null) return result
+            val newBoard = findHiddenSingleInGroup(board, group.map { it.id })
+            if (newBoard != null)
+                return StrategyResult(
+                newBoard = newBoard,
+                context = StrategyContext.Generic(this.name)
+            )
+
         }
         return null
     }

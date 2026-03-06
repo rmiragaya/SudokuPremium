@@ -2,18 +2,19 @@ package ropa.miragaya.sudokupremium.domain.solver.strategies
 
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
+import ropa.miragaya.sudokupremium.domain.model.StrategyContext
 import javax.inject.Inject
 
 class IntersectionRemovalStrategy @Inject constructor() : SolvingStrategy {
     override val name = "Intersection Removal"
     override val difficulty = Difficulty.MEDIUM
 
-    override fun apply(board: Board): Board? {
+    override fun apply(board: Board): StrategyResult? {
         return findAll(board).firstOrNull()
     }
 
-    override fun findAll(board: Board): List<Board> {
-        val foundBoards = mutableListOf<Board>()
+    override fun findAll(board: Board): List<StrategyResult> {
+        val foundResults = mutableListOf<StrategyResult>()
 
         for (candidate in 1..9) {
 
@@ -29,7 +30,12 @@ class IntersectionRemovalStrategy @Inject constructor() : SolvingStrategy {
                         it.row == firstRow && it.box != boxIndex && it.notes.contains(candidate)
                     }
                     if (victims.isNotEmpty()) {
-                        foundBoards.add(removeNotes(board, victims.map { it.id }, candidate))
+                        val newBoard = removeNotes(board, victims.map { it.id }, candidate)
+                        val context = StrategyContext.IntersectionRemoval(
+                            candidateNumber = candidate,
+                            containerType = "la caja ${boxIndex + 1} (alineado en la fila ${firstRow + 1})"
+                        )
+                        foundResults.add(StrategyResult(newBoard, context))
                     }
                 }
 
@@ -39,7 +45,12 @@ class IntersectionRemovalStrategy @Inject constructor() : SolvingStrategy {
                         it.col == firstCol && it.box != boxIndex && it.notes.contains(candidate)
                     }
                     if (victims.isNotEmpty()) {
-                        foundBoards.add(removeNotes(board, victims.map { it.id }, candidate))
+                        val newBoard = removeNotes(board, victims.map { it.id }, candidate)
+                        val context = StrategyContext.IntersectionRemoval(
+                            candidateNumber = candidate,
+                            containerType = "la caja ${boxIndex + 1} (alineado en la columna ${firstCol + 1})"
+                        )
+                        foundResults.add(StrategyResult(newBoard, context))
                     }
                 }
             }
@@ -56,7 +67,13 @@ class IntersectionRemovalStrategy @Inject constructor() : SolvingStrategy {
                         it.box == firstBox && it.row != rowIndex && it.notes.contains(candidate)
                     }
                     if (victims.isNotEmpty()) {
-                        foundBoards.add(removeNotes(board, victims.map { it.id }, candidate))
+                        val newBoard = removeNotes(board, victims.map { it.id }, candidate)
+
+                        val context = StrategyContext.IntersectionRemoval(
+                            candidateNumber = candidate,
+                            containerType = "la fila ${rowIndex + 1} (dentro de la caja ${firstBox + 1})"
+                        )
+                        foundResults.add(StrategyResult(newBoard, context))
                     }
                 }
             }
@@ -73,13 +90,19 @@ class IntersectionRemovalStrategy @Inject constructor() : SolvingStrategy {
                         it.box == firstBox && it.col != colIndex && it.notes.contains(candidate)
                     }
                     if (victims.isNotEmpty()) {
-                        foundBoards.add(removeNotes(board, victims.map { it.id }, candidate))
+                        val newBoard = removeNotes(board, victims.map { it.id }, candidate)
+
+                        val context = StrategyContext.IntersectionRemoval(
+                            candidateNumber = candidate,
+                            containerType = "la columna ${colIndex + 1} (dentro de la caja ${firstBox + 1})"
+                        )
+                        foundResults.add(StrategyResult(newBoard, context))
                     }
                 }
             }
         }
 
-        return foundBoards.distinct()
+        return foundResults
     }
 
     private fun removeNotes(board: Board, cellIds: List<Int>, noteToRemove: Int): Board {

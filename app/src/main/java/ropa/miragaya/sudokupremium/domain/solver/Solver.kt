@@ -1,9 +1,7 @@
 package ropa.miragaya.sudokupremium.domain.solver
 
-import android.util.Log
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
-import ropa.miragaya.sudokupremium.domain.model.SudokuHint
 import ropa.miragaya.sudokupremium.domain.model.initializeCandidates
 import ropa.miragaya.sudokupremium.domain.solver.strategies.HiddenPairStrategy
 import ropa.miragaya.sudokupremium.domain.solver.strategies.HiddenSingleStrategy
@@ -43,9 +41,10 @@ class Solver @Inject constructor() {
             logicApplied = false
 
             for (strategy in strategies) {
-                val nextBoard = strategy.apply(currentBoard)
+                val strategyResult = strategy.apply(currentBoard)
 
-                if (nextBoard != null) {
+                if (strategyResult != null) {
+                    val nextBoard = strategyResult.newBoard
 
                     if (logSteps) {
                         SudokuDebugUtils.logStep(strategy.name, currentBoard, nextBoard)

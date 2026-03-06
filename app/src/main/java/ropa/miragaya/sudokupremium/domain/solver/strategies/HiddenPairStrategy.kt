@@ -2,19 +2,23 @@ package ropa.miragaya.sudokupremium.domain.solver.strategies
 
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
+import ropa.miragaya.sudokupremium.domain.model.StrategyContext
 
 class HiddenPairStrategy : SolvingStrategy {
 
     override val name = "Hidden Pair"
     override val difficulty = Difficulty.MEDIUM
 
-    override fun apply(board: Board): Board? {
+    override fun apply(board: Board): StrategyResult? {
         val allGroups = board.rows + board.cols + board.boxes
 
         for (group in allGroups) {
             val cellIds = group.map { it.id }
-            val result = findHiddenPairsInGroup(board, cellIds)
-            if (result != null) return result
+            val newBoard = findHiddenPairsInGroup(board, cellIds)
+            if (newBoard != null) return StrategyResult(
+                newBoard = newBoard,
+                context = StrategyContext.Generic(this.name)
+            )
         }
         return null
     }

@@ -3,13 +3,14 @@ package ropa.miragaya.sudokupremium.domain.solver.strategies
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Cell
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
+import ropa.miragaya.sudokupremium.domain.model.StrategyContext
 
 class YWingStrategy : SolvingStrategy {
 
     override val name = "Y-Wing"
     override val difficulty = Difficulty.EXPERT
 
-    override fun apply(board: Board): Board? {
+    override fun apply(board: Board): StrategyResult?{
 
         val biValueCells = board.cells.filter { it.value == null && it.notes.size == 2 }
 
@@ -47,7 +48,10 @@ class YWingStrategy : SolvingStrategy {
                         }
 
                         if (changesMade) {
-                            return Board(newCells)
+                            return StrategyResult(
+                                newBoard = Board(newCells),
+                                context = StrategyContext.Generic(this.name) // <-- El parche genérico
+                            )
                         }
                     }
                 }

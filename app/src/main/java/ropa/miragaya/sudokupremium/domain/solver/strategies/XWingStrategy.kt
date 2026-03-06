@@ -2,20 +2,27 @@ package ropa.miragaya.sudokupremium.domain.solver.strategies
 
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
+import ropa.miragaya.sudokupremium.domain.model.StrategyContext
 
 class XWingStrategy : SolvingStrategy {
 
     override val name = "X-Wing"
     override val difficulty = Difficulty.HARD
 
-    override fun apply(board: Board): Board? {
+    override fun apply(board: Board): StrategyResult? {
         // Probamos X-Wing en Filas (para eliminar en Columnas)
         val rowResult = findXWing(board, isRowBased = true)
-        if (rowResult != null) return rowResult
+        if (rowResult != null) return StrategyResult(
+            newBoard = rowResult,
+            context = StrategyContext.Generic(this.name)
+        )
 
         // Probamos X-Wing en Columnas (para eliminar en Filas)
         val colResult = findXWing(board, isRowBased = false)
-        if (colResult != null) return colResult
+        if (colResult != null) return StrategyResult(
+            newBoard = colResult,
+            context = StrategyContext.Generic(this.name)
+        )
 
         return null
     }
