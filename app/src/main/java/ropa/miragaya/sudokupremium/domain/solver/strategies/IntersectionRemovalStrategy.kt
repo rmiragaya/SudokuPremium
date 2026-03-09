@@ -33,7 +33,8 @@ class IntersectionRemovalStrategy @Inject constructor() : SolvingStrategy {
                         val newBoard = removeNotes(board, victims.map { it.id }, candidate)
                         val context = StrategyContext.IntersectionRemoval(
                             candidateNumber = candidate,
-                            containerType = "la caja ${boxIndex + 1} (alineado en la fila ${firstRow + 1})"
+                            containerType = "la caja ${boxIndex + 1}, alineado en la fila ${firstRow + 1},",
+                            filaOColumnaOCaja = "fila"
                         )
                         foundResults.add(StrategyResult(newBoard, context))
                     }
@@ -48,7 +49,8 @@ class IntersectionRemovalStrategy @Inject constructor() : SolvingStrategy {
                         val newBoard = removeNotes(board, victims.map { it.id }, candidate)
                         val context = StrategyContext.IntersectionRemoval(
                             candidateNumber = candidate,
-                            containerType = "la caja ${boxIndex + 1} (alineado en la columna ${firstCol + 1})"
+                            containerType = "la caja ${boxIndex + 1}, alineado en la columna ${firstCol + 1},",
+                            filaOColumnaOCaja = "columna"
                         )
                         foundResults.add(StrategyResult(newBoard, context))
                     }
@@ -71,7 +73,8 @@ class IntersectionRemovalStrategy @Inject constructor() : SolvingStrategy {
 
                         val context = StrategyContext.IntersectionRemoval(
                             candidateNumber = candidate,
-                            containerType = "la fila ${rowIndex + 1} (dentro de la caja ${firstBox + 1})"
+                            containerType = "la fila ${rowIndex + 1}, dentro de la caja ${firstBox + 1},",
+                            filaOColumnaOCaja = "caja"
                         )
                         foundResults.add(StrategyResult(newBoard, context))
                     }
@@ -94,7 +97,8 @@ class IntersectionRemovalStrategy @Inject constructor() : SolvingStrategy {
 
                         val context = StrategyContext.IntersectionRemoval(
                             candidateNumber = candidate,
-                            containerType = "la columna ${colIndex + 1} (dentro de la caja ${firstBox + 1})"
+                            containerType = "la columna ${colIndex + 1}, dentro de la caja ${firstBox + 1},",
+                            filaOColumnaOCaja = "caja"
                         )
                         foundResults.add(StrategyResult(newBoard, context))
                     }

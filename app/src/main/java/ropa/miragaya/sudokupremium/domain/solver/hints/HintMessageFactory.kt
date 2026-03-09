@@ -15,8 +15,8 @@ class HintMessageFactory @Inject constructor() {
 
         return when (context) {
             is StrategyContext.IntersectionRemoval -> {
-                "Como el candidato ${context.candidateNumber} está confinado a ${context.containerType}, " +
-                        "podemos eliminarlo del resto de las celdas cruzadas. Se eliminaron $totalNotesRemoved $plural."
+                "Como el número ${context.candidateNumber} está en ${context.containerType} " +
+                        "podemos eliminarlo como candidato del resto de la ${context.filaOColumnaOCaja}."
             }
             is StrategyContext.Generic -> {
                 "Usando ${context.name} podemos eliminar $totalNotesRemoved $plural."

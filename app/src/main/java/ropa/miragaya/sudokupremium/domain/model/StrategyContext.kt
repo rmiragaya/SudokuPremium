@@ -8,7 +8,8 @@ sealed class StrategyContext {
 
     data class IntersectionRemoval(
         val candidateNumber: Int,
-        val containerType: String
+        val containerType: String,
+        val filaOColumnaOCaja: String
     ) : StrategyContext()
 
     data class Generic(val strategyName: String) : StrategyContext()
