@@ -62,7 +62,8 @@ class GameViewModel @Inject constructor(
     private fun initializeGame() {
 
         if (BuildConfig.DEBUG && USE_DEBUG_BOARD) {
-            val debugBoard = debugBoardLoader.loadBoard("board1-intersection-removal-1.txt")
+//            val debugBoard = debugBoardLoader.loadBoardFromJson("board1-intersection-removal-1.txt")
+            val debugBoard = debugBoardLoader.loadBoardFromGrid()
 
             if (debugBoard == null) {
                 Log.e(TAG, "No se pudo cargar el debug board")
