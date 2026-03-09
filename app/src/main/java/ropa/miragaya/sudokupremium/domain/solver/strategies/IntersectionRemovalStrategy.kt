@@ -31,10 +31,11 @@ class IntersectionRemovalStrategy @Inject constructor() : SolvingStrategy {
                     }
                     if (victims.isNotEmpty()) {
                         val newBoard = removeNotes(board, victims.map { it.id }, candidate)
-                        val context = StrategyContext.IntersectionRemoval(
+                        val context = StrategyContext.IntersectionRemoval.Pointing(
                             candidateNumber = candidate,
-                            containerType = "la caja ${boxIndex + 1}, alineado en la fila ${firstRow + 1},",
-                            filaOColumnaOCaja = "fila"
+                            boxIndex = boxIndex,
+                            lineType = "fila",
+                            lineIndex = firstRow
                         )
                         foundResults.add(StrategyResult(newBoard, context))
                     }
@@ -47,10 +48,11 @@ class IntersectionRemovalStrategy @Inject constructor() : SolvingStrategy {
                     }
                     if (victims.isNotEmpty()) {
                         val newBoard = removeNotes(board, victims.map { it.id }, candidate)
-                        val context = StrategyContext.IntersectionRemoval(
+                        val context = StrategyContext.IntersectionRemoval.Pointing(
                             candidateNumber = candidate,
-                            containerType = "la caja ${boxIndex + 1}, alineado en la columna ${firstCol + 1},",
-                            filaOColumnaOCaja = "columna"
+                            boxIndex = boxIndex,
+                            lineType = "columna",
+                            lineIndex = firstCol
                         )
                         foundResults.add(StrategyResult(newBoard, context))
                     }
@@ -71,10 +73,11 @@ class IntersectionRemovalStrategy @Inject constructor() : SolvingStrategy {
                     if (victims.isNotEmpty()) {
                         val newBoard = removeNotes(board, victims.map { it.id }, candidate)
 
-                        val context = StrategyContext.IntersectionRemoval(
+                        val context = StrategyContext.IntersectionRemoval.BoxLineReduction(
                             candidateNumber = candidate,
-                            containerType = "la fila ${rowIndex + 1}, dentro de la caja ${firstBox + 1},",
-                            filaOColumnaOCaja = "caja"
+                            lineType = "fila",
+                            lineIndex = rowIndex,
+                            boxIndex = firstBox
                         )
                         foundResults.add(StrategyResult(newBoard, context))
                     }
@@ -95,10 +98,11 @@ class IntersectionRemovalStrategy @Inject constructor() : SolvingStrategy {
                     if (victims.isNotEmpty()) {
                         val newBoard = removeNotes(board, victims.map { it.id }, candidate)
 
-                        val context = StrategyContext.IntersectionRemoval(
+                        val context = StrategyContext.IntersectionRemoval.BoxLineReduction(
                             candidateNumber = candidate,
-                            containerType = "la columna ${colIndex + 1}, dentro de la caja ${firstBox + 1},",
-                            filaOColumnaOCaja = "caja"
+                            lineType = "columna",
+                            lineIndex = colIndex,
+                            boxIndex = firstBox
                         )
                         foundResults.add(StrategyResult(newBoard, context))
                     }
