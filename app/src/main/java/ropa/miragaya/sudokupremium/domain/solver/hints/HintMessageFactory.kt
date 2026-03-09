@@ -6,7 +6,7 @@ import javax.inject.Inject
 class HintMessageFactory @Inject constructor() {
 
     fun getSuccessMessage(context: StrategyContext, value: Int): String {
-        return "¡Paso Final! Aplicando la lógica de ${context.name}, podemos deducir que en esta celda solo puede ir el número $value."
+        return "Aplicando la lógica de ${context.name}, podemos deducir que en esta celda solo puede ir el número $value."
     }
 
     fun getEliminationMessage(context: StrategyContext, notesToRemoveMap: Map<Int, List<Int>>): String {
