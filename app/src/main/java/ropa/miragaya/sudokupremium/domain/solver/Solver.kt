@@ -21,8 +21,8 @@ class Solver @Inject constructor() {
     val strategies: List<SolvingStrategy> = listOf(
         NakedSingleStrategy(),              // EASY
         HiddenSingleStrategy(),             // EASY
-        IntersectionRemovalStrategy(),      // MEDIUM
         NakedPairStrategy(),                // MEDIUM
+        IntersectionRemovalStrategy(),      // MEDIUM
         HiddenPairStrategy(),               // MEDIUM
         NakedTripleStrategy(),              // HARD
         XWingStrategy(),                    // HARD

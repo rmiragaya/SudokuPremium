@@ -29,7 +29,7 @@ class DebugBoardLoader @Inject constructor(
 
     fun loadBoardFromGrid(): Board? {
         return try {
-            fromGridString("400000938032094100095300240370609004529001673604703090957008300003900400240030709")
+            fromGridString("080090030030000069902063158020804590851907046394605870563040987200000015010050020")
 
         } catch (e: Exception) {
             Log.e("DebugBoardLoader", "Error fromGridString", e)
