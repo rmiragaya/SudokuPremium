@@ -8,8 +8,7 @@ import ropa.miragaya.sudokupremium.domain.solver.Solver
 import javax.inject.Inject
 
 class HintGenerator @Inject constructor(
-    private val solver: Solver,
-    private val messageFactory: HintMessageFactory
+    private val solver: Solver
 ) {
 
     fun findAllHints(board: Board): List<SudokuHint> {
@@ -78,7 +77,7 @@ class HintGenerator @Inject constructor(
         if (targetCellIndex != null && valueToSet != null) {
             return SudokuHint(
                 strategyName = context.name,
-                description = messageFactory.getSuccessMessage(context, valueToSet),
+                description = context.getSuccessMessage(valueToSet),
                 targetCellIndex = targetCellIndex,
                 valueToSet = valueToSet,
                 stepBoard = oldBoard
@@ -86,7 +85,7 @@ class HintGenerator @Inject constructor(
         } else if (notesToRemoveMap.isNotEmpty()) {
             return SudokuHint(
                 strategyName = context.name,
-                description = messageFactory.getEliminationMessage(context, notesToRemoveMap),
+                description = context.getEliminationMessage(notesToRemoveMap),
                 notesToRemove = notesToRemoveMap,
                 stepBoard = oldBoard
             )
