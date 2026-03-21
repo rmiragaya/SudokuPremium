@@ -62,9 +62,9 @@ class GameViewModel @Inject constructor(
     private fun initializeGame() {
 
         if (BuildConfig.DEBUG && USE_DEBUG_BOARD) {
-//            val debugBoard = debugBoardLoader.loadBoardFromJson("board1-intersection-removal-1.txt")
+            val debugBoard = debugBoardLoader.loadBoardFromJson("board1-intersection-removal-1.txt") // tiene nakedTriple y Y-Wing
 //            val debugBoard = debugBoardLoader.loadBoardFromJson("board2-naked-pair-1.txt")
-            val debugBoard = debugBoardLoader.loadBoardFromJson("board2-naked-pair-2.txt")
+//            val debugBoard = debugBoardLoader.loadBoardFromJson("board2-naked-pair-2.txt")
 //            val debugBoard = debugBoardLoader.loadBoardFromGrid()
 
             if (debugBoard == null) {
