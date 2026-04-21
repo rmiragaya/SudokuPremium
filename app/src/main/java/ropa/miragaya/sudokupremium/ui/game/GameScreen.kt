@@ -79,7 +79,8 @@ fun GameScreen(
 
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    val context = LocalContext.current // todo solo lo uso para debug, tiene sentido que este aca asi?
+    val context =
+        LocalContext.current // todo solo lo uso para debug, tiene sentido que este aca asi?
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -131,8 +132,7 @@ fun GameScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.5f))
-                    .clickable { viewModel.onDismissHint() }
-            )
+                    .clickable { viewModel.onDismissHint() })
 
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
                 Box(modifier = Modifier.clickable(enabled = false) {}) {
@@ -152,8 +152,7 @@ fun GameScreen(
 
 @Composable
 private fun getDebugDump(
-    viewModel: GameViewModel,
-    context: Context
+    viewModel: GameViewModel, context: Context
 ): () -> Unit = {
     val dumpString = viewModel.getDebugDump()
 
@@ -196,17 +195,15 @@ fun GameContent(
                 .fillMaxSize()
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Top
         ) {
+            Spacer(Modifier.height(25.dp))
             AnimatedContent(
-                targetState = uiState.isLoading,
-                transitionSpec = {
-                    (fadeIn(animationSpec = tween(600)))
-                        .togetherWith(
-                            fadeOut(animationSpec = tween(600))
-                        )
-                },
-                label = "BoardTransition"
+                targetState = uiState.isLoading, transitionSpec = {
+                    (fadeIn(animationSpec = tween(600))).togetherWith(
+                        fadeOut(animationSpec = tween(600))
+                    )
+                }, label = "BoardTransition"
             ) { isLoading ->
                 if (isLoading) {
                     SudokuDecodingBoard()
@@ -275,15 +272,12 @@ fun SudokuBoardView(
                     val isHighlighted = highlightedIds.contains(cell.id)
                     val isSameValue = sameValueIds.contains(cell.id)
 
-                    // NUEVA LÓGICA DE PISTAS:
-                    // 1. ¿Es la celda donde se va a poner el número final?
                     val isTargetCell = activeHint?.targetCellIndex == cell.id
 
-                    // 2. ¿Es una celda a la que se le van a borrar notas?
-                    val notesToRemoveInThisCell = activeHint?.notesToRemove?.get(cell.id) ?: emptyList()
+                    val notesToRemoveInThisCell =
+                        activeHint?.notesToRemove?.get(cell.id) ?: emptyList()
                     val hasNotesToRemove = notesToRemoveInThisCell.isNotEmpty()
 
-                    // 3. ¿Es una celda que queremos iluminar como "explicación"?
                     val isExplanationCell = activeHint?.highlightCells?.contains(cell.id) == true
 
                     Box(
@@ -307,8 +301,7 @@ fun SudokuBoardView(
                                     end = Offset(size.width, size.height),
                                     strokeWidth = bottomBorder.toPx()
                                 )
-                            }
-                    ) {
+                            }) {
                         CellView(
                             cell = cell,
                             isSelected = cell.id == selectedCellId,
@@ -316,14 +309,14 @@ fun SudokuBoardView(
                             isSameValue = isSameValue,
                             isHintTarget = isTargetCell || hasNotesToRemove || isExplanationCell,
                             notesToCrossOut = notesToRemoveInThisCell, // Pasamos las notas a borrar
-                            onClick = { onCellClick(cell.id) }
-                        )
+                            onClick = { onCellClick(cell.id) })
                     }
                 }
             }
         }
     }
 }
+
 @Composable
 fun CellView(
     cell: Cell,
@@ -381,8 +374,7 @@ fun CellView(
 
 @Composable
 fun NotesGrid(
-    notes: Set<Int>,
-    notesToCrossOut: List<Int> = emptyList() // Recibimos la lista de la muerte
+    notes: Set<Int>, notesToCrossOut: List<Int> = emptyList() // Recibimos la lista de la muerte
 ) {
     Column(
         modifier = Modifier
@@ -392,8 +384,7 @@ fun NotesGrid(
     ) {
         repeat(3) { row ->
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 repeat(3) { col ->
                     val number = row * 3 + col + 1
@@ -401,7 +392,8 @@ fun NotesGrid(
                     if (notes.contains(number)) {
                         // Si la nota está en la lista de borrado, la pintamos de rojo intenso
                         val isCrossedOut = notesToCrossOut.contains(number)
-                        val noteColor = if (isCrossedOut) androidx.compose.ui.graphics.Color.Red else SudokuPalette.TextSecondary
+                        val noteColor =
+                            if (isCrossedOut) androidx.compose.ui.graphics.Color.Red else SudokuPalette.TextSecondary
                         val noteWeight = if (isCrossedOut) FontWeight.Bold else FontWeight.Normal
 
                         Text(
@@ -430,8 +422,7 @@ fun NotesGrid(notes: Set<Int>) {
     ) {
         repeat(3) { row ->
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 repeat(3) { col ->
                     val number = row * 3 + col + 1
@@ -459,13 +450,11 @@ fun NumberPad(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // 1 al 5
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             (1..5).forEach { number ->
                 SudokuButton(
@@ -479,8 +468,7 @@ fun NumberPad(
 
         // 9 al X
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             (6..9).forEach { number ->
                 SudokuButton(
@@ -519,17 +507,14 @@ fun SudokuButton(
         onClick = onClick,
         modifier = modifier.height(50.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = containerColor,
-            contentColor = contentColor
+            containerColor = containerColor, contentColor = contentColor
         ),
         enabled = enabled,
         shape = MaterialTheme.shapes.small,
         contentPadding = PaddingValues(0.dp)
     ) {
         Text(
-            text = text,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
+            text = text, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold
         )
     }
 }
@@ -557,8 +542,7 @@ fun GameTopBar(
             tint = SudokuPalette.TextSecondary,
             modifier = Modifier
                 .clickable { onBackClick() }
-                .padding(8.dp)
-        )
+                .padding(8.dp))
 
         Text(
             text = difficulty,
@@ -578,8 +562,7 @@ fun GameTopBar(
                 tint = SudokuPalette.TextAccent,
                 modifier = Modifier
                     .size(28.dp)
-                    .clickable { onHintClick() }
-            )
+                    .clickable { onHintClick() })
 
             if (BuildConfig.DEBUG) {
                 Button(
@@ -621,8 +604,7 @@ fun GameControls(
     enabled: Boolean = true
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly
+        modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         Button(
             onClick = onUndo,
@@ -652,8 +634,7 @@ fun GameControls(
         Button(
             onClick = onToggleNoteMode,
             colors = ButtonDefaults.buttonColors(
-                containerColor = containerColor,
-                contentColor = contentColor
+                containerColor = containerColor, contentColor = contentColor
             ),
             shape = RoundedCornerShape(12.dp),
             contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
@@ -674,8 +655,7 @@ fun GameControls(
 }
 
 @Preview(
-    showBackground = true,
-    backgroundColor = 0xFF161823
+    showBackground = true, backgroundColor = 0xFF161823
 )
 @Composable
 fun GameScreenPreview(
@@ -690,7 +670,6 @@ fun GameScreenPreview(
         onToggleNoteMode = {},
         onHintClick = {},
         onGetDebugDumpClick = {},
-        onUndo = {}
-    )
+        onUndo = {})
 }
 
