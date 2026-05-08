@@ -79,9 +79,9 @@ sealed class StrategyContext {
         override val highlightCellIds = listOf(cellId)
 
         override fun getSuccessMessage(valueToSet: Int): String {
-            return "En la ${containerLabel(containerType, containerIndex)}, el número $candidateNumber " +
-                    "solo aparece como candidato en la casilla de ${cellLabel(cellId)}. " +
-                    "Por eso esa casilla debe ser $valueToSet."
+            return "Fijate en la ${containerLabel(containerType, containerIndex)}. " +
+                    "Si revisás los candidatos, el número $candidateNumber solo puede ir en la casilla de ${cellLabel(cellId)}. " +
+                    "No tiene ningún otro lugar posible en esa $containerType, así que esa casilla debe ser $valueToSet."
         }
     }
 
@@ -202,23 +202,6 @@ sealed class StrategyContext {
                     "Cualquier casilla que vea ambas alas no puede ser $candidateToRemove, así que ese candidato se elimina."
         }
     }
-
-    data class HiddenSingle(
-        val row: Int,
-        val col: Int,
-        val value: Int,
-        val regionType: String,
-        val regionIndex: Int
-    ) : StrategyContext() {
-        override val name = "Hidden Single"
-
-        override fun getSuccessMessage(valueToSet: Int): String {
-            return "Fijate bien en la $regionType ${regionIndex + 1}. " +
-                    "Si revisás los candidatos, vas a ver que, de toda la $regionType, el $value solo puede ir en la casilla marcada. " +
-                    "El $value no tiene ningun otro lugar posible en esa $regionType."
-        }
-    }
-
 
     data class Generic(val strategyName: String) : StrategyContext() {
         override val name = strategyName
