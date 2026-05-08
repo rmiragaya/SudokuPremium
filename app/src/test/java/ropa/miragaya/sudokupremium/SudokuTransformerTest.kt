@@ -13,14 +13,15 @@ class SudokuTransformerTest {
 
     @Test
     fun `transform maintains sudoku rules (Fuzz Testing)`() {
-
         val validBoard = BoardGenerator.generateFilledBoard()
 
         repeat(100) { iteration ->
             val transformedBoard = transformer.transform(validBoard)
 
-            assertTrue("Iteración $iteration: El tablero debe estar lleno",
-                transformedBoard.cells.all { it.value != null })
+            assertTrue(
+                "Iteración $iteration: El tablero debe estar lleno",
+                transformedBoard.cells.all { it.value != null }
+            )
 
             assertTrue("Iteración $iteration: Filas rotas", areRowsValid(transformedBoard))
             assertTrue("Iteración $iteration: Columnas rotas", areColsValid(transformedBoard))

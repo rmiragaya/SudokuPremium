@@ -1,15 +1,13 @@
 package ropa.miragaya.sudokupremium.domain.solver.hints
 
+import javax.inject.Inject
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.StrategyContext
 import ropa.miragaya.sudokupremium.domain.model.SudokuHint
 import ropa.miragaya.sudokupremium.domain.model.initializeCandidates
 import ropa.miragaya.sudokupremium.domain.solver.Solver
-import javax.inject.Inject
 
-class HintGenerator @Inject constructor(
-    private val solver: Solver
-) {
+class HintGenerator @Inject constructor(private val solver: Solver) {
 
     fun findAllHints(board: Board): List<SudokuHint> {
         var currentBoard = board.initializeCandidates()

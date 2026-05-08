@@ -1,9 +1,9 @@
 package ropa.miragaya.sudokupremium.domain.generator
 
-import ropa.miragaya.sudokupremium.domain.model.Board
-import ropa.miragaya.sudokupremium.domain.model.Cell
 import javax.inject.Inject
 import kotlin.random.Random
+import ropa.miragaya.sudokupremium.domain.model.Board
+import ropa.miragaya.sudokupremium.domain.model.Cell
 
 class SudokuTransformer @Inject constructor() {
 
@@ -59,7 +59,6 @@ class SudokuTransformer @Inject constructor() {
     }
 
     private fun swapColsWithinBands(matrix: List<List<Int?>>): List<List<Int?>> {
-
         var temp = rotate90(matrix)
         temp = swapRowsWithinBands(temp)
         repeat(3) { temp = rotate90(temp) }

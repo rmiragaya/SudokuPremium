@@ -7,9 +7,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 import ropa.miragaya.sudokupremium.data.local.AppDatabase
 import ropa.miragaya.sudokupremium.data.local.GameDao
-import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)

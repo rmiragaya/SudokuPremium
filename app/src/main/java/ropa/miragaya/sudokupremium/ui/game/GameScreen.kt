@@ -14,12 +14,11 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,8 +32,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Undo
@@ -54,6 +54,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -80,11 +81,7 @@ import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
 import ropa.miragaya.sudokupremium.util.toFormattedTime
 
 @Composable
-fun GameScreen(
-    modifier: Modifier = Modifier,
-    viewModel: GameViewModel = hiltViewModel(),
-    onBackClick: () -> Unit,
-) {
+fun GameScreen(modifier: Modifier = Modifier, viewModel: GameViewModel = hiltViewModel(), onBackClick: () -> Unit) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -122,7 +119,6 @@ fun GameScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-
         GameContent(
             uiState = uiState,
             onCellClick = viewModel::onCellClicked,
@@ -144,10 +140,7 @@ fun GameScreen(
 }
 
 @Composable
-private fun getDebugDump(
-    viewModel: GameViewModel,
-    context: Context
-): () -> Unit = {
+private fun getDebugDump(viewModel: GameViewModel, context: Context): () -> Unit = {
     val dumpString = viewModel.getDebugDump()
 
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -186,9 +179,8 @@ fun GameContent(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(brush = SudokuPalette.MainGradient),
+            .background(brush = SudokuPalette.MainGradient)
     ) {
-
         GameTopBar(
             difficulty = uiState.difficulty.name,
             elapsedTimeSeconds = uiState.elapsedTimeSeconds,
@@ -297,7 +289,6 @@ fun SudokuBoardView(
     activeHint: SudokuHint?,
     onCellClick: (Int) -> Unit
 ) {
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -389,6 +380,7 @@ fun SudokuBoardView(
         }
     }
 }
+
 @Composable
 fun CellView(
     cell: Cell,
@@ -401,7 +393,6 @@ fun CellView(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-
     val bgColor = when {
         isHintTarget -> SudokuPalette.CellHint // Fondo doradito para celdas de la pista
         isHintElimination -> SudokuPalette.CellEliminationBg
@@ -453,7 +444,8 @@ fun CellView(
 @Composable
 fun NotesGrid(
     notes: Set<Int>,
-    notesToCrossOut: List<Int> = emptyList() // Recibimos la lista de la muerte
+    // Recibimos la lista de la muerte.
+    notesToCrossOut: List<Int> = emptyList()
 ) {
     Column(
         modifier = Modifier
@@ -472,7 +464,7 @@ fun NotesGrid(
                     if (notes.contains(number)) {
                         // Si la nota está en la lista de borrado, la pintamos de rojo intenso
                         val isCrossedOut = notesToCrossOut.contains(number)
-                        val noteColor = if (isCrossedOut) androidx.compose.ui.graphics.Color.Red else SudokuPalette.TextSecondary
+                        val noteColor = if (isCrossedOut) Color.Red else SudokuPalette.TextSecondary
                         val noteWeight = if (isCrossedOut) FontWeight.Bold else FontWeight.Normal
 
                         Text(
@@ -580,7 +572,6 @@ fun SudokuButton(
     enabled: Boolean = true,
     isDestructive: Boolean = false
 ) {
-
     val containerColor =
         if (isDestructive) SudokuPalette.ButtonDestructive else SudokuPalette.ButtonContainer
     val contentColor =
@@ -761,9 +752,7 @@ fun GameControls(
     backgroundColor = 0xFF161823
 )
 @Composable
-fun GameScreenPreview(
-    @PreviewParameter(GamePreviewProvider::class) uiState: GameUiState
-) {
+fun GameScreenPreview(@PreviewParameter(GamePreviewProvider::class) uiState: GameUiState) {
     GameContent(
         uiState = uiState,
         onCellClick = {},
@@ -781,4 +770,3 @@ fun GameScreenPreview(
         onUndo = {}
     )
 }
-

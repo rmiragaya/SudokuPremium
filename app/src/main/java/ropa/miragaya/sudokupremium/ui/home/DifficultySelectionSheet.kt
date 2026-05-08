@@ -43,10 +43,7 @@ private val DifficultyBodyFont = FontFamily.SansSerif
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DifficultySelectionSheet(
-    onDismiss: () -> Unit,
-    onDifficultySelected: (Difficulty) -> Unit
-) {
+fun DifficultySelectionSheet(onDismiss: () -> Unit, onDifficultySelected: (Difficulty) -> Unit) {
     val sheetState = rememberModalBottomSheetState()
 
     ModalBottomSheet(
@@ -104,10 +101,7 @@ fun DifficultySelectionSheet(
 }
 
 @Composable
-fun DifficultyItem(
-    difficulty: Difficulty,
-    onClick: () -> Unit
-) {
+fun DifficultyItem(difficulty: Difficulty, onClick: () -> Unit) {
     val spec = difficulty.spec()
 
     Surface(
@@ -187,10 +181,7 @@ fun DifficultyItem(
 }
 
 @Composable
-private fun DifficultyPill(
-    text: String,
-    accent: Color
-) {
+private fun DifficultyPill(text: String, accent: Color) {
     Surface(
         shape = RoundedCornerShape(999.dp),
         color = accent.copy(alpha = 0.12f)

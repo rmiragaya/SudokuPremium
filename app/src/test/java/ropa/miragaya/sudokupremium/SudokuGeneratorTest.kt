@@ -38,7 +38,6 @@ class SudokuGeneratorTest {
 
     @Test
     fun `generated puzzle respects difficulty (sanity check)`() {
-
         val easyPuzzle = generator.generate(Difficulty.EASY)
         val expertPuzzle = generator.generate(Difficulty.EXPERT)
 

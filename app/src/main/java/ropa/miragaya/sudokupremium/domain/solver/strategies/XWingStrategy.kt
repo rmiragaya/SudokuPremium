@@ -24,7 +24,6 @@ class XWingStrategy : SolvingStrategy {
     private fun findXWing(board: Board, isRowBased: Boolean): StrategyResult? {
         // Iteramos por cada número posible (1 al 9)
         for (candidate in 1..9) {
-
             // 1. Buscamos en qué líneas (filas o cols) el candidato aparece EXACTAMENTE 2 VECES
             val potentialLines = mutableListOf<Pair<Int, List<Int>>>() // Pair(IndiceLinea, ListaIndicesPosicion)
 
@@ -65,13 +64,13 @@ class XWingStrategy : SolvingStrategy {
 
                         for (transversalIdx in transversalIndices) {
                             // Obtenemos la columna (si era rowBased) o la fila
-                            val transversalCells = if (isRowBased) board.cols[transversalIdx] else board.rows[transversalIdx]
+                            val transversalCells =
+                                if (isRowBased) board.cols[transversalIdx] else board.rows[transversalIdx]
 
                             for (cell in transversalCells) {
                                 // NO tocamos las celdas que forman el X-Wing (las esquinas del rectángulo)
                                 val cellLineIdx = if (isRowBased) cell.row else cell.col
                                 if (cellLineIdx != lineIdx1 && cellLineIdx != lineIdx2) {
-
                                     if (cell.value == null && cell.notes.contains(candidate)) {
                                         val newNotes = cell.notes - candidate
                                         // Actualizamos en la lista plana

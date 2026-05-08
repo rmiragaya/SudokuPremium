@@ -16,11 +16,7 @@ import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
 import ropa.miragaya.sudokupremium.util.toFormattedTime
 
 @Composable
-fun GameWonDialog(
-    elapsedTimeSeconds: Long,
-    onStartNewGame: () -> Unit,
-    onDismiss: () -> Unit = {}
-) {
+fun GameWonDialog(elapsedTimeSeconds: Long, onStartNewGame: () -> Unit, onDismiss: () -> Unit = {}) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {

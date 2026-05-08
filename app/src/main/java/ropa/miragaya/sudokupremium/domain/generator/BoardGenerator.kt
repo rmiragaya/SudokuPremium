@@ -1,7 +1,7 @@
 package ropa.miragaya.sudokupremium.domain.generator
 
-import ropa.miragaya.sudokupremium.domain.model.Board
 import kotlin.random.Random
+import ropa.miragaya.sudokupremium.domain.model.Board
 
 object BoardGenerator {
 
@@ -28,7 +28,6 @@ object BoardGenerator {
 
         for (number in numbersToTry) {
             if (isValidPlacement(board, cell.id, number)) {
-
                 val newBoard = board.withCellValue(cell.id, number)
 
                 val (solved, resultBoard) = fillBoardRecursive(newBoard, cellIndex + 1)

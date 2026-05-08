@@ -67,8 +67,8 @@ class YWingStrategy : SolvingStrategy {
         val pivotPeers = board.getPeers(pivot.id)
         return allBiValueCells.filter { cell ->
             cell.id != pivot.id &&
-                    pivotPeers.contains(cell.id) &&
-                    cell.notes.contains(matchNote)
+                pivotPeers.contains(cell.id) &&
+                cell.notes.contains(matchNote)
         }
     }
 

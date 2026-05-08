@@ -4,7 +4,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -215,10 +214,7 @@ private fun HintMetaRow(hint: SudokuHint) {
 }
 
 @Composable
-private fun HintChip(
-    text: String,
-    modifier: Modifier = Modifier
-) {
+private fun HintChip(text: String, modifier: Modifier = Modifier) {
     Surface(
         shape = RoundedCornerShape(999.dp),
         color = SudokuPalette.ButtonContainer,

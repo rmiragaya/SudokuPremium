@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
 @Database(
-    entities = [GameEntity::class,GameHistoryEntity::class],
+    entities = [GameEntity::class, GameHistoryEntity::class],
     version = 3,
     exportSchema = false
 )

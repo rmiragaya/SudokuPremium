@@ -27,9 +27,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.random.Random
 import kotlinx.coroutines.delay
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
-import kotlin.random.Random
 
 @Composable
 fun SudokuDecodingBoard(modifier: Modifier = Modifier) {
@@ -84,7 +84,6 @@ private fun DecodingCell() {
 
     LaunchedEffect(Unit) {
         while (true) {
-
             delay(Random.nextLong(100, 2000))
 
             number = Random.nextInt(1, 10)

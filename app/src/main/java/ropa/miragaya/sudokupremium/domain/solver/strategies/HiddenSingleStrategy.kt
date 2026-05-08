@@ -54,7 +54,6 @@ class HiddenSingleStrategy : SolvingStrategy {
             val cell = board.cells.find { it.id == cellId } ?: continue
 
             if (cell.value == null) {
-
                 for (candidate in cell.notes) {
                     candidateCounts[candidate]?.add(cellId)
                 }

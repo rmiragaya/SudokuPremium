@@ -29,7 +29,6 @@ class BoardGeneratorTest {
 
     @Test
     fun `generateFilledBoard is stable under stress`() {
-
         val startTime = System.currentTimeMillis()
 
         repeat(20) {
@@ -41,9 +40,7 @@ class BoardGeneratorTest {
         println("Generar 20 tableros tomó: ${endTime - startTime}ms")
     }
 
-
     private fun areRowsValid(board: Board): Boolean {
-
         return (0 until 9).all { rowIndex ->
             val rowValues = board.cells.filter { it.row == rowIndex }.mapNotNull { it.value }
             rowValues.toSet().size == 9

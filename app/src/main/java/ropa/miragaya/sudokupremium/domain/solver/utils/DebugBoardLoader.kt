@@ -4,13 +4,11 @@ import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
 import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Board.Companion.fromGridString
-import javax.inject.Inject
 
-class DebugBoardLoader @Inject constructor(
-    @ApplicationContext private val context: Context
-) {
+class DebugBoardLoader @Inject constructor(@ApplicationContext private val context: Context) {
     fun loadBoardFromJson(fileName: String): Board? {
         return try {
             val rawString = context.assets
@@ -30,7 +28,6 @@ class DebugBoardLoader @Inject constructor(
     fun loadBoardFromGrid(): Board? {
         return try {
             fromGridString("080090030030000069902063158020804590851907046394605870563040987200000015010050020")
-
         } catch (e: Exception) {
             Log.e("DebugBoardLoader", "Error fromGridString", e)
             null

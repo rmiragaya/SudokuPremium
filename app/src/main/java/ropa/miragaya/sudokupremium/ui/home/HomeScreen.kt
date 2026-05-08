@@ -74,11 +74,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun HomeScreenContent(
-    hasSavedGame: Boolean,
-    onNewGameClick: () -> Unit,
-    onContinueClick: () -> Unit
-) {
+fun HomeScreenContent(hasSavedGame: Boolean, onNewGameClick: () -> Unit, onContinueClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -116,9 +112,7 @@ fun HomeScreenContent(
 }
 
 @Composable
-private fun HomeLogo(
-    modifier: Modifier = Modifier
-) {
+private fun HomeLogo(modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(44.dp),
@@ -128,7 +122,7 @@ private fun HomeLogo(
     ) {
         Box(
             modifier = Modifier
-            .fillMaxSize()
+                .fillMaxSize()
                 .padding(28.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -225,10 +219,7 @@ private fun HomeHeader() {
 }
 
 @Composable
-private fun ContinueGamePanel(
-    onContinueClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+private fun ContinueGamePanel(onContinueClick: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier.clickable(onClick = onContinueClick),
         shape = RoundedCornerShape(20.dp),
@@ -315,10 +306,7 @@ private fun PrimaryHomeButton(
 }
 
 @Composable
-private fun HomeButtonContent(
-    text: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector
-) {
+private fun HomeButtonContent(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center

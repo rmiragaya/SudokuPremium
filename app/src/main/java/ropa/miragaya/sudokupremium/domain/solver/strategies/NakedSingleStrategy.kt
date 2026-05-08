@@ -13,7 +13,7 @@ class NakedSingleStrategy : SolvingStrategy {
 
         if (singleNoteCell != null) {
             val valueToPlace = singleNoteCell.notes.first()
-            val newBoard =  board.withCellValue(singleNoteCell.id, valueToPlace)
+            val newBoard = board.withCellValue(singleNoteCell.id, valueToPlace)
 
             val context = StrategyContext.NakedSingle(
                 cellId = singleNoteCell.id

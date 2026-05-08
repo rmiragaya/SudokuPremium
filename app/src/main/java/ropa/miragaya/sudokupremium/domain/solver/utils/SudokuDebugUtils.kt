@@ -9,7 +9,6 @@ object SudokuDebugUtils {
     private const val TAG = "SUDOKU_TRACE"
 
     fun logStep(strategyName: String, oldBoard: Board, newBoard: Board) {
-
         for (i in 0 until 81) {
             val oldCell = oldBoard.cells[i]
             val newCell = newBoard.cells[i]

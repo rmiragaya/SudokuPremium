@@ -1,6 +1,7 @@
 package ropa.miragaya.sudokupremium.domain.generator
 
 import android.util.Log
+import javax.inject.Inject
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.domain.model.SudokuPuzzle
@@ -8,13 +9,8 @@ import ropa.miragaya.sudokupremium.domain.model.analytics.GenerationMetrics
 import ropa.miragaya.sudokupremium.domain.solver.SolveResult
 import ropa.miragaya.sudokupremium.domain.solver.Solver
 import ropa.miragaya.sudokupremium.domain.solver.utils.SudokuDebugUtils
-import javax.inject.Inject
-import kotlin.random.Random
 
-class SudokuGenerator @Inject constructor(
-    private val solver: Solver,
-    private val transformer: SudokuTransformer
-) {
+class SudokuGenerator @Inject constructor(private val solver: Solver, private val transformer: SudokuTransformer) {
 
     fun generate(targetDifficulty: Difficulty): SudokuPuzzle {
         val startTime = System.currentTimeMillis()

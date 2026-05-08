@@ -1,6 +1,5 @@
 package ropa.miragaya.sudokupremium
 
-import org.junit.Test
 import ropa.miragaya.sudokupremium.domain.generator.BoardGenerator
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.domain.solver.SolveResult

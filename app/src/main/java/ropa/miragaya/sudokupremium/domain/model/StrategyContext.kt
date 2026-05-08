@@ -58,15 +58,13 @@ sealed class StrategyContext {
         }
     }
 
-    data class NakedSingle(
-        val cellId: Int
-    ) : StrategyContext() {
+    data class NakedSingle(val cellId: Int) : StrategyContext() {
         override val name = "Naked Single"
         override val highlightCellIds = listOf(cellId)
 
         override fun getSuccessMessage(valueToSet: Int): String {
             return "La casilla resaltada en amarillo solo tiene un candidato posible: $valueToSet. " +
-                    "Como todos los demás números ya quedan descartados por su fila, columna o caja, esa casilla debe ser $valueToSet."
+                "Como todos los demás números ya quedan descartados por su fila, columna o caja, esa casilla debe ser $valueToSet."
         }
     }
 
@@ -82,8 +80,9 @@ sealed class StrategyContext {
 
         override fun getSuccessMessage(valueToSet: Int): String {
             return "Fijate en la ${containerLabel(containerType, containerIndex)}. " +
-                    "Si revisás los candidatos, el número $candidateNumber solo puede ir en la casilla resaltada en amarillo. " +
-                    "No tiene ningún otro lugar posible en esa $containerType, así que esa casilla debe ser $valueToSet."
+                "Si revisás los candidatos, el número $candidateNumber solo puede ir " +
+                "en la casilla resaltada en amarillo. " +
+                "No tiene ningún otro lugar posible en esa $containerType, así que esa casilla debe ser $valueToSet."
         }
     }
 
@@ -101,9 +100,9 @@ sealed class StrategyContext {
 
             override fun getEliminationMessage(notesToRemoveMap: Map<Int, List<Int>>): String {
                 return "En la caja ${boxIndex + 1}, todos los lugares posibles para el número $candidateNumber " +
-                        "caen sobre la ${containerLabel(lineType, lineIndex)}. " +
-                        "Entonces el $candidateNumber debe quedar dentro de esa caja, y se puede eliminar " +
-                        "de las casillas marcadas en rojo."
+                    "caen sobre la ${containerLabel(lineType, lineIndex)}. " +
+                    "Entonces el $candidateNumber debe quedar dentro de esa caja, y se puede eliminar " +
+                    "de las casillas marcadas en rojo."
             }
         }
 
@@ -116,9 +115,12 @@ sealed class StrategyContext {
             override val highlightBoxIndexes = listOf(boxIndex)
 
             override fun getEliminationMessage(notesToRemoveMap: Map<Int, List<Int>>): String {
-                return "En la ${containerLabel(lineType, lineIndex)}, los únicos lugares posibles para el número $candidateNumber " +
-                        "están todos dentro de la caja ${boxIndex + 1}. " +
-                        "Por eso el $candidateNumber no puede ir en las casillas marcadas en rojo."
+                return "En la ${containerLabel(
+                    lineType,
+                    lineIndex
+                )}, los únicos lugares posibles para el número $candidateNumber " +
+                    "están todos dentro de la caja ${boxIndex + 1}. " +
+                    "Por eso el $candidateNumber no puede ir en las casillas marcadas en rojo."
             }
         }
     }
@@ -135,10 +137,10 @@ sealed class StrategyContext {
 
         override fun getEliminationMessage(notesToRemoveMap: Map<Int, List<Int>>): String {
             return "En la ${containerLabel(containerType, containerIndex)}, las dos casillas resaltadas en amarillo " +
-                    "tienen exactamente los mismos dos candidatos: " +
-                    "${numbersLabel(pairedCandidates)}. " +
-                    "Esos dos números quedan reservados para esas dos casillas, así que no pueden aparecer " +
-                    "como candidatos en las casillas marcadas en rojo."
+                "tienen exactamente los mismos dos candidatos: " +
+                "${numbersLabel(pairedCandidates)}. " +
+                "Esos dos números quedan reservados para esas dos casillas, así que no pueden aparecer " +
+                "como candidatos en las casillas marcadas en rojo."
         }
     }
 
@@ -153,9 +155,12 @@ sealed class StrategyContext {
         override val highlightBoxIndexes = if (containerType == "caja") listOf(containerIndex) else emptyList()
 
         override fun getEliminationMessage(notesToRemoveMap: Map<Int, List<Int>>): String {
-            return "En la ${containerLabel(containerType, containerIndex)}, los números ${numbersLabel(pairedCandidates)} " +
-                    "solo pueden ir en las dos casillas resaltadas en amarillo. " +
-                    "Como esas dos casillas quedan reservadas para ese par, podemos quitar de ellas los demás candidatos."
+            return "En la ${containerLabel(
+                containerType,
+                containerIndex
+            )}, los números ${numbersLabel(pairedCandidates)} " +
+                "solo pueden ir en las dos casillas resaltadas en amarillo. " +
+                "Como esas dos casillas quedan reservadas para ese par, podemos quitar de ellas los demás candidatos."
         }
     }
 
@@ -171,10 +176,10 @@ sealed class StrategyContext {
 
         override fun getEliminationMessage(notesToRemoveMap: Map<Int, List<Int>>): String {
             return "En la ${containerLabel(containerType, containerIndex)}, las tres casillas resaltadas en amarillo " +
-                    "solo pueden contener los números " +
-                    "${numbersLabel(tripleCandidates)}. " +
-                    "Esos tres números quedan encerrados en esas tres casillas, así que se pueden eliminar " +
-                    "de las casillas marcadas en rojo."
+                "solo pueden contener los números " +
+                "${numbersLabel(tripleCandidates)}. " +
+                "Esos tres números quedan encerrados en esas tres casillas, así que se pueden eliminar " +
+                "de las casillas marcadas en rojo."
         }
     }
 
@@ -194,8 +199,8 @@ sealed class StrategyContext {
 
         override fun getEliminationMessage(notesToRemoveMap: Map<Int, List<Int>>): String {
             return "Las casillas resaltadas en amarillo forman un X-Wing para el número $candidateNumber. " +
-                    "Ese número debe ocupar dos esquinas opuestas del rectángulo, " +
-                    "así que puede eliminarse de las casillas marcadas en rojo."
+                "Ese número debe ocupar dos esquinas opuestas del rectángulo, " +
+                "así que puede eliminarse de las casillas marcadas en rojo."
         }
     }
 
@@ -210,9 +215,9 @@ sealed class StrategyContext {
 
         override fun getEliminationMessage(notesToRemoveMap: Map<Int, List<Int>>): String {
             return "Las casillas resaltadas en amarillo forman un Y-Wing. " +
-                    "La casilla pivote tiene dos opciones: ${numbersLabel(pivotCandidates)}, y las alas fuerzan " +
-                    "que una de ellas contenga el número $candidateToRemove. " +
-                    "Cualquier casilla marcada en rojo ve ambas alas, así que no puede contener ese candidato."
+                "La casilla pivote tiene dos opciones: ${numbersLabel(pivotCandidates)}, y las alas fuerzan " +
+                "que una de ellas contenga el número $candidateToRemove. " +
+                "Cualquier casilla marcada en rojo ve ambas alas, así que no puede contener ese candidato."
         }
     }
 

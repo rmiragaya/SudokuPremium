@@ -65,7 +65,6 @@ class NakedTripleStrategy : SolvingStrategy {
         for (i in 0 until potentialCells.size) {
             for (j in i + 1 until potentialCells.size) {
                 for (k in j + 1 until potentialCells.size) {
-
                     val idx1 = potentialCells[i]
                     val idx2 = potentialCells[j]
                     val idx3 = potentialCells[k]
@@ -77,7 +76,6 @@ class NakedTripleStrategy : SolvingStrategy {
                     val unionNotes = (cell1.notes + cell2.notes + cell3.notes).toSet()
 
                     if (unionNotes.size == 3) {
-
                         val tripleIndices = setOf(idx1, idx2, idx3)
                         var changesMade = false
                         val newCells = board.cells.toMutableList()

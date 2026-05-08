@@ -1,9 +1,9 @@
 package ropa.miragaya.sudokupremium.domain.solver.strategies
 
+import javax.inject.Inject
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.domain.model.StrategyContext
-import javax.inject.Inject
 
 class IntersectionRemovalStrategy @Inject constructor() : SolvingStrategy {
     override val name = "Intersection Removal"
@@ -17,7 +17,6 @@ class IntersectionRemovalStrategy @Inject constructor() : SolvingStrategy {
         val foundResults = mutableListOf<StrategyResult>()
 
         for (candidate in 1..9) {
-
             for (boxIndex in 0 until 9) {
                 val boxCells = board.cells.filter { it.box == boxIndex }
                 val candidateCells = boxCells.filter { it.notes.contains(candidate) }

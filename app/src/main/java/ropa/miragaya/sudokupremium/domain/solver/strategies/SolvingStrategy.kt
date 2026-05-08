@@ -16,7 +16,4 @@ interface SolvingStrategy {
     }
 }
 
-data class StrategyResult(
-    val newBoard: Board,
-    val context: StrategyContext
-)
+data class StrategyResult(val newBoard: Board, val context: StrategyContext)

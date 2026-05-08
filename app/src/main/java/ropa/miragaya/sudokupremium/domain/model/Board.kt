@@ -1,8 +1,6 @@
 package ropa.miragaya.sudokupremium.domain.model
 
-data class Board(
-    val cells: List<Cell>
-) {
+data class Board(val cells: List<Cell>) {
     init {
         require(cells.size == 81) { "Sudoku debe tener exactamente 81 celdas" }
     }
@@ -17,7 +15,6 @@ data class Board(
         get() = cells.groupBy { it.box }.toSortedMap().values.toList()
 
     fun playMove(cellId: Int, number: Int, isNoteMode: Boolean): Board {
-
         val cell = cells.find { it.id == cellId } ?: return this
 
         if (cell.isGiven) return this
@@ -59,7 +56,6 @@ data class Board(
 
         // busco duplicados
         fun checkGroup(group: List<Cell>) {
-
             val valueCounts = group.filter { it.value != null }.groupBy { it.value }
 
             valueCounts.forEach { (_, cellsWithSameValue) ->
@@ -179,7 +175,5 @@ data class Board(
             }
             return Board(cells)
         }
-
     }
-
 }

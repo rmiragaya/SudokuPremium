@@ -47,14 +47,12 @@ class NakedPairStrategy : SolvingStrategy {
         containerType: String,
         containerIndex: Int
     ): StrategyResult? {
-
         val candidates = groupCells.filter { it.value == null && it.notes.size == 2 }
 
         val groupsByNotes = candidates.groupBy { it.notes }
 
         for ((notes, cells) in groupsByNotes) {
             if (cells.size == 2) {
-
                 val pairIds = cells.map { it.id }.toSet()
                 var changesMade = false
                 val newCells = board.cells.toMutableList()

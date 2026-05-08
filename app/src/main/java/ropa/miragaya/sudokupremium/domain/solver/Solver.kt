@@ -1,5 +1,6 @@
 package ropa.miragaya.sudokupremium.domain.solver
 
+import javax.inject.Inject
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.domain.model.initializeCandidates
@@ -13,20 +14,19 @@ import ropa.miragaya.sudokupremium.domain.solver.strategies.SolvingStrategy
 import ropa.miragaya.sudokupremium.domain.solver.strategies.XWingStrategy
 import ropa.miragaya.sudokupremium.domain.solver.strategies.YWingStrategy
 import ropa.miragaya.sudokupremium.domain.solver.utils.SudokuDebugUtils
-import javax.inject.Inject
 
 class Solver @Inject constructor() {
 
     // lista de estrategias para resolver
     val strategies: List<SolvingStrategy> = listOf(
-        NakedSingleStrategy(),              // EASY
-        HiddenSingleStrategy(),             // EASY
-        NakedPairStrategy(),                // MEDIUM
-        IntersectionRemovalStrategy(),      // MEDIUM
-        HiddenPairStrategy(),               // MEDIUM
-        NakedTripleStrategy(),              // HARD
-        XWingStrategy(),                    // HARD
-        YWingStrategy()                     // EXPERT
+        NakedSingleStrategy(), // EASY
+        HiddenSingleStrategy(), // EASY
+        NakedPairStrategy(), // MEDIUM
+        IntersectionRemovalStrategy(), // MEDIUM
+        HiddenPairStrategy(), // MEDIUM
+        NakedTripleStrategy(), // HARD
+        XWingStrategy(), // HARD
+        YWingStrategy() // EXPERT
     )
 
     fun solve(initialBoard: Board, logSteps: Boolean = false): SolveResult {
@@ -51,7 +51,7 @@ class Solver @Inject constructor() {
                     }
 
                     val wasNumberPlaced = currentBoard.cells.count { it.value != null } !=
-                            nextBoard.cells.count { it.value != null }
+                        nextBoard.cells.count { it.value != null }
 
                     if (wasNumberPlaced) {
                         currentBoard = nextBoard.initializeCandidates()

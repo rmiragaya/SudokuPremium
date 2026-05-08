@@ -1,12 +1,12 @@
 package ropa.miragaya.sudokupremium.ui.game
 
 import android.util.Log
-import ropa.miragaya.sudokupremium.BuildConfig
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import ropa.miragaya.sudokupremium.BuildConfig
 import ropa.miragaya.sudokupremium.domain.generator.SudokuGenerator
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
@@ -27,9 +28,9 @@ import ropa.miragaya.sudokupremium.domain.solver.Solver
 import ropa.miragaya.sudokupremium.domain.solver.hints.HintGenerator
 import ropa.miragaya.sudokupremium.domain.solver.utils.DebugBoardLoader
 import ropa.miragaya.sudokupremium.ui.navigation.GameRoute
-import javax.inject.Inject
 
 private const val USE_DEBUG_BOARD = true
+
 @HiltViewModel
 class GameViewModel @Inject constructor(
     private val repository: GameRepository,
@@ -40,7 +41,7 @@ class GameViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val TAG = this::class.java.simpleName
+    private val tag = this::class.java.simpleName
 
     private val _uiState = MutableStateFlow(GameUiState(board = Board.createEmpty()))
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
@@ -60,15 +61,15 @@ class GameViewModel @Inject constructor(
     }
 
     private fun initializeGame() {
-
         if (BuildConfig.DEBUG && USE_DEBUG_BOARD) {
-            val debugBoard = debugBoardLoader.loadBoardFromJson("board1-intersection-removal-1.txt") // tiene nakedTriple y Y-Wing
+            // Tiene nakedTriple y Y-Wing.
+            val debugBoard = debugBoardLoader.loadBoardFromJson("board1-intersection-removal-1.txt")
 //            val debugBoard = debugBoardLoader.loadBoardFromJson("board2-naked-pair-1.txt")
 //            val debugBoard = debugBoardLoader.loadBoardFromJson("board2-naked-pair-2.txt")
 //            val debugBoard = debugBoardLoader.loadBoardFromGrid()
 
             if (debugBoard == null) {
-                Log.e(TAG, "No se pudo cargar el debug board")
+                Log.e(tag, "No se pudo cargar el debug board")
                 return
             }
 
@@ -229,7 +230,8 @@ class GameViewModel @Inject constructor(
 
             currentState.copy(
                 board = newBoard,
-                completedNumbers = calculateCompletedNumbers(newBoard))
+                completedNumbers = calculateCompletedNumbers(newBoard)
+            )
         }
 
         saveGame()
@@ -294,7 +296,6 @@ class GameViewModel @Inject constructor(
 
     fun startNewGame(difficulty: Difficulty) {
         viewModelScope.launch(Dispatchers.Default) {
-
             _uiState.update {
                 it.copy(
                     isLoading = true,
@@ -338,7 +339,7 @@ class GameViewModel @Inject constructor(
         val solution = currentState.solvedBoard
 
         if (solution == null) {
-            Log.d(TAG, "onRequestHint: solution == null")
+            Log.d(tag, "onRequestHint: solution == null")
             return
         }
 
@@ -349,7 +350,6 @@ class GameViewModel @Inject constructor(
         }
 
         viewModelScope.launch(Dispatchers.Default) {
-
             val hints = hintGenerator.findAllHints(currentState.board)
 
             _uiState.update {
@@ -370,7 +370,9 @@ class GameViewModel @Inject constructor(
         _uiState.update {
             if (it.activeHints.isNotEmpty() && it.currentHintIndex < it.activeHints.lastIndex) {
                 it.copy(currentHintIndex = it.currentHintIndex + 1)
-            } else it
+            } else {
+                it
+            }
         }
     }
 
@@ -378,7 +380,9 @@ class GameViewModel @Inject constructor(
         _uiState.update {
             if (it.activeHints.isNotEmpty() && it.currentHintIndex > 0) {
                 it.copy(currentHintIndex = it.currentHintIndex - 1)
-            } else it
+            } else {
+                it
+            }
         }
     }
 
@@ -440,7 +444,7 @@ class GameViewModel @Inject constructor(
         $visualGrid
         -- JSON --
         $jsonString
-    """.trimIndent()
+        """.trimIndent()
     }
 
     override fun onCleared() {

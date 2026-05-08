@@ -76,7 +76,6 @@ class HiddenPairStrategy : SolvingStrategy {
                 val (num2, positions2) = entries[j]
 
                 if (positions1 == positions2) {
-
                     val idx1 = positions1[0]
                     val idx2 = positions1[1]
 
@@ -86,7 +85,6 @@ class HiddenPairStrategy : SolvingStrategy {
                     val pair = setOf(num1, num2)
 
                     if (cell1.notes.any { it !in pair } || cell2.notes.any { it !in pair }) {
-
                         val newCells = board.cells.toMutableList()
 
                         newCells[idx1] = cell1.copy(notes = pair)

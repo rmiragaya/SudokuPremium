@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -29,11 +28,7 @@ import androidx.compose.ui.window.Dialog
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
 
 @Composable
-fun MistakeDialog(
-    mistakeCount: Int,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit
-) {
+fun MistakeDialog(mistakeCount: Int, onDismiss: () -> Unit, onConfirm: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
         Card(
             shape = RoundedCornerShape(16.dp),
@@ -46,7 +41,6 @@ fun MistakeDialog(
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = null,
