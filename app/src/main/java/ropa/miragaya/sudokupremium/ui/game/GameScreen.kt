@@ -605,19 +605,18 @@ fun GameTopBar(
     onGetDebugDumpClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
+    Box(
         modifier = modifier
             .fillMaxWidth()
             .height(56.dp)
-            .padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(horizontal = 16.dp)
     ) {
         Icon(
             imageVector = Icons.AutoMirrored.Default.ArrowBack,
             contentDescription = "Volver",
             tint = SudokuPalette.TextSecondary,
             modifier = Modifier
+                .align(Alignment.CenterStart)
                 .clickable { onBackClick() }
                 .padding(8.dp)
         )
@@ -635,9 +634,11 @@ fun GameTopBar(
             } else {
                 Modifier
             }
+                .align(Alignment.Center)
         )
 
         Row(
+            modifier = Modifier.align(Alignment.CenterEnd),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
