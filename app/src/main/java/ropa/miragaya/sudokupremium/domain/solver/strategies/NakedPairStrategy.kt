@@ -73,9 +73,10 @@ class NakedPairStrategy : SolvingStrategy {
 
                 if (changesMade) {
                     val context = StrategyContext.NakedPair(
-                        pairedCandidates = notes.toList(),
+                        pairedCandidates = notes.toList().sorted(),
                         containerType = containerType,
-                        containerIndex = containerIndex
+                        containerIndex = containerIndex,
+                        pairCellIds = cells.map { it.id }
                     )
                     return StrategyResult(Board(newCells), context)
                 }

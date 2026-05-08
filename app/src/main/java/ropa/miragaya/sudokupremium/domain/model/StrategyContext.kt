@@ -2,15 +2,87 @@ package ropa.miragaya.sudokupremium.domain.model
 
 sealed class StrategyContext {
     abstract val name: String
+    open val highlightCellIds: List<Int> = emptyList()
 
     open fun getSuccessMessage(valueToSet: Int): String {
-        return "Aplicando la lógica de $name, podemos deducir que en esta celda solo puede ir el número $valueToSet."
+        return "Aplicando $name, podemos deducir que en la casilla marcada solo puede ir el número $valueToSet."
     }
 
     open fun getEliminationMessage(notesToRemoveMap: Map<Int, List<Int>>): String {
         val totalNotesRemoved = notesToRemoveMap.values.sumOf { it.size }
-        val plural = if (totalNotesRemoved > 1) "candidatos" else "candidato"
-        return "Usando $name podemos eliminar $totalNotesRemoved $plural."
+        val affectedCells = notesToRemoveMap.size
+        val pluralCandidates = if (totalNotesRemoved == 1) "candidato" else "candidatos"
+        val pluralCells = if (affectedCells == 1) "casilla" else "casillas"
+
+        return "Usando $name podemos eliminar $totalNotesRemoved $pluralCandidates en $affectedCells $pluralCells."
+    }
+
+    protected fun cellLabel(cellId: Int): String {
+        val row = cellId / 9 + 1
+        val col = cellId % 9 + 1
+        return "fila $row, columna $col"
+    }
+
+    protected fun cellsLabel(cellIds: Iterable<Int>): String {
+        return formatList(cellIds.map { cellLabel(it) })
+    }
+
+    protected fun cellsInContainerLabel(containerType: String, cellIds: Iterable<Int>): String {
+        val ids = cellIds.toList()
+        return when (containerType) {
+            "fila" -> "en las columnas ${indexesLabel(ids.map { it % 9 })}"
+            "columna" -> "en las filas ${indexesLabel(ids.map { it / 9 })}"
+            else -> "en las casillas de ${cellsLabel(ids)}"
+        }
+    }
+
+    protected fun containerLabel(containerType: String, containerIndex: Int): String {
+        return "$containerType ${containerIndex + 1}"
+    }
+
+    protected fun numbersLabel(numbers: Iterable<Int>): String {
+        return formatList(numbers.toSet().sorted().map { it.toString() })
+    }
+
+    protected fun indexesLabel(indices: Iterable<Int>): String {
+        return numbersLabel(indices.map { it + 1 })
+    }
+
+    private fun formatList(items: List<String>): String {
+        return when (items.size) {
+            0 -> ""
+            1 -> items.first()
+            2 -> "${items[0]} y ${items[1]}"
+            else -> items.dropLast(1).joinToString(", ") + " y " + items.last()
+        }
+    }
+
+    data class NakedSingle(
+        val cellId: Int
+    ) : StrategyContext() {
+        override val name = "Naked Single"
+        override val highlightCellIds = listOf(cellId)
+
+        override fun getSuccessMessage(valueToSet: Int): String {
+            return "La casilla de ${cellLabel(cellId)} solo tiene un candidato posible: $valueToSet. " +
+                    "Como todos los demás números ya quedan descartados por su fila, columna o caja, esa casilla debe ser $valueToSet."
+        }
+    }
+
+    data class HiddenSingle(
+        val candidateNumber: Int,
+        val containerType: String,
+        val containerIndex: Int,
+        val cellId: Int
+    ) : StrategyContext() {
+        override val name = "Hidden Single"
+        override val highlightCellIds = listOf(cellId)
+
+        override fun getSuccessMessage(valueToSet: Int): String {
+            return "En la ${containerLabel(containerType, containerIndex)}, el número $candidateNumber " +
+                    "solo aparece como candidato en la casilla de ${cellLabel(cellId)}. " +
+                    "Por eso esa casilla debe ser $valueToSet."
+        }
     }
 
     sealed class IntersectionRemoval : StrategyContext() {
@@ -24,10 +96,10 @@ sealed class StrategyContext {
             val lineIndex: Int
         ) : IntersectionRemoval() {
             override fun getEliminationMessage(notesToRemoveMap: Map<Int, List<Int>>): String {
-                return "Observá la caja ${boxIndex + 1}. Todos los candidatos para el número $candidateNumber " +
-                        "están alineados en la $lineType ${lineIndex + 1}. " +
-                        "Como el $candidateNumber debe estar obligatoriamente en esa caja, " +
-                        "es seguro eliminarlo como candidato del resto de la $lineType."
+                return "En la caja ${boxIndex + 1}, todos los lugares posibles para el número $candidateNumber " +
+                        "caen sobre la ${containerLabel(lineType, lineIndex)}. " +
+                        "Entonces el $candidateNumber debe quedar dentro de esa caja, y se puede eliminar " +
+                        "del resto de la ${containerLabel(lineType, lineIndex)}."
             }
         }
 
@@ -38,10 +110,9 @@ sealed class StrategyContext {
             val boxIndex: Int
         ) : IntersectionRemoval() {
             override fun getEliminationMessage(notesToRemoveMap: Map<Int, List<Int>>): String {
-                return "Observá la $lineType ${lineIndex + 1}. Los únicos lugares posibles " +
-                        "para el número $candidateNumber dentro de esta $lineType caen todos " +
-                        "dentro de la caja ${boxIndex + 1}. " +
-                        "Por lo tanto, podemos eliminar el $candidateNumber como candidato de las demás celdas de la caja ${boxIndex + 1}."
+                return "En la ${containerLabel(lineType, lineIndex)}, los únicos lugares posibles para el número $candidateNumber " +
+                        "están todos dentro de la caja ${boxIndex + 1}. " +
+                        "Por eso el $candidateNumber no puede ir en las demás casillas de esa caja."
             }
         }
     }
@@ -49,28 +120,86 @@ sealed class StrategyContext {
     data class NakedPair(
         val pairedCandidates: List<Int>,
         val containerType: String,
-        val containerIndex: Int
+        val containerIndex: Int,
+        val pairCellIds: List<Int>
     ) : StrategyContext() {
         override val name = "Naked Pair"
+        override val highlightCellIds = pairCellIds
 
         override fun getEliminationMessage(notesToRemoveMap: Map<Int, List<Int>>): String {
-            val num1 = pairedCandidates[0]
-            val num2 = pairedCandidates[1]
-            return "Observá la $containerType ${containerIndex + 1}. Hay exactamente dos celdas que solo contienen los candidatos $num1 y $num2. " +
-                    "Como estos dos números deben ubicarse obligatoriamente en esas dos celdas, " +
-                    "podemos eliminarlos de forma segura como candidatos en el resto de la $containerType."
+            return "En la ${containerLabel(containerType, containerIndex)} hay dos casillas, " +
+                    "${cellsInContainerLabel(containerType, pairCellIds)}, que tienen exactamente los mismos dos candidatos: " +
+                    "${numbersLabel(pairedCandidates)}. " +
+                    "Esos dos números quedan reservados para esas dos casillas, así que no pueden aparecer " +
+                    "como candidatos en el resto de la $containerType."
         }
     }
 
-    data class NakedSingle(
-        val row: Int,
-        val col: Int
+    data class HiddenPair(
+        val pairedCandidates: List<Int>,
+        val containerType: String,
+        val containerIndex: Int,
+        val pairCellIds: List<Int>
     ) : StrategyContext() {
-        override val name = "Naked Single"
+        override val name = "Hidden Pair"
+        override val highlightCellIds = pairCellIds
 
-        override fun getSuccessMessage(valueToSet: Int): String {
-            return "Solo el $valueToSet puede ir en la casilla marcada (fila ${row + 1}, columna ${col + 1}), " +
-                    "ya que el resto de los números ya están en su fila, columna o dentro de la caja."
+        override fun getEliminationMessage(notesToRemoveMap: Map<Int, List<Int>>): String {
+            return "En la ${containerLabel(containerType, containerIndex)}, los números ${numbersLabel(pairedCandidates)} " +
+                    "solo pueden ir ${cellsInContainerLabel(containerType, pairCellIds)}. " +
+                    "Como esas dos casillas quedan reservadas para ese par, podemos quitar de ellas los demás candidatos."
+        }
+    }
+
+    data class NakedTriple(
+        val tripleCandidates: List<Int>,
+        val containerType: String,
+        val containerIndex: Int,
+        val tripleCellIds: List<Int>
+    ) : StrategyContext() {
+        override val name = "Naked Triple"
+        override val highlightCellIds = tripleCellIds
+
+        override fun getEliminationMessage(notesToRemoveMap: Map<Int, List<Int>>): String {
+            return "En la ${containerLabel(containerType, containerIndex)} hay tres casillas, " +
+                    "${cellsInContainerLabel(containerType, tripleCellIds)}, que solo pueden contener los números " +
+                    "${numbersLabel(tripleCandidates)}. " +
+                    "Esos tres números quedan encerrados en esas tres casillas, así que se pueden eliminar " +
+                    "del resto de la $containerType."
+        }
+    }
+
+    data class XWing(
+        val candidateNumber: Int,
+        val baseLineType: String,
+        val baseLineIndices: List<Int>,
+        val coverLineType: String,
+        val coverLineIndices: List<Int>
+    ) : StrategyContext() {
+        override val name = "X-Wing"
+
+        override fun getEliminationMessage(notesToRemoveMap: Map<Int, List<Int>>): String {
+            return "El número $candidateNumber aparece en las mismas dos ${coverLineType}s " +
+                    "(${indexesLabel(coverLineIndices)}) dentro de las ${baseLineType}s ${indexesLabel(baseLineIndices)}. " +
+                    "Eso forma un X-Wing: el $candidateNumber debe ocupar dos esquinas del rectángulo, " +
+                    "por lo que se puede eliminar del resto de esas ${coverLineType}s."
+        }
+    }
+
+    data class YWing(
+        val candidateToRemove: Int,
+        val pivotCellId: Int,
+        val wingCellIds: List<Int>,
+        val pivotCandidates: List<Int>
+    ) : StrategyContext() {
+        override val name = "Y-Wing"
+        override val highlightCellIds = listOf(pivotCellId) + wingCellIds
+
+        override fun getEliminationMessage(notesToRemoveMap: Map<Int, List<Int>>): String {
+            return "La casilla de ${cellLabel(pivotCellId)} tiene dos opciones: ${numbersLabel(pivotCandidates)}. " +
+                    "Junto con las casillas de ${cellsLabel(wingCellIds)}, se forma un Y-Wing que fuerza " +
+                    "que una de esas alas contenga el número $candidateToRemove. " +
+                    "Cualquier casilla que vea ambas alas no puede ser $candidateToRemove, así que ese candidato se elimina."
         }
     }
 

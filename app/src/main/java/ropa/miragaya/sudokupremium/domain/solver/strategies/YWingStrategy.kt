@@ -10,14 +10,13 @@ class YWingStrategy : SolvingStrategy {
     override val name = "Y-Wing"
     override val difficulty = Difficulty.EXPERT
 
-    override fun apply(board: Board): StrategyResult?{
-
+    override fun apply(board: Board): StrategyResult? {
         val biValueCells = board.cells.filter { it.value == null && it.notes.size == 2 }
 
         if (biValueCells.size < 3) return null
 
         for (pivot in biValueCells) {
-            val pivotNotes = pivot.notes.toList()
+            val pivotNotes = pivot.notes.toList().sorted()
             val noteA = pivotNotes[0]
             val noteB = pivotNotes[1]
 
@@ -28,12 +27,11 @@ class YWingStrategy : SolvingStrategy {
                 for (wing2 in possibleWingsB) {
                     if (wing1.id == wing2.id) continue
 
-                    val noteC_fromWing1 = wing1.notes.first { it != noteA }
-                    val noteC_fromWing2 = wing2.notes.first { it != noteB }
+                    val noteCFromWing1 = wing1.notes.first { it != noteA }
+                    val noteCFromWing2 = wing2.notes.first { it != noteB }
 
-                    if (noteC_fromWing1 == noteC_fromWing2) {
-                        val noteC = noteC_fromWing1
-
+                    if (noteCFromWing1 == noteCFromWing2) {
+                        val noteC = noteCFromWing1
                         val victimCells = getCommonPeers(board, wing1, wing2)
 
                         var changesMade = false
@@ -50,7 +48,12 @@ class YWingStrategy : SolvingStrategy {
                         if (changesMade) {
                             return StrategyResult(
                                 newBoard = Board(newCells),
-                                context = StrategyContext.Generic(this.name) // <-- El parche genérico
+                                context = StrategyContext.YWing(
+                                    candidateToRemove = noteC,
+                                    pivotCellId = pivot.id,
+                                    wingCellIds = listOf(wing1.id, wing2.id),
+                                    pivotCandidates = pivot.notes.toList().sorted()
+                                )
                             )
                         }
                     }

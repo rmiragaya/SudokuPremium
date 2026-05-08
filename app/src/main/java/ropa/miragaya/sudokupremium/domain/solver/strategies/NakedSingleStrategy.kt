@@ -16,8 +16,7 @@ class NakedSingleStrategy : SolvingStrategy {
             val newBoard =  board.withCellValue(singleNoteCell.id, valueToPlace)
 
             val context = StrategyContext.NakedSingle(
-                row = singleNoteCell.row,
-                col = singleNoteCell.col
+                cellId = singleNoteCell.id
             )
 
             return StrategyResult(newBoard, context)

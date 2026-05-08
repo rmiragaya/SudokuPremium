@@ -80,6 +80,7 @@ class HintGenerator @Inject constructor(
                 description = context.getSuccessMessage(valueToSet),
                 targetCellIndex = targetCellIndex,
                 valueToSet = valueToSet,
+                highlightCells = context.highlightCellIds,
                 stepBoard = oldBoard
             )
         } else if (notesToRemoveMap.isNotEmpty()) {
@@ -87,6 +88,7 @@ class HintGenerator @Inject constructor(
                 strategyName = context.name,
                 description = context.getEliminationMessage(notesToRemoveMap),
                 notesToRemove = notesToRemoveMap,
+                highlightCells = context.highlightCellIds,
                 stepBoard = oldBoard
             )
         }

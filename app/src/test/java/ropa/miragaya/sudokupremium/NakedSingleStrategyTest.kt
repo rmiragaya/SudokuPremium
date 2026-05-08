@@ -18,18 +18,18 @@ class NakedSingleStrategyTest {
 
         val targetCellId = 0
         val cellWithSingleNote = emptyBoard.cells[targetCellId].copy(notes = setOf(5))
-        
+
         val cells = emptyBoard.cells.toMutableList()
         cells[targetCellId] = cellWithSingleNote
         val boardWithNotes = Board(cells)
 
-        val resultBoard = strategy.apply(boardWithNotes)
+        val result = strategy.apply(boardWithNotes)
 
-        assertNotNull("La estrategia debería haber actuado", resultBoard)
+        assertNotNull("La estrategia deberia haber actuado", result)
 
-        val modifiedCell = resultBoard!!.cells[targetCellId]
-        assertEquals("La celda debería tener el valor 5", 5, modifiedCell.value)
-        assertTrue("La celda ya no debería tener notas (o irrelevantes)", modifiedCell.value != null)
+        val modifiedCell = result!!.newBoard.cells[targetCellId]
+        assertEquals("La celda deberia tener el valor 5", 5, modifiedCell.value)
+        assertTrue("La celda ya no deberia tener notas o ser relevante", modifiedCell.value != null)
     }
 
     @Test
@@ -43,8 +43,8 @@ class NakedSingleStrategyTest {
         cells[targetCellId] = cellWithMultipleNotes
         val boardWithAmbiguity = Board(cells)
 
-        val resultBoard = strategy.apply(boardWithAmbiguity)
+        val result = strategy.apply(boardWithAmbiguity)
 
-        assertNull("La estrategia no debería hacer nada si hay 2 opciones", resultBoard)
+        assertNull("La estrategia no deberia hacer nada si hay 2 opciones", result)
     }
 }

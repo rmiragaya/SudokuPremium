@@ -10,20 +10,51 @@ class NakedTripleStrategy : SolvingStrategy {
     override val difficulty = Difficulty.HARD
 
     override fun apply(board: Board): StrategyResult? {
-        val allGroups = board.rows + board.cols + board.boxes
-
-        for (group in allGroups) {
-            val cellIds = group.map { it.id }
-            val newBoard = findNakedTriplesInGroup(board, cellIds)
-            if (newBoard != null) return StrategyResult(
-                newBoard = newBoard,
-                context = StrategyContext.Generic(this.name)
-            )
-        }
-        return null
+        return findAll(board).firstOrNull()
     }
 
-    private fun findNakedTriplesInGroup(board: Board, groupIndices: List<Int>): Board? {
+    override fun findAll(board: Board): List<StrategyResult> {
+        val foundResults = mutableListOf<StrategyResult>()
+
+        for (rowIndex in 0 until 9) {
+            val result = findNakedTriplesInGroup(
+                board = board,
+                groupIndices = board.rows[rowIndex].map { it.id },
+                containerType = "fila",
+                containerIndex = rowIndex
+            )
+            if (result != null) foundResults.add(result)
+        }
+
+        for (colIndex in 0 until 9) {
+            val result = findNakedTriplesInGroup(
+                board = board,
+                groupIndices = board.cols[colIndex].map { it.id },
+                containerType = "columna",
+                containerIndex = colIndex
+            )
+            if (result != null) foundResults.add(result)
+        }
+
+        for (boxIndex in 0 until 9) {
+            val result = findNakedTriplesInGroup(
+                board = board,
+                groupIndices = board.boxes[boxIndex].map { it.id },
+                containerType = "caja",
+                containerIndex = boxIndex
+            )
+            if (result != null) foundResults.add(result)
+        }
+
+        return foundResults
+    }
+
+    private fun findNakedTriplesInGroup(
+        board: Board,
+        groupIndices: List<Int>,
+        containerType: String,
+        containerIndex: Int
+    ): StrategyResult? {
         val potentialCells = groupIndices.filter { index ->
             val cell = board.cells[index]
             cell.value == null && cell.notes.size in 2..3
@@ -67,7 +98,13 @@ class NakedTripleStrategy : SolvingStrategy {
                         }
 
                         if (changesMade) {
-                            return Board(newCells)
+                            val context = StrategyContext.NakedTriple(
+                                tripleCandidates = unionNotes.toList().sorted(),
+                                containerType = containerType,
+                                containerIndex = containerIndex,
+                                tripleCellIds = tripleIndices.toList().sorted()
+                            )
+                            return StrategyResult(Board(newCells), context)
                         }
                     }
                 }

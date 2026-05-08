@@ -10,20 +10,51 @@ class HiddenPairStrategy : SolvingStrategy {
     override val difficulty = Difficulty.MEDIUM
 
     override fun apply(board: Board): StrategyResult? {
-        val allGroups = board.rows + board.cols + board.boxes
-
-        for (group in allGroups) {
-            val cellIds = group.map { it.id }
-            val newBoard = findHiddenPairsInGroup(board, cellIds)
-            if (newBoard != null) return StrategyResult(
-                newBoard = newBoard,
-                context = StrategyContext.Generic(this.name)
-            )
-        }
-        return null
+        return findAll(board).firstOrNull()
     }
 
-    private fun findHiddenPairsInGroup(board: Board, groupIndices: List<Int>): Board? {
+    override fun findAll(board: Board): List<StrategyResult> {
+        val foundResults = mutableListOf<StrategyResult>()
+
+        for (rowIndex in 0 until 9) {
+            val result = findHiddenPairsInGroup(
+                board = board,
+                groupIndices = board.rows[rowIndex].map { it.id },
+                containerType = "fila",
+                containerIndex = rowIndex
+            )
+            if (result != null) foundResults.add(result)
+        }
+
+        for (colIndex in 0 until 9) {
+            val result = findHiddenPairsInGroup(
+                board = board,
+                groupIndices = board.cols[colIndex].map { it.id },
+                containerType = "columna",
+                containerIndex = colIndex
+            )
+            if (result != null) foundResults.add(result)
+        }
+
+        for (boxIndex in 0 until 9) {
+            val result = findHiddenPairsInGroup(
+                board = board,
+                groupIndices = board.boxes[boxIndex].map { it.id },
+                containerType = "caja",
+                containerIndex = boxIndex
+            )
+            if (result != null) foundResults.add(result)
+        }
+
+        return foundResults
+    }
+
+    private fun findHiddenPairsInGroup(
+        board: Board,
+        groupIndices: List<Int>,
+        containerType: String,
+        containerIndex: Int
+    ): StrategyResult? {
         val candidatePositions = mutableMapOf<Int, MutableList<Int>>()
 
         for (index in groupIndices) {
@@ -61,7 +92,14 @@ class HiddenPairStrategy : SolvingStrategy {
                         newCells[idx1] = cell1.copy(notes = pair)
                         newCells[idx2] = cell2.copy(notes = pair)
 
-                        return Board(newCells)
+                        val context = StrategyContext.HiddenPair(
+                            pairedCandidates = pair.toList().sorted(),
+                            containerType = containerType,
+                            containerIndex = containerIndex,
+                            pairCellIds = listOf(idx1, idx2)
+                        )
+
+                        return StrategyResult(Board(newCells), context)
                     }
                 }
             }

@@ -12,22 +12,16 @@ class XWingStrategy : SolvingStrategy {
     override fun apply(board: Board): StrategyResult? {
         // Probamos X-Wing en Filas (para eliminar en Columnas)
         val rowResult = findXWing(board, isRowBased = true)
-        if (rowResult != null) return StrategyResult(
-            newBoard = rowResult,
-            context = StrategyContext.Generic(this.name)
-        )
+        if (rowResult != null) return rowResult
 
         // Probamos X-Wing en Columnas (para eliminar en Filas)
         val colResult = findXWing(board, isRowBased = false)
-        if (colResult != null) return StrategyResult(
-            newBoard = colResult,
-            context = StrategyContext.Generic(this.name)
-        )
+        if (colResult != null) return colResult
 
         return null
     }
 
-    private fun findXWing(board: Board, isRowBased: Boolean): Board? {
+    private fun findXWing(board: Board, isRowBased: Boolean): StrategyResult? {
         // Iteramos por cada número posible (1 al 9)
         for (candidate in 1..9) {
 
@@ -89,7 +83,14 @@ class XWingStrategy : SolvingStrategy {
                         }
 
                         if (changesMade) {
-                            return Board(newCells)
+                            val context = StrategyContext.XWing(
+                                candidateNumber = candidate,
+                                baseLineType = if (isRowBased) "fila" else "columna",
+                                baseLineIndices = listOf(lineIdx1, lineIdx2),
+                                coverLineType = if (isRowBased) "columna" else "fila",
+                                coverLineIndices = transversalIndices
+                            )
+                            return StrategyResult(Board(newCells), context)
                         }
                     }
                 }

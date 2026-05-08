@@ -12,6 +12,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -123,30 +125,13 @@ fun GameScreen(
             onBackClick = onBackClick,
             onHintClick = viewModel::onRequestHint,
             onGetDebugDumpClick = getDebugDump(viewModel, context),
+            currentHintIndex = uiState.currentHintIndex,
+            totalHints = uiState.activeHints.size,
+            onDismissHint = viewModel::onDismissHint,
+            onNextHint = viewModel::onNextHint,
+            onPrevHint = viewModel::onPrevHint,
             modifier = modifier
         )
-
-        if (uiState.activeHint != null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.5f))
-                    .clickable { viewModel.onDismissHint() }
-            )
-
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-                Box(modifier = Modifier.clickable(enabled = false) {}) {
-                    HintOverlayCard(
-                        hint = uiState.activeHint!!,
-                        currentStep = uiState.currentHintIndex,
-                        totalSteps = uiState.activeHints.size,
-                        onDismiss = viewModel::onDismissHint,
-                        onNext = viewModel::onNextHint,
-                        onPrev = viewModel::onPrevHint
-                    )
-                }
-            }
-        }
     }
 }
 
@@ -175,8 +160,16 @@ fun GameContent(
     onBackClick: () -> Unit,
     onHintClick: () -> Unit,
     onGetDebugDumpClick: () -> Unit,
+    currentHintIndex: Int,
+    totalHints: Int,
+    onDismissHint: () -> Unit,
+    onNextHint: () -> Unit,
+    onPrevHint: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val activeHint = uiState.activeHint
+    val contentScrollState = rememberScrollState()
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -194,9 +187,12 @@ fun GameContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(16.dp)
+                .then(
+                    if (activeHint != null) Modifier.verticalScroll(contentScrollState) else Modifier
+                ),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = if (activeHint != null) Arrangement.Top else Arrangement.Center
         ) {
             AnimatedContent(
                 targetState = uiState.isLoading,
@@ -224,26 +220,38 @@ fun GameContent(
                 }
             }
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(if (activeHint != null) 12.dp else 30.dp))
 
-            val controlsEnabled = !uiState.isLoading
+            if (activeHint != null) {
+                HintOverlayCard(
+                    hint = activeHint,
+                    currentStep = currentHintIndex,
+                    totalSteps = totalHints,
+                    onDismiss = onDismissHint,
+                    onNext = onNextHint,
+                    onPrev = onPrevHint,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            } else {
+                val controlsEnabled = !uiState.isLoading
 
-            GameControls(
-                isNoteMode = uiState.isNoteMode,
-                onToggleNoteMode = onToggleNoteMode,
-                onUndo = onUndo,
-                enabled = controlsEnabled
-            )
+                GameControls(
+                    isNoteMode = uiState.isNoteMode,
+                    onToggleNoteMode = onToggleNoteMode,
+                    onUndo = onUndo,
+                    enabled = controlsEnabled
+                )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            NumberPad(
-                onNumberClick = onNumberInput,
-                onDeleteClick = onDeleteInput,
-                completedNumbers = uiState.completedNumbers
-            )
+                NumberPad(
+                    onNumberClick = onNumberInput,
+                    onDeleteClick = onDeleteInput,
+                    completedNumbers = uiState.completedNumbers
+                )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
     }
 }
@@ -314,7 +322,8 @@ fun SudokuBoardView(
                             isSelected = cell.id == selectedCellId,
                             isHighlighted = isHighlighted,
                             isSameValue = isSameValue,
-                            isHintTarget = isTargetCell || hasNotesToRemove || isExplanationCell,
+                            isHintTarget = isTargetCell || isExplanationCell,
+                            isHintElimination = hasNotesToRemove,
                             notesToCrossOut = notesToRemoveInThisCell, // Pasamos las notas a borrar
                             onClick = { onCellClick(cell.id) }
                         )
@@ -331,6 +340,7 @@ fun CellView(
     isHighlighted: Boolean,
     isSameValue: Boolean,
     isHintTarget: Boolean, // Ahora esto significa "estoy involucrado en la pista de alguna forma"
+    isHintElimination: Boolean,
     notesToCrossOut: List<Int> = emptyList(), // Nueva variable para saber qué notas pintar de rojo
     onClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -338,6 +348,7 @@ fun CellView(
 
     val bgColor = when {
         isHintTarget -> SudokuPalette.CellHint // Fondo doradito para celdas de la pista
+        isHintElimination -> SudokuPalette.CellEliminationBg
         cell.isError -> SudokuPalette.CellErrorBg
         isSelected -> SudokuPalette.CellSelected
         isHighlighted -> SudokuPalette.CellHighlight
@@ -352,10 +363,14 @@ fun CellView(
     }
     val weight = if (cell.isGiven) FontWeight.Bold else FontWeight.Medium
 
-    val cellModifier = if (isHintTarget && cell.value == null && notesToCrossOut.isEmpty()) {
-        modifier.border(2.dp, SudokuPalette.CellHintBorder)
-    } else {
-        modifier
+    val cellModifier = when {
+        isHintTarget && cell.value == null && notesToCrossOut.isEmpty() ->
+            modifier.border(2.dp, SudokuPalette.CellHintBorder)
+
+        isHintElimination ->
+            modifier.border(1.dp, SudokuPalette.CellEliminationBorder)
+
+        else -> modifier
     }
 
     Box(
@@ -690,6 +705,11 @@ fun GameScreenPreview(
         onToggleNoteMode = {},
         onHintClick = {},
         onGetDebugDumpClick = {},
+        currentHintIndex = 0,
+        totalHints = uiState.activeHints.size,
+        onDismissHint = {},
+        onNextHint = {},
+        onPrevHint = {},
         onUndo = {}
     )
 }
