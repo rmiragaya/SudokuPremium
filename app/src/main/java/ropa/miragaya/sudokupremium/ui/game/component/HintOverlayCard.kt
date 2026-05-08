@@ -247,29 +247,29 @@ private fun SudokuHint.actionLabel(): String? {
 
 private fun SudokuHint.scopeLabel(): String? {
     val affectedCells: Int
-    val suffix: String
 
     when {
         notesToRemove.isNotEmpty() -> {
             affectedCells = notesToRemove.keys.size
-            suffix = "a limpiar"
+            val noun = if (affectedCells == 1) "casilla" else "casillas"
+            return "Eliminar en $affectedCells $noun"
         }
 
         highlightCells.isNotEmpty() -> {
             affectedCells = highlightCells.size
-            suffix = "del patrón"
+            return if (affectedCells == 1) {
+                "Casilla resaltada"
+            } else {
+                "Casillas resaltadas: $affectedCells"
+            }
         }
 
         targetCellIndex != null -> {
-            affectedCells = 1
-            suffix = "objetivo"
+            return "Casilla sugerida"
         }
 
         else -> return null
     }
-
-    val noun = if (affectedCells == 1) "casilla" else "casillas"
-    return "$affectedCells $noun $suffix"
 }
 
 private fun formatNumbers(numbers: List<Int>): String {

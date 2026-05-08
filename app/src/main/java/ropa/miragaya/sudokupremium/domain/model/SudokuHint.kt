@@ -7,5 +7,6 @@ data class SudokuHint(
     val valueToSet: Int? = null,
     val notesToRemove: Map<Int, List<Int>> = emptyMap(),
     val highlightCells: List<Int> = emptyList(),
+    val highlightBoxes: List<Int> = emptyList(),
     val stepBoard: Board
 )

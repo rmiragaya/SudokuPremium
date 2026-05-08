@@ -8,7 +8,7 @@ import ropa.miragaya.sudokupremium.domain.model.StrategyContext
 class StrategyContextMessageTest {
 
     @Test
-    fun `hidden single message names group number and target cell`() {
+    fun `hidden single message uses highlighted target cell`() {
         val context = StrategyContext.HiddenSingle(
             candidateNumber = 7,
             containerType = "fila",
@@ -20,12 +20,12 @@ class StrategyContextMessageTest {
 
         assertTrue(message.contains("fila 3"))
         assertTrue(message.contains("número 7"))
-        assertTrue(message.contains("fila 3, columna 5"))
+        assertTrue(message.contains("casilla resaltada"))
         assertEquals(listOf(22), context.highlightCellIds)
     }
 
     @Test
-    fun `naked pair message names pair cells and candidates`() {
+    fun `naked pair message uses highlighted pair cells and candidates`() {
         val context = StrategyContext.NakedPair(
             pairedCandidates = listOf(7, 3),
             containerType = "fila",
@@ -37,12 +37,13 @@ class StrategyContextMessageTest {
 
         assertTrue(message.contains("fila 1"))
         assertTrue(message.contains("3 y 7"))
-        assertTrue(message.contains("columnas 1 y 2"))
+        assertTrue(message.contains("dos casillas resaltadas"))
+        assertTrue(message.contains("casillas marcadas en rojo"))
         assertEquals(listOf(0, 1), context.highlightCellIds)
     }
 
     @Test
-    fun `naked pair message uses row positions inside a column`() {
+    fun `naked pair message avoids coordinates inside a column`() {
         val context = StrategyContext.NakedPair(
             pairedCandidates = listOf(7, 3),
             containerType = "columna",
@@ -53,7 +54,7 @@ class StrategyContextMessageTest {
         val message = context.getEliminationMessage(mapOf(3 to listOf(3), 21 to listOf(7)))
 
         assertTrue(message.contains("columna 4"))
-        assertTrue(message.contains("filas 8 y 9"))
+        assertTrue(message.contains("casillas resaltadas"))
         assertTrue(message.contains("3 y 7"))
     }
 
@@ -70,9 +71,9 @@ class StrategyContextMessageTest {
         val message = context.getEliminationMessage(mapOf(20 to listOf(4)))
 
         assertTrue(message.contains("número 4"))
-        assertTrue(message.contains("columnas"))
-        assertTrue(message.contains("3 y 9"))
-        assertTrue(message.contains("filas 2 y 7"))
+        assertTrue(message.contains("casillas resaltadas"))
+        assertTrue(message.contains("casillas marcadas en rojo"))
         assertTrue(message.contains("X-Wing"))
+        assertEquals(listOf(11, 17, 56, 62), context.highlightCellIds)
     }
 }

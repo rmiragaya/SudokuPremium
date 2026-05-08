@@ -5,9 +5,14 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -46,7 +51,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color.Companion.Green
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
@@ -169,6 +176,11 @@ fun GameContent(
 ) {
     val activeHint = uiState.activeHint
     val contentScrollState = rememberScrollState()
+    val boardTopSpacerHeight by animateDpAsState(
+        targetValue = if (activeHint != null) 0.dp else 42.dp,
+        animationSpec = tween(320),
+        label = "BoardTopSpacer"
+    )
 
     Column(
         modifier = modifier
@@ -187,13 +199,16 @@ fun GameContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .animateContentSize(animationSpec = tween(320))
                 .padding(16.dp)
                 .then(
                     if (activeHint != null) Modifier.verticalScroll(contentScrollState) else Modifier
                 ),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = if (activeHint != null) Arrangement.Top else Arrangement.Center
+            verticalArrangement = Arrangement.Top
         ) {
+            Spacer(modifier = Modifier.height(boardTopSpacerHeight))
+
             AnimatedContent(
                 targetState = uiState.isLoading,
                 transitionSpec = {
@@ -222,17 +237,33 @@ fun GameContent(
 
             Spacer(modifier = Modifier.height(if (activeHint != null) 12.dp else 30.dp))
 
-            if (activeHint != null) {
-                HintOverlayCard(
-                    hint = activeHint,
-                    currentStep = currentHintIndex,
-                    totalSteps = totalHints,
-                    onDismiss = onDismissHint,
-                    onNext = onNextHint,
-                    onPrev = onPrevHint,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            } else {
+            AnimatedVisibility(
+                visible = activeHint != null,
+                enter = fadeIn(animationSpec = tween(260)) +
+                    slideInVertically(
+                        animationSpec = tween(320),
+                        initialOffsetY = { it / 3 }
+                    ),
+                exit = fadeOut(animationSpec = tween(180)) +
+                    slideOutVertically(
+                        animationSpec = tween(220),
+                        targetOffsetY = { it / 5 }
+                    )
+            ) {
+                activeHint?.let { hint ->
+                    HintOverlayCard(
+                        hint = hint,
+                        currentStep = currentHintIndex,
+                        totalSteps = totalHints,
+                        onDismiss = onDismissHint,
+                        onNext = onNextHint,
+                        onPrev = onPrevHint,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+
+            if (activeHint == null) {
                 val controlsEnabled = !uiState.isLoading
 
                 GameControls(
@@ -268,10 +299,34 @@ fun SudokuBoardView(
 
     Column(
         modifier = Modifier
+            .fillMaxWidth()
             .aspectRatio(1f)
             .clip(RoundedCornerShape(15.dp))
             .background(SudokuPalette.BoardBackground)
             .border(2.dp, SudokuPalette.GridLine, RoundedCornerShape(15.dp))
+            .drawWithContent {
+                drawContent()
+
+                activeHint?.highlightBoxes?.forEach { boxIndex ->
+                    val boxRow = boxIndex / 3
+                    val boxCol = boxIndex % 3
+                    val cellSize = size.width / 9f
+                    val strokeWidth = 3.dp.toPx()
+
+                    drawRect(
+                        color = SudokuPalette.CellHintBorder,
+                        topLeft = Offset(
+                            x = boxCol * 3 * cellSize + strokeWidth / 2,
+                            y = boxRow * 3 * cellSize + strokeWidth / 2
+                        ),
+                        size = Size(
+                            width = 3 * cellSize - strokeWidth,
+                            height = 3 * cellSize - strokeWidth
+                        ),
+                        style = Stroke(width = strokeWidth)
+                    )
+                }
+            }
     ) {
         board.rows.forEachIndexed { rowIndex, rowCells ->
             Row(modifier = Modifier.weight(1f)) {
