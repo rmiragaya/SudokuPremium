@@ -25,6 +25,9 @@ object SudokuPalette {
 
     val ButtonContainer = Color(0xFF23263A)
     val ButtonContent = Color(0xFFFFFFFF)
+    val HomePanel = Color(0xFF1B1F31)
+    val HomeBorder = Color(0xFF333A55)
+    val HomeBadgeBackground = Color(0xFF171B2A)
 
     val ButtonDestructive = Color(0xFF2D1F1F)
     val ButtonDestructiveContent = Color(0xFFE57373)
