@@ -108,6 +108,9 @@ private fun HintHeader(
     onNext: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val canGoPrev = currentStep > 0
+    val canGoNext = currentStep < totalSteps - 1
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -150,22 +153,24 @@ private fun HintHeader(
         if (totalSteps > 1) {
             IconButton(
                 onClick = onPrev,
+                enabled = canGoPrev,
                 modifier = Modifier.size(36.dp)
             ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Anterior",
-                    tint = SudokuPalette.TextAccent
+                    tint = if (canGoPrev) SudokuPalette.TextAccent else SudokuPalette.TextSecondary.copy(alpha = 0.35f)
                 )
             }
             IconButton(
                 onClick = onNext,
+                enabled = canGoNext,
                 modifier = Modifier.size(36.dp)
             ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = "Siguiente",
-                    tint = SudokuPalette.TextAccent
+                    tint = if (canGoNext) SudokuPalette.TextAccent else SudokuPalette.TextSecondary.copy(alpha = 0.35f)
                 )
             }
         }

@@ -17,6 +17,8 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,7 +54,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color.Companion.Green
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -192,7 +193,6 @@ fun GameContent(
             difficulty = uiState.difficulty.name,
             elapsedTimeSeconds = uiState.elapsedTimeSeconds,
             onBackClick = onBackClick,
-            onHintClick = onHintClick,
             onGetDebugDumpClick = onGetDebugDumpClick
         )
 
@@ -270,6 +270,7 @@ fun GameContent(
                     isNoteMode = uiState.isNoteMode,
                     onToggleNoteMode = onToggleNoteMode,
                     onUndo = onUndo,
+                    onHintClick = onHintClick,
                     enabled = controlsEnabled
                 )
 
@@ -604,12 +605,12 @@ fun SudokuButton(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun GameTopBar(
     difficulty: String,
     elapsedTimeSeconds: Long,
     onBackClick: () -> Unit,
-    onHintClick: () -> Unit,
     onGetDebugDumpClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -634,32 +635,21 @@ fun GameTopBar(
             text = difficulty,
             style = MaterialTheme.typography.titleMedium,
             color = SudokuPalette.TextPrimary,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            modifier = if (BuildConfig.DEBUG) {
+                Modifier.combinedClickable(
+                    onClick = {},
+                    onLongClick = onGetDebugDumpClick
+                )
+            } else {
+                Modifier
+            }
         )
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-
-            Icon(
-                imageVector = Icons.Default.Lightbulb,
-                contentDescription = "Pedir Pista",
-                tint = SudokuPalette.TextAccent,
-                modifier = Modifier
-                    .size(28.dp)
-                    .clickable { onHintClick() }
-            )
-
-            if (BuildConfig.DEBUG) {
-                Button(
-                    onClick = onGetDebugDumpClick,
-                    colors = ButtonDefaults.buttonColors(containerColor = Green)
-                ) {
-                    Text("🐛")
-                }
-            }
-
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -688,11 +678,12 @@ fun GameControls(
     isNoteMode: Boolean,
     onToggleNoteMode: () -> Unit,
     onUndo: () -> Unit,
+    onHintClick: () -> Unit,
     enabled: Boolean = true
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Button(
             onClick = onUndo,
@@ -702,7 +693,8 @@ fun GameControls(
                 contentColor = SudokuPalette.ButtonContent
             ),
             shape = RoundedCornerShape(12.dp),
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
+            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 12.dp),
+            modifier = Modifier.weight(1f)
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.Undo,
@@ -726,7 +718,8 @@ fun GameControls(
                 contentColor = contentColor
             ),
             shape = RoundedCornerShape(12.dp),
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
+            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 12.dp),
+            modifier = Modifier.weight(1f)
         ) {
             Icon(
                 imageVector = Icons.Default.Edit,
@@ -739,6 +732,26 @@ fun GameControls(
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold
             )
+        }
+
+        Button(
+            onClick = onHintClick,
+            enabled = enabled,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = SudokuPalette.CellHint,
+                contentColor = SudokuPalette.CellHintBorder
+            ),
+            shape = RoundedCornerShape(12.dp),
+            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 12.dp),
+            modifier = Modifier.weight(1f)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Lightbulb,
+                contentDescription = "Pedir pista",
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+            Text("Hint", style = MaterialTheme.typography.labelLarge)
         }
     }
 }

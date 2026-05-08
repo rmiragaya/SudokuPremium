@@ -368,18 +368,16 @@ class GameViewModel @Inject constructor(
 
     fun onNextHint() {
         _uiState.update {
-            if (it.activeHints.isNotEmpty()) {
-                val nextIndex = (it.currentHintIndex + 1) % it.activeHints.size
-                it.copy(currentHintIndex = nextIndex)
+            if (it.activeHints.isNotEmpty() && it.currentHintIndex < it.activeHints.lastIndex) {
+                it.copy(currentHintIndex = it.currentHintIndex + 1)
             } else it
         }
     }
 
     fun onPrevHint() {
         _uiState.update {
-            if (it.activeHints.isNotEmpty()) {
-                val prevIndex = if (it.currentHintIndex - 1 < 0) it.activeHints.lastIndex else it.currentHintIndex - 1
-                it.copy(currentHintIndex = prevIndex)
+            if (it.activeHints.isNotEmpty() && it.currentHintIndex > 0) {
+                it.copy(currentHintIndex = it.currentHintIndex - 1)
             } else it
         }
     }
