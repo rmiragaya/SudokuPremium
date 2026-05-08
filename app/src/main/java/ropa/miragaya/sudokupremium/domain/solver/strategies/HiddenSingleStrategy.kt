@@ -38,7 +38,6 @@ class HiddenSingleStrategy : SolvingStrategy {
             )
             if (result != null) return result
         }
-
         return null
     }
 

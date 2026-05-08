@@ -203,6 +203,23 @@ sealed class StrategyContext {
         }
     }
 
+    data class HiddenSingle(
+        val row: Int,
+        val col: Int,
+        val value: Int,
+        val regionType: String,
+        val regionIndex: Int
+    ) : StrategyContext() {
+        override val name = "Hidden Single"
+
+        override fun getSuccessMessage(valueToSet: Int): String {
+            return "Fijate bien en la $regionType ${regionIndex + 1}. " +
+                    "Si revisás los candidatos, vas a ver que, de toda la $regionType, el $value solo puede ir en la casilla marcada. " +
+                    "El $value no tiene ningun otro lugar posible en esa $regionType."
+        }
+    }
+
+
     data class Generic(val strategyName: String) : StrategyContext() {
         override val name = strategyName
     }
