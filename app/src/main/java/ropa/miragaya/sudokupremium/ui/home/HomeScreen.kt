@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,23 +13,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,10 +35,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
 
 private val HomeBodyFont = FontFamily.SansSerif
+private const val DIFFICULTY_SHEET_RESET_AFTER_NAVIGATION_MILLIS = 1_100L
 
 @Composable
 fun HomeScreen(
@@ -53,24 +50,30 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val hasSavedGame by viewModel.hasSavedGame.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
 
     var showDifficultySheet by remember { mutableStateOf(false) }
 
-    if (showDifficultySheet) {
-        DifficultySelectionSheet(
-            onDismiss = { showDifficultySheet = false },
-            onDifficultySelected = { difficulty ->
-                showDifficultySheet = false
-                onNewGameClick(difficulty)
-            }
+    Box(modifier = Modifier.fillMaxSize()) {
+        HomeScreenContent(
+            hasSavedGame = hasSavedGame,
+            onNewGameClick = { showDifficultySheet = true },
+            onContinueClick = onContinueClick
         )
-    }
 
-    HomeScreenContent(
-        hasSavedGame = hasSavedGame,
-        onNewGameClick = { showDifficultySheet = true },
-        onContinueClick = onContinueClick
-    )
+        if (showDifficultySheet) {
+            DifficultySelectionSheet(
+                onDismiss = { showDifficultySheet = false },
+                onDifficultySelected = { difficulty ->
+                    onNewGameClick(difficulty)
+                    scope.launch {
+                        delay(DIFFICULTY_SHEET_RESET_AFTER_NAVIGATION_MILLIS)
+                        showDifficultySheet = false
+                    }
+                }
+            )
+        }
+    }
 }
 
 @Composable
@@ -92,22 +95,23 @@ fun HomeScreenContent(hasSavedGame: Boolean, onNewGameClick: () -> Unit, onConti
 
         Spacer(modifier = Modifier.weight(0.9f))
 
-        if (hasSavedGame) {
-            ContinueGamePanel(
-                onContinueClick = onContinueClick,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-        }
-
-        PrimaryHomeButton(
+        HomeActionButton(
             text = "Nueva partida",
-            icon = Icons.Default.Add,
             onClick = onNewGameClick,
             isPrimary = true,
             modifier = Modifier.fillMaxWidth()
         )
+
+        if (hasSavedGame) {
+            Spacer(modifier = Modifier.height(12.dp))
+
+            HomeActionButton(
+                text = "Continuar",
+                onClick = onContinueClick,
+                isPrimary = false,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 
@@ -219,111 +223,50 @@ private fun HomeHeader() {
 }
 
 @Composable
-private fun ContinueGamePanel(onContinueClick: () -> Unit, modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier.clickable(onClick = onContinueClick),
-        shape = RoundedCornerShape(20.dp),
-        color = SudokuPalette.HomePanel,
-        border = BorderStroke(1.dp, SudokuPalette.CellHintBorder.copy(alpha = 0.34f))
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Continuar",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontFamily = HomeBodyFont,
-                    color = SudokuPalette.TextPrimary,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "Volvé al tablero en curso",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontFamily = HomeBodyFont,
-                    color = SudokuPalette.TextSecondary
-                )
-            }
-
-            Button(
-                onClick = onContinueClick,
-                shape = RoundedCornerShape(14.dp),
-                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = SudokuPalette.TextAccent)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.PlayArrow,
-                    contentDescription = null,
-                    tint = SudokuPalette.ScreenBackground,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun PrimaryHomeButton(
-    text: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    onClick: () -> Unit,
-    isPrimary: Boolean,
-    modifier: Modifier = Modifier
-) {
-    val shape = RoundedCornerShape(20.dp)
+private fun HomeActionButton(text: String, onClick: () -> Unit, isPrimary: Boolean, modifier: Modifier = Modifier) {
+    val shape = RoundedCornerShape(24.dp)
 
     if (isPrimary) {
-        Button(
-            onClick = onClick,
-            shape = shape,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent,
-                contentColor = Color.White
-            ),
-            contentPadding = PaddingValues(0.dp),
+        Box(
             modifier = modifier
                 .height(64.dp)
                 .background(SudokuPalette.ButtonGradient, shape)
+                .clickable(onClick = onClick),
+            contentAlignment = Alignment.Center
         ) {
-            HomeButtonContent(text = text, icon = icon)
+            HomeButtonText(
+                text = text,
+                color = Color.White
+            )
         }
     } else {
-        OutlinedButton(
-            onClick = onClick,
+        Surface(
+            modifier = modifier
+                .height(58.dp)
+                .clickable(onClick = onClick),
             shape = shape,
-            border = BorderStroke(1.dp, SudokuPalette.HomeBorder),
-            colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = SudokuPalette.ButtonContainer,
-                contentColor = SudokuPalette.TextPrimary
-            ),
-            modifier = modifier.height(58.dp)
+            color = SudokuPalette.HomePanel.copy(alpha = 0.86f),
+            border = BorderStroke(1.dp, SudokuPalette.HomeBorder)
         ) {
-            HomeButtonContent(text = text, icon = icon)
+            Box(contentAlignment = Alignment.Center) {
+                HomeButtonText(
+                    text = text,
+                    color = SudokuPalette.TextPrimary
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun HomeButtonContent(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(22.dp)
-        )
-        Spacer(modifier = Modifier.width(10.dp))
-        Text(
-            text = text,
-            style = MaterialTheme.typography.titleMedium,
-            fontFamily = HomeBodyFont,
-            fontWeight = FontWeight.Bold
-        )
-    }
+private fun HomeButtonText(text: String, color: Color) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleMedium,
+        fontFamily = HomeBodyFont,
+        color = color,
+        fontWeight = FontWeight.Bold
+    )
 }
 
 @Preview(

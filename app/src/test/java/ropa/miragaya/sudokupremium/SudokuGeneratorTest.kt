@@ -23,12 +23,12 @@ class SudokuGeneratorTest {
         val visibleBoard = puzzle.board
         val solution = puzzle.solvedBoard
 
-        assertNotNull("Debe tener solución cargada", solution)
+        assertNotNull("Debe tener solucion cargada", solution)
 
         visibleBoard.cells.forEach { cell ->
             if (cell.value != null) {
                 assertEquals(
-                    "La pista en (${cell.row},${cell.col}) no coincide con la solución",
+                    "La pista en (${cell.row},${cell.col}) no coincide con la solucion",
                     solution.cells[cell.id].value,
                     cell.value
                 )
@@ -37,27 +37,28 @@ class SudokuGeneratorTest {
     }
 
     @Test
-    fun `generated puzzle respects difficulty (sanity check)`() {
-        val easyPuzzle = generator.generate(Difficulty.EASY)
-        val expertPuzzle = generator.generate(Difficulty.EXPERT)
+    fun `generated puzzles are solvable with requested difficulty`() {
+        Difficulty.values().forEach { difficulty ->
+            val puzzle = generator.generate(difficulty)
+            val result = solver.solve(puzzle.board)
 
-        val easyClues = easyPuzzle.board.cells.count { it.value != null }
-        val expertClues = expertPuzzle.board.cells.count { it.value != null }
-
-        println("Easy Clues: $easyClues | Expert Clues: $expertClues")
-
-        assertTrue(
-            "El modo experto debería tener menos (o iguales) pistas que el fácil",
-            expertClues <= easyClues
-        )
+            assertEquals("La dificultad publica debe coincidir con la pedida", difficulty, puzzle.difficulty)
+            assertTrue("El puzzle $difficulty debe tener solucion unica", result is SolveResult.Success)
+            assertEquals(
+                "El solver debe clasificar el puzzle como $difficulty",
+                difficulty,
+                (result as SolveResult.Success).difficulty
+            )
+        }
     }
 
     @Test
-    fun `generator produces solvable puzzles consistently (Stress Test)`() {
+    fun `generator produces solvable puzzles consistently`() {
         repeat(20) {
             val puzzle = generator.generate(Difficulty.MEDIUM)
             val result = solver.solve(puzzle.board)
-            assertTrue("El puzzle debe tener solución única", result is SolveResult.Success)
+
+            assertTrue("El puzzle debe tener solucion unica", result is SolveResult.Success)
         }
     }
 }

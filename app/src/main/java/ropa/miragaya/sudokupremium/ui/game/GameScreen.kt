@@ -14,6 +14,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -40,14 +41,24 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -81,7 +92,13 @@ import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
 import ropa.miragaya.sudokupremium.util.toFormattedTime
 
 @Composable
-fun GameScreen(modifier: Modifier = Modifier, viewModel: GameViewModel = hiltViewModel(), onBackClick: () -> Unit) {
+fun GameScreen(
+    modifier: Modifier = Modifier,
+    viewModel: GameViewModel = hiltViewModel(),
+    onBackClick: () -> Unit,
+    onOpenTechniquesClick: () -> Unit,
+    onOpenTechniqueClick: (String) -> Unit
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -129,6 +146,8 @@ fun GameScreen(modifier: Modifier = Modifier, viewModel: GameViewModel = hiltVie
             onBackClick = onBackClick,
             onHintClick = viewModel::onRequestHint,
             onGetDebugDumpClick = getDebugDump(viewModel, context),
+            onOpenTechniquesClick = onOpenTechniquesClick,
+            onOpenTechniqueClick = onOpenTechniqueClick,
             currentHintIndex = uiState.currentHintIndex,
             totalHints = uiState.activeHints.size,
             onDismissHint = viewModel::onDismissHint,
@@ -161,6 +180,8 @@ fun GameContent(
     onBackClick: () -> Unit,
     onHintClick: () -> Unit,
     onGetDebugDumpClick: () -> Unit,
+    onOpenTechniquesClick: () -> Unit,
+    onOpenTechniqueClick: (String) -> Unit,
     currentHintIndex: Int,
     totalHints: Int,
     onDismissHint: () -> Unit,
@@ -171,7 +192,7 @@ fun GameContent(
     val activeHint = uiState.activeHint
     val contentScrollState = rememberScrollState()
     val boardTopSpacerHeight by animateDpAsState(
-        targetValue = if (activeHint != null) 0.dp else 42.dp,
+        targetValue = if (activeHint != null) 0.dp else 28.dp,
         animationSpec = tween(320),
         label = "BoardTopSpacer"
     )
@@ -183,9 +204,14 @@ fun GameContent(
     ) {
         GameTopBar(
             difficulty = uiState.difficulty.name,
-            elapsedTimeSeconds = uiState.elapsedTimeSeconds,
             onBackClick = onBackClick,
-            onGetDebugDumpClick = onGetDebugDumpClick
+            onGetDebugDumpClick = onGetDebugDumpClick,
+            onOpenTechniquesClick = onOpenTechniquesClick
+        )
+
+        GameTimerPill(
+            elapsedTimeSeconds = uiState.elapsedTimeSeconds,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
         Column(
@@ -250,20 +276,19 @@ fun GameContent(
                         onDismiss = onDismissHint,
                         onNext = onNextHint,
                         onPrev = onPrevHint,
+                        onTechniqueClick = { onOpenTechniqueClick(hint.strategyName.toTechniqueId()) },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
 
-            if (activeHint == null) {
-                val controlsEnabled = !uiState.isLoading
-
+            if (activeHint == null && !uiState.isLoading) {
                 GameControls(
                     isNoteMode = uiState.isNoteMode,
                     onToggleNoteMode = onToggleNoteMode,
                     onUndo = onUndo,
                     onHintClick = onHintClick,
-                    enabled = controlsEnabled
+                    enabled = true
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -484,37 +509,6 @@ fun NotesGrid(
 }
 
 @Composable
-fun NotesGrid(notes: Set<Int>) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(2.dp),
-        verticalArrangement = Arrangement.SpaceEvenly
-    ) {
-        repeat(3) { row ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                repeat(3) { col ->
-                    val number = row * 3 + col + 1
-                    if (notes.contains(number)) {
-                        Text(
-                            text = number.toString(),
-                            fontSize = 8.sp,
-                            color = SudokuPalette.TextSecondary,
-                            lineHeight = 8.sp
-                        )
-                    } else {
-                        Spacer(modifier = Modifier.size(8.dp))
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
 fun NumberPad(
     onNumberClick: (Int) -> Unit,
     onDeleteClick: () -> Unit,
@@ -600,11 +594,13 @@ fun SudokuButton(
 @Composable
 fun GameTopBar(
     difficulty: String,
-    elapsedTimeSeconds: Long,
     onBackClick: () -> Unit,
     onGetDebugDumpClick: () -> Unit,
+    onOpenTechniquesClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var isMenuExpanded by remember { mutableStateOf(false) }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -637,31 +633,84 @@ fun GameTopBar(
                 .align(Alignment.Center)
         )
 
-        Row(
-            modifier = Modifier.align(Alignment.CenterEnd),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
+        Box(modifier = Modifier.align(Alignment.CenterEnd)) {
+            IconButton(onClick = { isMenuExpanded = true }) {
                 Icon(
-                    painter = painterResource(id = android.R.drawable.ic_menu_recent_history),
-                    contentDescription = null,
-                    tint = SudokuPalette.TextAccent,
-                    modifier = Modifier.size(16.dp)
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "Más opciones",
+                    tint = SudokuPalette.TextSecondary
                 )
+            }
 
-                Text(
-                    text = elapsedTimeSeconds.toFormattedTime(),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = SudokuPalette.TextAccent,
-                    fontFamily = FontFamily.Monospace
+            DropdownMenu(
+                expanded = isMenuExpanded,
+                onDismissRequest = { isMenuExpanded = false },
+                containerColor = SudokuPalette.HomePanel
+            ) {
+                DropdownMenuItem(
+                    text = { Text(text = "Configuración") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = null
+                        )
+                    },
+                    onClick = { isMenuExpanded = false }
+                )
+                DropdownMenuItem(
+                    text = { Text(text = "Técnicas") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.School,
+                            contentDescription = null
+                        )
+                    },
+                    onClick = {
+                        isMenuExpanded = false
+                        onOpenTechniquesClick()
+                    }
                 )
             }
         }
     }
+}
+
+@Composable
+fun GameTimerPill(elapsedTimeSeconds: Long, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(50),
+        color = SudokuPalette.HomePanel.copy(alpha = 0.72f),
+        border = BorderStroke(1.dp, SudokuPalette.GridLine)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = android.R.drawable.ic_menu_recent_history),
+                contentDescription = null,
+                tint = SudokuPalette.TextAccent,
+                modifier = Modifier.size(15.dp)
+            )
+
+            Text(
+                text = elapsedTimeSeconds.toFormattedTime(),
+                style = MaterialTheme.typography.labelLarge,
+                color = SudokuPalette.TextAccent,
+                fontFamily = FontFamily.Monospace
+            )
+        }
+    }
+}
+
+private fun String.toTechniqueId(): String {
+    return lowercase()
+        .replace("-", " ")
+        .split(" ")
+        .filter { it.isNotBlank() }
+        .joinToString("_")
 }
 
 @Composable
@@ -763,6 +812,8 @@ fun GameScreenPreview(@PreviewParameter(GamePreviewProvider::class) uiState: Gam
         onToggleNoteMode = {},
         onHintClick = {},
         onGetDebugDumpClick = {},
+        onOpenTechniquesClick = {},
+        onOpenTechniqueClick = {},
         currentHintIndex = 0,
         totalHints = uiState.activeHints.size,
         onDismissHint = {},

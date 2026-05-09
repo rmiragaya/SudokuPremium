@@ -24,7 +24,8 @@ class GamePreviewProvider : PreviewParameterProvider<GameUiState> {
 
         GameUiState(
             board = dummyBoard,
-            selectedCellId = null
+            selectedCellId = null,
+            isLoading = false
         ),
 
         GameUiState(
@@ -32,7 +33,8 @@ class GamePreviewProvider : PreviewParameterProvider<GameUiState> {
             selectedCellId = 0,
             highlightedCellIds = setOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 18, 27),
             sameValueCellIds = setOf(14, 21),
-            isNoteMode = false
+            isNoteMode = false,
+            isLoading = false
         )
     )
 }

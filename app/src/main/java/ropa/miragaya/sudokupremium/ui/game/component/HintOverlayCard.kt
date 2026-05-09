@@ -1,6 +1,7 @@
 package ropa.miragaya.sudokupremium.ui.game.component
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import ropa.miragaya.sudokupremium.domain.model.SudokuHint
@@ -44,6 +46,7 @@ fun HintOverlayCard(
     onNext: () -> Unit,
     onPrev: () -> Unit,
     onDismiss: () -> Unit,
+    onTechniqueClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -64,7 +67,8 @@ fun HintOverlayCard(
                 totalSteps = totalSteps,
                 onPrev = onPrev,
                 onNext = onNext,
-                onDismiss = onDismiss
+                onDismiss = onDismiss,
+                onTechniqueClick = onTechniqueClick
             )
 
             HintMetaRow(hint = hint)
@@ -105,7 +109,8 @@ private fun HintHeader(
     totalSteps: Int,
     onPrev: () -> Unit,
     onNext: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onTechniqueClick: () -> Unit
 ) {
     val canGoPrev = currentStep > 0
     val canGoNext = currentStep < totalSteps - 1
@@ -136,8 +141,10 @@ private fun HintHeader(
                 style = MaterialTheme.typography.titleMedium,
                 color = SudokuPalette.CellHintBorder,
                 fontWeight = FontWeight.Bold,
+                textDecoration = TextDecoration.Underline,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.clickable(onClick = onTechniqueClick)
             )
 
             if (totalSteps > 1) {

@@ -30,7 +30,7 @@ class Solver @Inject constructor() {
     )
 
     fun solve(initialBoard: Board, logSteps: Boolean = false): SolveResult {
-        if (initialBoard.cells.any { it.isError }) return SolveResult.Invalid
+        if (initialBoard.hasConflicts()) return SolveResult.Invalid
 
         var currentBoard = initialBoard.initializeCandidates()
 

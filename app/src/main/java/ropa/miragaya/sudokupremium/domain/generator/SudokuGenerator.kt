@@ -2,6 +2,7 @@ package ropa.miragaya.sudokupremium.domain.generator
 
 import android.util.Log
 import javax.inject.Inject
+import ropa.miragaya.sudokupremium.BuildConfig
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.domain.model.SudokuPuzzle
@@ -10,46 +11,70 @@ import ropa.miragaya.sudokupremium.domain.solver.SolveResult
 import ropa.miragaya.sudokupremium.domain.solver.Solver
 import ropa.miragaya.sudokupremium.domain.solver.utils.SudokuDebugUtils
 
+private const val GENERATION_ANALYTICS_TAG = "SUDOKU_ANALYTICS"
+
 class SudokuGenerator @Inject constructor(private val solver: Solver, private val transformer: SudokuTransformer) {
 
     fun generate(targetDifficulty: Difficulty): SudokuPuzzle {
         val startTime = System.currentTimeMillis()
+        val seeds = seedsFor(targetDifficulty)
 
-        val seeds = when (targetDifficulty) {
+        if (seeds.isEmpty()) throw IllegalStateException("Faltan semillas para $targetDifficulty")
+
+        var lastActualDifficulty: Difficulty? = null
+
+        seeds.shuffled().forEach { seed ->
+            val baseBoard = Board.fromGridString(seed)
+            val newBoard = transformer.transform(baseBoard)
+
+            when (val solvedResult = solver.solve(newBoard)) {
+                is SolveResult.Success -> {
+                    lastActualDifficulty = solvedResult.difficulty
+                    if (solvedResult.difficulty == targetDifficulty) {
+                        val puzzle = SudokuPuzzle(newBoard, solvedResult.board, targetDifficulty)
+                        logMetrics(startTime, targetDifficulty, solvedResult.difficulty, puzzle)
+                        return puzzle
+                    }
+                }
+                is SolveResult.Failure,
+                SolveResult.Invalid -> Unit
+            }
+        }
+
+        throw IllegalStateException(
+            "No se pudo generar un sudoku $targetDifficulty. " +
+                "Ultima dificultad resuelta: ${lastActualDifficulty ?: "sin solucion"}"
+        )
+    }
+
+    private fun seedsFor(targetDifficulty: Difficulty): List<String> {
+        return when (targetDifficulty) {
             Difficulty.EASY -> Seeds.EASY_SEEDS
             Difficulty.MEDIUM -> Seeds.MEDIUM_SEEDS
             Difficulty.HARD -> Seeds.HARD_SEEDS
             Difficulty.EXPERT -> Seeds.EXPERT_SEEDS
         }
-
-        if (seeds.isEmpty()) throw IllegalStateException("Faltan semillas para $targetDifficulty")
-
-        val randomSeedString = seeds.random()
-        val baseBoard = Board.fromGridString(randomSeedString)
-        val newBoard = transformer.transform(baseBoard)
-
-        val solvedResult = solver.solve(newBoard, logSteps = true) // todo build debug false
-        val solvedBoard = (solvedResult as? SolveResult.Success)?.board ?: newBoard
-
-        val puzzle = SudokuPuzzle(newBoard, solvedBoard, targetDifficulty)
-
-        logMetrics(startTime, puzzle)
-
-        return puzzle
     }
 
-    private fun logMetrics(startTime: Long, puzzle: SudokuPuzzle) {
+    private fun logMetrics(
+        startTime: Long,
+        targetDifficulty: Difficulty,
+        actualDifficulty: Difficulty,
+        puzzle: SudokuPuzzle
+    ) {
+        if (!BuildConfig.DEBUG) return
+
         val duration = System.currentTimeMillis() - startTime
 
         val metrics = GenerationMetrics(
-            success = true,
-            targetDifficulty = puzzle.difficulty,
-            actualDifficulty = puzzle.difficulty,
+            success = targetDifficulty == actualDifficulty,
+            targetDifficulty = targetDifficulty,
+            actualDifficulty = actualDifficulty,
             durationMs = duration,
             boardString = puzzle.board.toGridString()
         )
 
-        Log.i("SUDOKU_ANALYTICS", metrics.toString())
+        Log.i(GENERATION_ANALYTICS_TAG, metrics.toString())
 
         SudokuDebugUtils.logPuzzleGenerated(puzzle)
     }

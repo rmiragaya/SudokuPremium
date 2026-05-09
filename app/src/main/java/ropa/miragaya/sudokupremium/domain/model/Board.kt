@@ -43,7 +43,7 @@ data class Board(val cells: List<Cell>) {
     fun withCellCleared(cellId: Int): Board {
         val newCells = cells.map { cell ->
             if (cell.id == cellId) {
-                cell.copy(value = null)
+                cell.copy(value = null, notes = emptySet())
             } else {
                 cell
             }
@@ -74,6 +74,13 @@ data class Board(val cells: List<Cell>) {
         }
 
         return Board(newCells)
+    }
+
+    fun hasConflicts(): Boolean {
+        return (rows + cols + boxes).any { group ->
+            val values = group.mapNotNull { it.value }
+            values.size != values.toSet().size
+        }
     }
 
     fun getCellsWithValue(value: Int): Set<Int> {
@@ -109,7 +116,7 @@ data class Board(val cells: List<Cell>) {
     }
 
     fun isSolved(): Boolean {
-        return cells.none { it.value == null } && cells.none { it.isError }
+        return cells.none { it.value == null } && !hasConflicts()
     }
 
     fun toGridString(): String {
@@ -155,6 +162,9 @@ data class Board(val cells: List<Cell>) {
          */
         fun fromGridString(str: String): Board {
             val cleanStr = str.replace(Regex("[^0-9.]"), "")
+            require(cleanStr.length == 81) {
+                "El tablero debe tener 81 caracteres, pero tiene ${cleanStr.length}"
+            }
 
             val cells = cleanStr.mapIndexed { index, char ->
                 val digit = if (char == '.') 0 else char.digitToInt()

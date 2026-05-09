@@ -8,7 +8,7 @@ import javax.inject.Inject
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Board.Companion.fromGridString
 
-class DebugBoardLoader @Inject constructor(@ApplicationContext private val context: Context) {
+class DebugBoardLoader @Inject constructor(@param:ApplicationContext private val context: Context) {
     fun loadBoardFromJson(fileName: String): Board? {
         return try {
             val rawString = context.assets

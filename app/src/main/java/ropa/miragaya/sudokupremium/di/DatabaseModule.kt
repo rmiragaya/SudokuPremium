@@ -8,6 +8,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import ropa.miragaya.sudokupremium.BuildConfig
 import ropa.miragaya.sudokupremium.data.local.AppDatabase
 import ropa.miragaya.sudokupremium.data.local.GameDao
 
@@ -18,13 +19,17 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
-        return Room.databaseBuilder(
+        val builder = Room.databaseBuilder(
             context,
             AppDatabase::class.java,
             "sudoku_db"
         )
-            .fallbackToDestructiveMigration(true) // util para desarrollo. Volar despues obviamente
-            .build()
+
+        if (BuildConfig.DEBUG) {
+            builder.fallbackToDestructiveMigration(true)
+        }
+
+        return builder.build()
     }
 
     @Provides

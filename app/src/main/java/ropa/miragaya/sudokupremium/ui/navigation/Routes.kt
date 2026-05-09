@@ -10,3 +10,10 @@ object HomeRoute
 // Sudoku
 @Serializable
 data class GameRoute(val createNew: Boolean = false, val difficulty: Difficulty = Difficulty.EASY)
+
+// Techniques
+@Serializable
+object TechniquesRoute
+
+@Serializable
+data class TechniqueDetailRoute(val techniqueId: String)

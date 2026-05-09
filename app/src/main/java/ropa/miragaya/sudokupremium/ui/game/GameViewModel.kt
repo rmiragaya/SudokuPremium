@@ -29,7 +29,7 @@ import ropa.miragaya.sudokupremium.domain.solver.hints.HintGenerator
 import ropa.miragaya.sudokupremium.domain.solver.utils.DebugBoardLoader
 import ropa.miragaya.sudokupremium.ui.navigation.GameRoute
 
-private const val USE_DEBUG_BOARD = true
+private const val USE_DEBUG_BOARD = false
 
 @HiltViewModel
 class GameViewModel @Inject constructor(
@@ -90,7 +90,7 @@ class GameViewModel @Inject constructor(
                     board = debugBoard,
                     solvedBoard = solvedDebugBoard,
                     isLoading = false,
-                    completedNumbers = calculateCompletedNumbers(debugBoard)
+                    completedNumbers = calculateCompletedNumbers(debugBoard, solvedDebugBoard)
                 )
             }
             return
@@ -108,7 +108,7 @@ class GameViewModel @Inject constructor(
                         elapsedTimeSeconds = savedGame.elapsedTimeSeconds,
                         difficulty = savedGame.difficulty,
                         isLoading = false,
-                        completedNumbers = calculateCompletedNumbers(savedGame.board)
+                        completedNumbers = calculateCompletedNumbers(savedGame.board, savedGame.solvedBoard)
                     )
                 }
                 resumeTimer()
@@ -173,12 +173,14 @@ class GameViewModel @Inject constructor(
 
             saveToHistory()
 
-            justWon = finalBoard.isSolved()
+            justWon = isSolvedAgainstSolution(finalBoard, currentState.solvedBoard)
 
             currentState.copy(
                 board = finalBoard,
                 isComplete = justWon,
-                completedNumbers = calculateCompletedNumbers(finalBoard)
+                completedNumbers = calculateCompletedNumbers(finalBoard, currentState.solvedBoard),
+                activeHints = emptyList(),
+                currentHintIndex = 0
             )
         }
 
@@ -214,7 +216,7 @@ class GameViewModel @Inject constructor(
 
         _uiState.update { currentState ->
             val currentBoard = currentState.board
-            val cell = currentBoard.cells.first { it.id == currentSelectedId }
+            val cell = currentBoard.cells.find { it.id == currentSelectedId } ?: return@update currentState
 
             if (cell.isGiven) return@update currentState
 
@@ -230,7 +232,9 @@ class GameViewModel @Inject constructor(
 
             currentState.copy(
                 board = newBoard,
-                completedNumbers = calculateCompletedNumbers(newBoard)
+                completedNumbers = calculateCompletedNumbers(newBoard, currentState.solvedBoard),
+                activeHints = emptyList(),
+                currentHintIndex = 0
             )
         }
 
@@ -238,6 +242,7 @@ class GameViewModel @Inject constructor(
     }
 
     fun resumeTimer() {
+        if (_uiState.value.isLoading || _uiState.value.isComplete) return
         if (timerJob?.isActive == true) return
 
         timerJob = viewModelScope.launch {
@@ -256,6 +261,8 @@ class GameViewModel @Inject constructor(
     private fun saveGame() {
         viewModelScope.launch {
             val currentState = _uiState.value
+
+            if (currentState.isComplete) return@launch
 
             val solution = currentState.solvedBoard ?: return@launch
 
@@ -288,30 +295,33 @@ class GameViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 board = previousBoard,
-                completedNumbers = calculateCompletedNumbers(previousBoard)
+                completedNumbers = calculateCompletedNumbers(previousBoard, it.solvedBoard),
+                activeHints = emptyList(),
+                currentHintIndex = 0
             )
         }
         saveGame()
     }
 
     fun startNewGame(difficulty: Difficulty) {
+        pauseTimer()
+
         viewModelScope.launch(Dispatchers.Default) {
             _uiState.update {
                 it.copy(
                     isLoading = true,
-                    difficulty = difficulty
+                    difficulty = difficulty,
+                    isComplete = false,
+                    activeHints = emptyList(),
+                    currentHintIndex = 0,
+                    showNoHintFound = false,
+                    showMistakeError = false
                 )
             }
 
             history.clear()
 
-            val minLoadingTimeJob = launch {
-                delay(2000)
-            }
-
             val puzzle = generator.generate(difficulty)
-
-            minLoadingTimeJob.join()
 
             _uiState.update {
                 it.copy(
@@ -324,8 +334,12 @@ class GameViewModel @Inject constructor(
                     selectedCellId = null,
                     highlightedCellIds = emptySet(),
                     sameValueCellIds = emptySet(),
+                    activeHints = emptyList(),
+                    currentHintIndex = 0,
+                    showNoHintFound = false,
+                    showMistakeError = false,
                     isLoading = false,
-                    completedNumbers = calculateCompletedNumbers(puzzle.board)
+                    completedNumbers = calculateCompletedNumbers(puzzle.board, puzzle.solvedBoard)
                 )
             }
 
@@ -422,11 +436,19 @@ class GameViewModel @Inject constructor(
         _uiState.update { it.copy(showMistakeError = false) }
     }
 
-    private fun calculateCompletedNumbers(board: Board): Set<Int> {
+    private fun isSolvedAgainstSolution(board: Board, solution: Board?): Boolean {
+        if (solution == null || board.cells.any { it.value == null }) return false
+
+        return board.cells.all { cell ->
+            cell.value == solution.cells[cell.id].value
+        }
+    }
+
+    private fun calculateCompletedNumbers(board: Board, solution: Board?): Set<Int> {
         val counts = mutableMapOf<Int, Int>()
 
         board.cells.forEach { cell ->
-            if (cell.value != null) {
+            if (cell.value != null && (solution == null || cell.value == solution.cells[cell.id].value)) {
                 counts[cell.value] = (counts[cell.value] ?: 0) + 1
             }
         }

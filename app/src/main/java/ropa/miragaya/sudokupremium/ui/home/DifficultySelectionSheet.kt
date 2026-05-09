@@ -1,11 +1,20 @@
 package ropa.miragaya.sudokupremium.ui.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -20,14 +29,17 @@ import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.SportsScore
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,29 +48,81 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
 
 private val DifficultyBodyFont = FontFamily.SansSerif
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DifficultySelectionSheet(onDismiss: () -> Unit, onDifficultySelected: (Difficulty) -> Unit) {
-    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    var isVisible by remember { mutableStateOf(false) }
+    var isClosing by remember { mutableStateOf(false) }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = SudokuPalette.HomePanel,
-        dragHandle = {
-            Surface(
-                modifier = Modifier.padding(top = 12.dp, bottom = 6.dp),
-                shape = RoundedCornerShape(999.dp),
-                color = SudokuPalette.HomeBorder
-            ) {
-                Spacer(modifier = Modifier.size(width = 42.dp, height = 4.dp))
-            }
+    fun closeSheet(afterClose: (() -> Unit)? = null) {
+        if (isClosing) return
+
+        isClosing = true
+        isVisible = false
+        scope.launch {
+            delay(DIFFICULTY_SHEET_EXIT_MILLIS.toLong())
+            afterClose?.invoke() ?: onDismiss()
         }
+    }
+
+    LaunchedEffect(Unit) {
+        isVisible = true
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        AnimatedVisibility(
+            visible = isVisible,
+            enter = fadeIn(animationSpec = tween(DIFFICULTY_SHEET_SCRIM_ENTER_MILLIS)),
+            exit = fadeOut(animationSpec = tween(DIFFICULTY_SHEET_SCRIM_EXIT_MILLIS))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.48f))
+                    .clickable { closeSheet() }
+            )
+        }
+
+        AnimatedVisibility(
+            visible = isVisible,
+            modifier = Modifier.align(Alignment.BottomCenter),
+            enter = slideInVertically(
+                animationSpec = tween(DIFFICULTY_SHEET_ENTER_MILLIS),
+                initialOffsetY = { it }
+            ) + fadeIn(
+                animationSpec = tween(
+                    durationMillis = DIFFICULTY_SHEET_CONTENT_FADE_MILLIS,
+                    delayMillis = DIFFICULTY_SHEET_CONTENT_FADE_DELAY_MILLIS
+                )
+            ),
+            exit = slideOutVertically(
+                animationSpec = tween(DIFFICULTY_SHEET_EXIT_MILLIS),
+                targetOffsetY = { it }
+            ) + fadeOut(animationSpec = tween(DIFFICULTY_SHEET_CONTENT_EXIT_FADE_MILLIS))
+        ) {
+            DifficultySheetPanel(
+                onDifficultySelected = { difficulty ->
+                    onDifficultySelected(difficulty)
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun DifficultySheetPanel(onDifficultySelected: (Difficulty) -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        color = SudokuPalette.HomePanel,
+        border = BorderStroke(1.dp, SudokuPalette.HomeBorder)
     ) {
         Column(
             modifier = Modifier
@@ -69,6 +133,16 @@ fun DifficultySelectionSheet(onDismiss: () -> Unit, onDifficultySelected: (Diffi
                 .padding(bottom = 20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 12.dp, bottom = 6.dp),
+                shape = RoundedCornerShape(999.dp),
+                color = SudokuPalette.HomeBorder
+            ) {
+                Spacer(modifier = Modifier.size(width = 42.dp, height = 4.dp))
+            }
+
             Column(
                 modifier = Modifier.padding(bottom = 6.dp)
             ) {
@@ -205,6 +279,14 @@ private data class DifficultySpec(
     val accent: Color,
     val icon: ImageVector
 )
+
+private const val DIFFICULTY_SHEET_ENTER_MILLIS = 680
+private const val DIFFICULTY_SHEET_EXIT_MILLIS = 420
+private const val DIFFICULTY_SHEET_SCRIM_ENTER_MILLIS = 520
+private const val DIFFICULTY_SHEET_SCRIM_EXIT_MILLIS = 320
+private const val DIFFICULTY_SHEET_CONTENT_FADE_MILLIS = 520
+private const val DIFFICULTY_SHEET_CONTENT_FADE_DELAY_MILLIS = 90
+private const val DIFFICULTY_SHEET_CONTENT_EXIT_FADE_MILLIS = 260
 
 private fun Difficulty.spec(): DifficultySpec {
     return when (this) {
