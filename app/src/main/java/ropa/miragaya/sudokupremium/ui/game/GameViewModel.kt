@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import ropa.miragaya.sudokupremium.BuildConfig
+import ropa.miragaya.sudokupremium.analytics.AnalyticsTracker
+import ropa.miragaya.sudokupremium.config.RemoteConfigProvider
 import ropa.miragaya.sudokupremium.domain.generator.PuzzleGenerator
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
@@ -39,6 +41,8 @@ class GameViewModel @Inject constructor(
     private val solver: Solver,
     private val debugBoardSource: DebugBoardSource,
     private val dispatcherProvider: DispatcherProvider,
+    private val analyticsTracker: AnalyticsTracker,
+    private val remoteConfigProvider: RemoteConfigProvider,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -48,6 +52,8 @@ class GameViewModel @Inject constructor(
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
 
     private var timerJob: Job? = null
+    private var hintsUsedForGame = 0
+    private var mistakesRevealedForGame = 0
 
     private val history = ArrayDeque<Board>()
 
@@ -206,6 +212,12 @@ class GameViewModel @Inject constructor(
 
         val finalTime = _uiState.value.elapsedTimeSeconds
         val difficulty = _uiState.value.difficulty
+        analyticsTracker.logGameCompleted(
+            difficulty = difficulty,
+            elapsedSeconds = finalTime,
+            hintsUsed = hintsUsedForGame,
+            mistakesRevealed = mistakesRevealedForGame
+        )
 
         viewModelScope.launch(dispatcherProvider.io) {
             repository.saveVictory(finalTime, difficulty)
@@ -321,8 +333,11 @@ class GameViewModel @Inject constructor(
             }
 
             history.clear()
+            hintsUsedForGame = 0
+            mistakesRevealedForGame = 0
 
             val puzzle = generator.generate(difficulty)
+            delay(remoteConfigProvider.newGameLoadingMinDurationMs)
 
             _uiState.update {
                 it.copy(
@@ -344,6 +359,7 @@ class GameViewModel @Inject constructor(
                 )
             }
 
+            analyticsTracker.logNewGameStarted(puzzle.difficulty)
             saveGame()
             resumeTimer()
         }
@@ -359,6 +375,12 @@ class GameViewModel @Inject constructor(
         }
 
         val errorCount = getMistakeCount(currentState.board, solution)
+        analyticsTracker.logHintRequested(
+            difficulty = currentState.difficulty,
+            elapsedSeconds = currentState.elapsedTimeSeconds,
+            hasMistakes = errorCount > 0
+        )
+
         if (errorCount > 0) {
             _uiState.update { it.copy(showMistakeError = true, mistakeCount = errorCount) }
             return
@@ -366,6 +388,15 @@ class GameViewModel @Inject constructor(
 
         viewModelScope.launch(dispatcherProvider.default) {
             val hints = hintProvider.findAllHints(currentState.board)
+
+            if (hints.isNotEmpty()) {
+                hintsUsedForGame++
+                analyticsTracker.logHintShown(
+                    difficulty = currentState.difficulty,
+                    strategyName = hints.first().strategyName,
+                    hintCount = hints.size
+                )
+            }
 
             _uiState.update {
                 if (hints.isNotEmpty()) {
@@ -413,6 +444,12 @@ class GameViewModel @Inject constructor(
     }
 
     fun onRevealMistakes() {
+        val currentState = _uiState.value
+        val solution = currentState.solvedBoard
+        if (solution != null) {
+            mistakesRevealedForGame += getMistakeCount(currentState.board, solution)
+        }
+
         _uiState.update { state ->
             val solution = state.solvedBoard ?: return@update state
 

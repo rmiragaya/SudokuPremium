@@ -5,6 +5,10 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import ropa.miragaya.sudokupremium.analytics.AnalyticsTracker
+import ropa.miragaya.sudokupremium.analytics.FirebaseAnalyticsTracker
+import ropa.miragaya.sudokupremium.config.FirebaseRemoteConfigProvider
+import ropa.miragaya.sudokupremium.config.RemoteConfigProvider
 import ropa.miragaya.sudokupremium.domain.generator.PuzzleGenerator
 import ropa.miragaya.sudokupremium.domain.generator.SudokuGenerator
 import ropa.miragaya.sudokupremium.domain.repository.GameRepository
@@ -35,4 +39,14 @@ abstract class RepositoryModule {
 
     @Binds
     abstract fun bindDispatcherProvider(defaultDispatcherProvider: DefaultDispatcherProvider): DispatcherProvider
+
+    @Binds
+    @Singleton
+    abstract fun bindAnalyticsTracker(firebaseAnalyticsTracker: FirebaseAnalyticsTracker): AnalyticsTracker
+
+    @Binds
+    @Singleton
+    abstract fun bindRemoteConfigProvider(
+        firebaseRemoteConfigProvider: FirebaseRemoteConfigProvider
+    ): RemoteConfigProvider
 }

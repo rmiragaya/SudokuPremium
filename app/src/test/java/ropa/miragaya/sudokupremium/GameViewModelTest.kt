@@ -23,6 +23,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
+import ropa.miragaya.sudokupremium.analytics.AnalyticsTracker
+import ropa.miragaya.sudokupremium.analytics.TechniqueOpenSource
+import ropa.miragaya.sudokupremium.config.RemoteConfigDefaults
+import ropa.miragaya.sudokupremium.config.RemoteConfigProvider
 import ropa.miragaya.sudokupremium.domain.generator.PuzzleGenerator
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
@@ -85,6 +89,12 @@ class GameViewModelTest {
             generator = generator,
             route = GameRoute(createNew = true, difficulty = Difficulty.EXPERT)
         )
+        runCurrent()
+
+        assertTrue(viewModel.uiState.value.isLoading)
+        assertTrue(repository.savedGames.isEmpty())
+
+        advanceTimeBy(RemoteConfigDefaults.NEW_GAME_LOADING_MIN_DURATION_MS)
         runCurrent()
 
         val state = viewModel.uiState.value
@@ -298,6 +308,8 @@ class GameViewModelTest {
             solver = Solver(),
             debugBoardSource = FakeDebugBoardSource(),
             dispatcherProvider = dispatcherProvider,
+            analyticsTracker = FakeAnalyticsTracker(),
+            remoteConfigProvider = FakeRemoteConfigProvider(),
             savedStateHandle = savedStateHandleFor(route)
         )
     }
@@ -356,6 +368,34 @@ private class TestDispatcherProvider(private val dispatcher: CoroutineDispatcher
     override val main: CoroutineDispatcher = dispatcher
     override val default: CoroutineDispatcher = dispatcher
     override val io: CoroutineDispatcher = dispatcher
+}
+
+private class FakeAnalyticsTracker : AnalyticsTracker {
+    override fun logScreenViewed(screenName: String) = Unit
+
+    override fun logDifficultySelected(difficulty: Difficulty) = Unit
+
+    override fun logContinueGameSelected() = Unit
+
+    override fun logNewGameStarted(difficulty: Difficulty) = Unit
+
+    override fun logGameCompleted(difficulty: Difficulty, elapsed: Long, hints: Int, mistakes: Int) = Unit
+
+    override fun logHintRequested(difficulty: Difficulty, elapsedSeconds: Long, hasMistakes: Boolean) = Unit
+
+    override fun logHintShown(difficulty: Difficulty, strategyName: String, hintCount: Int) = Unit
+
+    override fun logTechniqueOpened(techniqueId: String, source: TechniqueOpenSource) = Unit
+}
+
+private class FakeRemoteConfigProvider : RemoteConfigProvider {
+    override val newGameLoadingMinDurationMs: Long = RemoteConfigDefaults.NEW_GAME_LOADING_MIN_DURATION_MS
+    override val adsEnabled: Boolean = RemoteConfigDefaults.ADS_ENABLED
+    override val techniquesEnabled: Boolean = RemoteConfigDefaults.TECHNIQUES_ENABLED
+
+    override fun initialize() = Unit
+
+    override fun fetchAndActivate() = Unit
 }
 
 private class FakeGameRepository(initialSavedGame: SavedGame? = null) : GameRepository {

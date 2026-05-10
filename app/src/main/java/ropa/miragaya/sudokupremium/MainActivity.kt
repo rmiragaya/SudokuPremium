@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
@@ -22,6 +23,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+import ropa.miragaya.sudokupremium.analytics.AnalyticsTracker
+import ropa.miragaya.sudokupremium.analytics.TechniqueOpenSource
 import ropa.miragaya.sudokupremium.ui.game.GameScreen
 import ropa.miragaya.sudokupremium.ui.home.HomeScreen
 import ropa.miragaya.sudokupremium.ui.navigation.GameRoute
@@ -34,6 +38,10 @@ import ropa.miragaya.sudokupremium.ui.theme.SudokuPremiumTheme
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var analyticsTracker: AnalyticsTracker
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -53,19 +61,29 @@ class MainActivity : ComponentActivity() {
                         popExitTransition = { calmScreenExitTransition() }
                     ) {
                         composable<HomeRoute> {
+                            LaunchedEffect(Unit) {
+                                analyticsTracker.logScreenViewed(SCREEN_HOME)
+                            }
+
                             HomeScreen(
                                 onNewGameClick = { difficulty ->
+                                    analyticsTracker.logDifficultySelected(difficulty)
                                     navController.navigate(
                                         GameRoute(createNew = true, difficulty = difficulty)
                                     )
                                 },
                                 onContinueClick = {
+                                    analyticsTracker.logContinueGameSelected()
                                     navController.navigate(GameRoute(false))
                                 }
                             )
                         }
 
                         composable<GameRoute> {
+                            LaunchedEffect(Unit) {
+                                analyticsTracker.logScreenViewed(SCREEN_GAME)
+                            }
+
                             GameScreen(
                                 onBackClick = {
                                     navController.popBackStack()
@@ -74,14 +92,20 @@ class MainActivity : ComponentActivity() {
                                     navController.navigate(TechniquesRoute)
                                 },
                                 onOpenTechniqueClick = { techniqueId ->
+                                    analyticsTracker.logTechniqueOpened(techniqueId, TechniqueOpenSource.HINT)
                                     navController.navigate(TechniqueDetailRoute(techniqueId = techniqueId))
                                 }
                             )
                         }
 
                         composable<TechniquesRoute> {
+                            LaunchedEffect(Unit) {
+                                analyticsTracker.logScreenViewed(SCREEN_TECHNIQUES)
+                            }
+
                             TechniquesScreen(
                                 onTechniqueClick = { techniqueId ->
+                                    analyticsTracker.logTechniqueOpened(techniqueId, TechniqueOpenSource.LIBRARY)
                                     navController.navigate(TechniqueDetailRoute(techniqueId = techniqueId))
                                 },
                                 onBackClick = {
@@ -92,6 +116,10 @@ class MainActivity : ComponentActivity() {
 
                         composable<TechniqueDetailRoute> { backStackEntry ->
                             val route = backStackEntry.toRoute<TechniqueDetailRoute>()
+
+                            LaunchedEffect(route.techniqueId) {
+                                analyticsTracker.logScreenViewed("$SCREEN_TECHNIQUE_DETAIL:${route.techniqueId}")
+                            }
 
                             TechniqueDetailScreen(
                                 techniqueId = route.techniqueId,
@@ -136,6 +164,10 @@ private const val SCREEN_TRANSITION_ENTER_DELAY_MILLIS = 300
 private const val SCREEN_TRANSITION_EXIT_MILLIS = 860
 private const val SCREEN_TRANSITION_ENTER_SCALE = 0.97f
 private const val SCREEN_TRANSITION_EXIT_SCALE = 0.985f
+private const val SCREEN_HOME = "home"
+private const val SCREEN_GAME = "game"
+private const val SCREEN_TECHNIQUES = "techniques"
+private const val SCREEN_TECHNIQUE_DETAIL = "technique_detail"
 
 @Preview(showBackground = true)
 @Composable
