@@ -7,9 +7,9 @@ import ropa.miragaya.sudokupremium.domain.model.SudokuHint
 import ropa.miragaya.sudokupremium.domain.model.initializeCandidates
 import ropa.miragaya.sudokupremium.domain.solver.Solver
 
-class HintGenerator @Inject constructor(private val solver: Solver) {
+class HintGenerator @Inject constructor(private val solver: Solver) : HintProvider {
 
-    fun findAllHints(board: Board): List<SudokuHint> {
+    override fun findAllHints(board: Board): List<SudokuHint> {
         var currentBoard = board.initializeCandidates()
         val strategies = solver.strategies
 

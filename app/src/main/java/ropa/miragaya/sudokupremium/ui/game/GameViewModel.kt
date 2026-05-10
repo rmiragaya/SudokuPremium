@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,26 +17,28 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import ropa.miragaya.sudokupremium.BuildConfig
-import ropa.miragaya.sudokupremium.domain.generator.SudokuGenerator
+import ropa.miragaya.sudokupremium.domain.generator.PuzzleGenerator
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.domain.model.SavedGame
 import ropa.miragaya.sudokupremium.domain.repository.GameRepository
 import ropa.miragaya.sudokupremium.domain.solver.SolveResult
 import ropa.miragaya.sudokupremium.domain.solver.Solver
-import ropa.miragaya.sudokupremium.domain.solver.hints.HintGenerator
-import ropa.miragaya.sudokupremium.domain.solver.utils.DebugBoardLoader
+import ropa.miragaya.sudokupremium.domain.solver.hints.HintProvider
+import ropa.miragaya.sudokupremium.domain.solver.utils.DebugBoardSource
 import ropa.miragaya.sudokupremium.ui.navigation.GameRoute
+import ropa.miragaya.sudokupremium.util.DispatcherProvider
 
 private const val USE_DEBUG_BOARD = false
 
 @HiltViewModel
 class GameViewModel @Inject constructor(
     private val repository: GameRepository,
-    private val generator: SudokuGenerator,
-    private val hintGenerator: HintGenerator,
+    private val generator: PuzzleGenerator,
+    private val hintProvider: HintProvider,
     private val solver: Solver,
-    private val debugBoardLoader: DebugBoardLoader,
+    private val debugBoardSource: DebugBoardSource,
+    private val dispatcherProvider: DispatcherProvider,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -51,7 +52,7 @@ class GameViewModel @Inject constructor(
     private val history = ArrayDeque<Board>()
 
     init {
-        val args = savedStateHandle.toRoute<GameRoute>()
+        val args = savedStateHandle.toGameRoute()
 
         if (args.createNew) {
             startNewGame(args.difficulty)
@@ -63,7 +64,7 @@ class GameViewModel @Inject constructor(
     private fun initializeGame() {
         if (BuildConfig.DEBUG && USE_DEBUG_BOARD) {
             // Tiene nakedTriple y Y-Wing.
-            val debugBoard = debugBoardLoader.loadBoardFromJson("board1-intersection-removal-1.txt")
+            val debugBoard = debugBoardSource.loadBoardFromJson("board1-intersection-removal-1.txt")
 //            val debugBoard = debugBoardLoader.loadBoardFromJson("board2-naked-pair-1.txt")
 //            val debugBoard = debugBoardLoader.loadBoardFromJson("board2-naked-pair-2.txt")
 //            val debugBoard = debugBoardLoader.loadBoardFromGrid()
@@ -96,7 +97,7 @@ class GameViewModel @Inject constructor(
             return
         }
 
-        viewModelScope.launch {
+        viewModelScope.launch(dispatcherProvider.io) {
             // recuperamos partida guardada (si hay)
             val savedGame = repository.getSavedGame().firstOrNull()
 
@@ -206,7 +207,7 @@ class GameViewModel @Inject constructor(
         val finalTime = _uiState.value.elapsedTimeSeconds
         val difficulty = _uiState.value.difficulty
 
-        viewModelScope.launch {
+        viewModelScope.launch(dispatcherProvider.io) {
             repository.saveVictory(finalTime, difficulty)
         }
     }
@@ -245,7 +246,7 @@ class GameViewModel @Inject constructor(
         if (_uiState.value.isLoading || _uiState.value.isComplete) return
         if (timerJob?.isActive == true) return
 
-        timerJob = viewModelScope.launch {
+        timerJob = viewModelScope.launch(dispatcherProvider.main) {
             while (isActive) {
                 delay(1000L)
                 _uiState.update { it.copy(elapsedTimeSeconds = it.elapsedTimeSeconds + 1) }
@@ -259,7 +260,7 @@ class GameViewModel @Inject constructor(
     }
 
     private fun saveGame() {
-        viewModelScope.launch {
+        viewModelScope.launch(dispatcherProvider.io) {
             val currentState = _uiState.value
 
             if (currentState.isComplete) return@launch
@@ -306,7 +307,7 @@ class GameViewModel @Inject constructor(
     fun startNewGame(difficulty: Difficulty) {
         pauseTimer()
 
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(dispatcherProvider.default) {
             _uiState.update {
                 it.copy(
                     isLoading = true,
@@ -363,8 +364,8 @@ class GameViewModel @Inject constructor(
             return
         }
 
-        viewModelScope.launch(Dispatchers.Default) {
-            val hints = hintGenerator.findAllHints(currentState.board)
+        viewModelScope.launch(dispatcherProvider.default) {
+            val hints = hintProvider.findAllHints(currentState.board)
 
             _uiState.update {
                 if (hints.isNotEmpty()) {
@@ -473,5 +474,26 @@ class GameViewModel @Inject constructor(
         super.onCleared()
         saveGame()
         timerJob?.cancel()
+    }
+}
+
+private fun SavedStateHandle.toGameRoute(): GameRoute {
+    return runCatching {
+        toRoute<GameRoute>()
+    }.getOrElse { cause ->
+        val hasTestRouteArgs = keys().contains("createNew") || keys().contains("difficulty")
+        if (!hasTestRouteArgs) throw cause
+
+        val createNew = get<Boolean>("createNew")
+            ?: get<String>("createNew")?.toBooleanStrictOrNull()
+            ?: false
+
+        val difficulty = when (val rawDifficulty = get<Any>("difficulty")) {
+            is Difficulty -> rawDifficulty
+            is String -> runCatching { Difficulty.valueOf(rawDifficulty) }.getOrDefault(Difficulty.EASY)
+            else -> Difficulty.EASY
+        }
+
+        GameRoute(createNew = createNew, difficulty = difficulty)
     }
 }

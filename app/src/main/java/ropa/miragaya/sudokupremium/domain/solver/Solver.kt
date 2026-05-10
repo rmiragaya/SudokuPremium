@@ -13,7 +13,6 @@ import ropa.miragaya.sudokupremium.domain.solver.strategies.NakedTripleStrategy
 import ropa.miragaya.sudokupremium.domain.solver.strategies.SolvingStrategy
 import ropa.miragaya.sudokupremium.domain.solver.strategies.XWingStrategy
 import ropa.miragaya.sudokupremium.domain.solver.strategies.YWingStrategy
-import ropa.miragaya.sudokupremium.domain.solver.utils.SudokuDebugUtils
 
 class Solver @Inject constructor() {
 
@@ -29,7 +28,7 @@ class Solver @Inject constructor() {
         YWingStrategy() // EXPERT
     )
 
-    fun solve(initialBoard: Board, logSteps: Boolean = false): SolveResult {
+    fun solve(initialBoard: Board): SolveResult {
         if (initialBoard.hasConflicts()) return SolveResult.Invalid
 
         var currentBoard = initialBoard.initializeCandidates()
@@ -45,10 +44,6 @@ class Solver @Inject constructor() {
 
                 if (strategyResult != null) {
                     val nextBoard = strategyResult.newBoard
-
-                    if (logSteps) {
-                        SudokuDebugUtils.logStep(strategy.name, currentBoard, nextBoard)
-                    }
 
                     val wasNumberPlaced = currentBoard.cells.count { it.value != null } !=
                         nextBoard.cells.count { it.value != null }
