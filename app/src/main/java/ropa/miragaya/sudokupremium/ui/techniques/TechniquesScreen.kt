@@ -44,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ropa.miragaya.sudokupremium.domain.techniques.TechniqueTutorialExample
@@ -138,7 +139,7 @@ private fun TechniquesTopBar(onBackClick: () -> Unit, title: String = "Técnicas
 
         Text(
             text = title,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleLarge,
             color = SudokuPalette.TextPrimary,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.align(Alignment.Center)
@@ -192,7 +193,7 @@ private fun TechniquesIntroCard() {
             Text(
                 text = "La idea de Sudoku Premium es explicar cómo llegar a una solución. " +
                     "Los tableros están pensados para que siempre puedas avanzar usando técnicas, sin adivinar.",
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 color = SudokuPalette.TextSecondary
             )
         }
@@ -241,7 +242,7 @@ private fun TechniqueListItem(technique: TechniqueUiModel, onClick: () -> Unit) 
 
                 Text(
                     text = technique.summary,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = SudokuPalette.TextSecondary,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -281,7 +282,7 @@ private fun TechniqueHeroCard(technique: TechniqueUiModel) {
 
             Text(
                 text = technique.summary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 color = SudokuPalette.TextSecondary
             )
         }
@@ -301,14 +302,14 @@ private fun TechniqueDetailCard(technique: TechniqueUiModel) {
         ) {
             Text(
                 text = "Idea",
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.titleMedium,
                 color = technique.accent,
                 fontWeight = FontWeight.Bold
             )
 
             Text(
                 text = technique.idea,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 color = SudokuPalette.TextPrimary
             )
 
@@ -337,14 +338,14 @@ private fun TechniqueTextBlock(title: String, body: String, accent: Color) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
             text = title,
-            style = MaterialTheme.typography.labelLarge,
+            style = MaterialTheme.typography.titleSmall,
             color = accent,
             fontWeight = FontWeight.Bold
         )
 
         Text(
             text = body,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyLarge,
             color = SudokuPalette.TextSecondary
         )
     }
@@ -355,7 +356,7 @@ private fun TechniqueStepsBlock(steps: List<String>, accent: Color) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = "Cómo reconocerla",
-            style = MaterialTheme.typography.labelLarge,
+            style = MaterialTheme.typography.titleSmall,
             color = accent,
             fontWeight = FontWeight.Bold
         )
@@ -364,14 +365,14 @@ private fun TechniqueStepsBlock(steps: List<String>, accent: Color) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     text = "${index + 1}.",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyLarge,
                     color = accent,
                     fontWeight = FontWeight.Bold
                 )
 
                 Text(
                     text = step,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyLarge,
                     color = SudokuPalette.TextSecondary,
                     modifier = Modifier.weight(1f)
                 )
@@ -393,14 +394,14 @@ private fun TechniqueExampleSection(technique: TechniqueUiModel, example: Techni
         ) {
             Text(
                 text = example.title,
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.titleMedium,
                 color = technique.accent,
                 fontWeight = FontWeight.Bold
             )
 
             Text(
                 text = example.description,
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodyMedium,
                 color = SudokuPalette.TextSecondary
             )
 
@@ -425,13 +426,13 @@ private fun TechniqueExampleBoard(technique: TechniqueUiModel, example: Techniqu
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
+                .padding(TechniqueBoardPadding),
+            verticalArrangement = Arrangement.spacedBy(TechniqueCellSpacing)
         ) {
             repeat(9) { row ->
                 Row(
                     modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                    horizontalArrangement = Arrangement.spacedBy(TechniqueCellSpacing)
                 ) {
                     repeat(9) { col ->
                         val cellIndex = row * 9 + col
@@ -460,7 +461,10 @@ private fun TechniqueExampleBoard(technique: TechniqueUiModel, example: Techniqu
                             if (value != null) {
                                 Text(
                                     text = value.toString(),
-                                    style = MaterialTheme.typography.titleSmall,
+                                    style = MaterialTheme.typography.titleLarge.copy(
+                                        fontSize = 23.sp,
+                                        lineHeight = 24.sp
+                                    ),
                                     color = if (isPatternCell) technique.accent else SudokuPalette.TextPrimary,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -511,8 +515,8 @@ private fun CandidateNotesGrid(
                             Text(
                                 text = candidate.toString(),
                                 style = MaterialTheme.typography.labelSmall.copy(
-                                    fontSize = 7.sp,
-                                    lineHeight = 7.sp
+                                    fontSize = 9.5.sp,
+                                    lineHeight = 9.5.sp
                                 ),
                                 color = when {
                                     candidate in removedCandidates -> SudokuPalette.TextError
@@ -541,7 +545,7 @@ private fun cellBoxIndex(row: Int, col: Int): Int {
 private fun Modifier.drawTechniqueBoardBoxes(): Modifier = drawWithContent {
     drawContent()
 
-    val boardPadding = 8.dp.toPx()
+    val boardPadding = TechniqueBoardPadding.toPx()
     val start = boardPadding
     val end = size.width - boardPadding
     val boardSize = end - start
@@ -597,7 +601,7 @@ private fun TechniqueSourceCard(technique: TechniqueUiModel) {
 
             Text(
                 text = "Explicación propia basada en el enfoque de SudokuWiki. No usamos sus textos ni sus imágenes.",
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodyMedium,
                 color = SudokuPalette.TextSecondary
             )
         }
@@ -634,6 +638,9 @@ private data class TechniqueUiModel(
     val accent: Color,
     val icon: ImageVector
 )
+
+private val TechniqueBoardPadding: Dp = 6.dp
+private val TechniqueCellSpacing: Dp = 1.dp
 
 private val techniques = listOf(
     TechniqueUiModel(
