@@ -291,6 +291,40 @@ class GameViewModelTest {
         viewModel.pauseTimer()
     }
 
+    @Test
+    fun `debug fill candidates adds legal notes to empty cells`() = runTestWithDispatcher {
+        val board = boardWithEmptyCells(80)
+        val repository = FakeGameRepository(SavedGame(board, solvedBoard, 0, Difficulty.EASY))
+        val viewModel = createViewModel(repository = repository)
+        runCurrent()
+
+        viewModel.onDebugFillCandidatesClick()
+        runCurrent()
+
+        assertEquals(setOf(solutionValue(80)), viewModel.uiState.value.board.cells[80].notes)
+
+        viewModel.pauseTimer()
+    }
+
+    @Test
+    fun `debug prepare victory leaves one editable cell empty`() = runTestWithDispatcher {
+        val board = boardWithEmptyCells(79, 80)
+        val repository = FakeGameRepository(SavedGame(board, solvedBoard, 0, Difficulty.EASY))
+        val viewModel = createViewModel(repository = repository)
+        runCurrent()
+
+        viewModel.onDebugPrepareVictoryClick()
+        runCurrent()
+
+        val state = viewModel.uiState.value
+        val editableEmptyCells = state.board.cells.filter { !it.isGiven && it.value == null }
+        assertEquals(1, editableEmptyCells.size)
+        assertEquals(editableEmptyCells.single().id, state.selectedCellId)
+        assertFalse(state.isComplete)
+
+        viewModel.pauseTimer()
+    }
+
     private fun runTestWithDispatcher(testBody: suspend TestScope.() -> Unit) {
         runTest(mainDispatcherRule.testDispatcher, testBody = testBody)
     }

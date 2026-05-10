@@ -40,9 +40,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
@@ -148,6 +150,8 @@ fun GameScreen(
             onHintClick = viewModel::onRequestHint,
             onGetDebugDumpClick = getDebugDump(viewModel, context),
             onCrashlyticsTestCrashClick = viewModel::onCrashlyticsTestCrashClick,
+            onDebugFillCandidatesClick = viewModel::onDebugFillCandidatesClick,
+            onDebugPrepareVictoryClick = viewModel::onDebugPrepareVictoryClick,
             onOpenTechniquesClick = onOpenTechniquesClick,
             onOpenTechniqueClick = onOpenTechniqueClick,
             currentHintIndex = uiState.currentHintIndex,
@@ -183,6 +187,8 @@ fun GameContent(
     onHintClick: () -> Unit,
     onGetDebugDumpClick: () -> Unit,
     onCrashlyticsTestCrashClick: () -> Unit,
+    onDebugFillCandidatesClick: () -> Unit,
+    onDebugPrepareVictoryClick: () -> Unit,
     onOpenTechniquesClick: () -> Unit,
     onOpenTechniqueClick: (String) -> Unit,
     currentHintIndex: Int,
@@ -210,6 +216,8 @@ fun GameContent(
             onBackClick = onBackClick,
             onGetDebugDumpClick = onGetDebugDumpClick,
             onCrashlyticsTestCrashClick = onCrashlyticsTestCrashClick,
+            onDebugFillCandidatesClick = onDebugFillCandidatesClick,
+            onDebugPrepareVictoryClick = onDebugPrepareVictoryClick,
             onOpenTechniquesClick = onOpenTechniquesClick
         )
 
@@ -601,6 +609,8 @@ fun GameTopBar(
     onBackClick: () -> Unit,
     onGetDebugDumpClick: () -> Unit,
     onCrashlyticsTestCrashClick: () -> Unit,
+    onDebugFillCandidatesClick: () -> Unit,
+    onDebugPrepareVictoryClick: () -> Unit,
     onOpenTechniquesClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -676,6 +686,32 @@ fun GameTopBar(
                     }
                 )
                 if (BuildConfig.DEBUG) {
+                    DropdownMenuItem(
+                        text = { Text(text = "Agregar candidatos") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Numbers,
+                                contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            isMenuExpanded = false
+                            onDebugFillCandidatesClick()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = "Preparar victoria") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.DoneAll,
+                                contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            isMenuExpanded = false
+                            onDebugPrepareVictoryClick()
+                        }
+                    )
                     DropdownMenuItem(
                         text = { Text(text = "Probar Crashlytics") },
                         leadingIcon = {
@@ -833,6 +869,8 @@ fun GameScreenPreview(@PreviewParameter(GamePreviewProvider::class) uiState: Gam
         onHintClick = {},
         onGetDebugDumpClick = {},
         onCrashlyticsTestCrashClick = {},
+        onDebugFillCandidatesClick = {},
+        onDebugPrepareVictoryClick = {},
         onOpenTechniquesClick = {},
         onOpenTechniqueClick = {},
         currentHintIndex = 0,

@@ -24,6 +24,7 @@ import ropa.miragaya.sudokupremium.domain.generator.PuzzleGenerator
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.domain.model.SavedGame
+import ropa.miragaya.sudokupremium.domain.model.initializeCandidates
 import ropa.miragaya.sudokupremium.domain.repository.GameRepository
 import ropa.miragaya.sudokupremium.domain.solver.SolveResult
 import ropa.miragaya.sudokupremium.domain.solver.Solver
@@ -496,6 +497,55 @@ class GameViewModel @Inject constructor(
 
     fun onCrashlyticsTestCrashClick() {
         crashReporter.throwTestCrash()
+    }
+
+    fun onDebugFillCandidatesClick() {
+        if (!BuildConfig.DEBUG) return
+
+        _uiState.update { state ->
+            state.copy(
+                board = state.board.initializeCandidates(),
+                activeHints = emptyList(),
+                currentHintIndex = 0
+            )
+        }
+        saveGame()
+    }
+
+    fun onDebugPrepareVictoryClick() {
+        if (!BuildConfig.DEBUG) return
+
+        val solution = _uiState.value.solvedBoard ?: return
+        val targetCellId = _uiState.value.board.cells.lastOrNull { !it.isGiven }?.id ?: return
+
+        _uiState.update { state ->
+            val cells = state.board.cells.map { cell ->
+                if (cell.isGiven || cell.id == targetCellId) {
+                    cell.copy(isError = false, notes = emptySet())
+                } else {
+                    cell.copy(
+                        value = solution.cells[cell.id].value,
+                        isError = false,
+                        notes = emptySet()
+                    )
+                }
+            }
+            val debugBoard = Board(cells)
+
+            state.copy(
+                board = debugBoard,
+                selectedCellId = targetCellId,
+                highlightedCellIds = state.board.getPeers(targetCellId),
+                sameValueCellIds = emptySet(),
+                isNoteMode = false,
+                activeHints = emptyList(),
+                currentHintIndex = 0,
+                showNoHintFound = false,
+                showMistakeError = false,
+                completedNumbers = calculateCompletedNumbers(debugBoard, solution)
+            )
+        }
+        saveGame()
     }
 
     fun onDismissMistakeDialog() {
