@@ -11,6 +11,10 @@ import ropa.miragaya.sudokupremium.domain.model.Difficulty
 class FirebaseAnalyticsTracker @Inject constructor(private val firebaseAnalytics: FirebaseAnalytics) :
     AnalyticsTracker {
 
+    override fun setUserId(userId: String) {
+        firebaseAnalytics.setUserId(userId)
+    }
+
     override fun logScreenViewed(screenName: String) {
         firebaseAnalytics.logEvent(
             FirebaseAnalytics.Event.SCREEN_VIEW,

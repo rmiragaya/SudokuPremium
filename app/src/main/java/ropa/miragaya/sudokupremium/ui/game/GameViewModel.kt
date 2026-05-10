@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import ropa.miragaya.sudokupremium.BuildConfig
 import ropa.miragaya.sudokupremium.analytics.AnalyticsTracker
 import ropa.miragaya.sudokupremium.config.RemoteConfigProvider
+import ropa.miragaya.sudokupremium.crash.CrashReporter
 import ropa.miragaya.sudokupremium.domain.generator.PuzzleGenerator
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
@@ -28,6 +29,7 @@ import ropa.miragaya.sudokupremium.domain.solver.SolveResult
 import ropa.miragaya.sudokupremium.domain.solver.Solver
 import ropa.miragaya.sudokupremium.domain.solver.hints.HintProvider
 import ropa.miragaya.sudokupremium.domain.solver.utils.DebugBoardSource
+import ropa.miragaya.sudokupremium.domain.stats.UserStatsRepository
 import ropa.miragaya.sudokupremium.ui.navigation.GameRoute
 import ropa.miragaya.sudokupremium.util.DispatcherProvider
 
@@ -36,12 +38,14 @@ private const val USE_DEBUG_BOARD = false
 @HiltViewModel
 class GameViewModel @Inject constructor(
     private val repository: GameRepository,
+    private val userStatsRepository: UserStatsRepository,
     private val generator: PuzzleGenerator,
     private val hintProvider: HintProvider,
     private val solver: Solver,
     private val debugBoardSource: DebugBoardSource,
     private val dispatcherProvider: DispatcherProvider,
     private val analyticsTracker: AnalyticsTracker,
+    private val crashReporter: CrashReporter,
     private val remoteConfigProvider: RemoteConfigProvider,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -77,6 +81,7 @@ class GameViewModel @Inject constructor(
 
             if (debugBoard == null) {
                 Log.e(tag, "No se pudo cargar el debug board")
+                crashReporter.recordNonFatal(IllegalStateException("No se pudo cargar el debug board"))
                 return
             }
 
@@ -100,6 +105,7 @@ class GameViewModel @Inject constructor(
                     completedNumbers = calculateCompletedNumbers(debugBoard, solvedDebugBoard)
                 )
             }
+            updateCrashGameContext()
             return
         }
 
@@ -118,6 +124,9 @@ class GameViewModel @Inject constructor(
                         completedNumbers = calculateCompletedNumbers(savedGame.board, savedGame.solvedBoard)
                     )
                 }
+                hintsUsedForGame = 0
+                mistakesRevealedForGame = 0
+                updateCrashGameContext()
                 resumeTimer()
             } else {
                 startNewGame(Difficulty.MEDIUM) // Fail-Safe si no carga la partida guardada
@@ -212,6 +221,8 @@ class GameViewModel @Inject constructor(
 
         val finalTime = _uiState.value.elapsedTimeSeconds
         val difficulty = _uiState.value.difficulty
+        updateCrashGameContext()
+        crashReporter.log("Game completed: difficulty=$difficulty, elapsedSeconds=$finalTime")
         analyticsTracker.logGameCompleted(
             difficulty = difficulty,
             elapsedSeconds = finalTime,
@@ -220,6 +231,12 @@ class GameViewModel @Inject constructor(
         )
 
         viewModelScope.launch(dispatcherProvider.io) {
+            userStatsRepository.trackGameCompleted(
+                difficulty = difficulty,
+                elapsedSeconds = finalTime,
+                hintsUsed = hintsUsedForGame,
+                mistakesRevealed = mistakesRevealedForGame
+            )
             repository.saveVictory(finalTime, difficulty)
         }
     }
@@ -318,6 +335,7 @@ class GameViewModel @Inject constructor(
 
     fun startNewGame(difficulty: Difficulty) {
         pauseTimer()
+        crashReporter.log("Starting new game: difficulty=$difficulty")
 
         viewModelScope.launch(dispatcherProvider.default) {
             _uiState.update {
@@ -359,7 +377,9 @@ class GameViewModel @Inject constructor(
                 )
             }
 
+            updateCrashGameContext()
             analyticsTracker.logNewGameStarted(puzzle.difficulty)
+            userStatsRepository.trackGameStarted(puzzle.difficulty)
             saveGame()
             resumeTimer()
         }
@@ -368,9 +388,11 @@ class GameViewModel @Inject constructor(
     fun onRequestHint() {
         val currentState = _uiState.value
         val solution = currentState.solvedBoard
+        crashReporter.log("Hint requested: difficulty=${currentState.difficulty}")
 
         if (solution == null) {
             Log.d(tag, "onRequestHint: solution == null")
+            crashReporter.recordNonFatal(IllegalStateException("onRequestHint called without solution"))
             return
         }
 
@@ -396,6 +418,7 @@ class GameViewModel @Inject constructor(
                     strategyName = hints.first().strategyName,
                     hintCount = hints.size
                 )
+                updateCrashGameContext()
             }
 
             _uiState.update {
@@ -467,7 +490,12 @@ class GameViewModel @Inject constructor(
             )
         }
 
+        updateCrashGameContext()
         saveGame()
+    }
+
+    fun onCrashlyticsTestCrashClick() {
+        crashReporter.throwTestCrash()
     }
 
     fun onDismissMistakeDialog() {
@@ -492,6 +520,17 @@ class GameViewModel @Inject constructor(
         }
 
         return counts.filter { it.value >= 9 }.keys
+    }
+
+    private fun updateCrashGameContext() {
+        val state = _uiState.value
+        crashReporter.setGameContext(
+            difficulty = state.difficulty,
+            elapsedSeconds = state.elapsedTimeSeconds,
+            hintsUsed = hintsUsedForGame,
+            mistakesRevealed = mistakesRevealedForGame,
+            isComplete = state.isComplete
+        )
     }
 
     fun getDebugDump(): String {

@@ -27,6 +27,7 @@ import ropa.miragaya.sudokupremium.analytics.AnalyticsTracker
 import ropa.miragaya.sudokupremium.analytics.TechniqueOpenSource
 import ropa.miragaya.sudokupremium.config.RemoteConfigDefaults
 import ropa.miragaya.sudokupremium.config.RemoteConfigProvider
+import ropa.miragaya.sudokupremium.crash.CrashReporter
 import ropa.miragaya.sudokupremium.domain.generator.PuzzleGenerator
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
@@ -37,6 +38,7 @@ import ropa.miragaya.sudokupremium.domain.repository.GameRepository
 import ropa.miragaya.sudokupremium.domain.solver.Solver
 import ropa.miragaya.sudokupremium.domain.solver.hints.HintProvider
 import ropa.miragaya.sudokupremium.domain.solver.utils.DebugBoardSource
+import ropa.miragaya.sudokupremium.domain.stats.UserStatsRepository
 import ropa.miragaya.sudokupremium.ui.game.GameViewModel
 import ropa.miragaya.sudokupremium.ui.navigation.GameRoute
 import ropa.miragaya.sudokupremium.util.DispatcherProvider
@@ -303,12 +305,14 @@ class GameViewModelTest {
     ): GameViewModel {
         return GameViewModel(
             repository = repository,
+            userStatsRepository = FakeUserStatsRepository(),
             generator = generator,
             hintProvider = hintProvider,
             solver = Solver(),
             debugBoardSource = FakeDebugBoardSource(),
             dispatcherProvider = dispatcherProvider,
             analyticsTracker = FakeAnalyticsTracker(),
+            crashReporter = FakeCrashReporter(),
             remoteConfigProvider = FakeRemoteConfigProvider(),
             savedStateHandle = savedStateHandleFor(route)
         )
@@ -371,6 +375,8 @@ private class TestDispatcherProvider(private val dispatcher: CoroutineDispatcher
 }
 
 private class FakeAnalyticsTracker : AnalyticsTracker {
+    override fun setUserId(userId: String) = Unit
+
     override fun logScreenViewed(screenName: String) = Unit
 
     override fun logDifficultySelected(difficulty: Difficulty) = Unit
@@ -379,6 +385,7 @@ private class FakeAnalyticsTracker : AnalyticsTracker {
 
     override fun logNewGameStarted(difficulty: Difficulty) = Unit
 
+    @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
     override fun logGameCompleted(difficulty: Difficulty, elapsed: Long, hints: Int, mistakes: Int) = Unit
 
     override fun logHintRequested(difficulty: Difficulty, elapsedSeconds: Long, hasMistakes: Boolean) = Unit
@@ -386,6 +393,26 @@ private class FakeAnalyticsTracker : AnalyticsTracker {
     override fun logHintShown(difficulty: Difficulty, strategyName: String, hintCount: Int) = Unit
 
     override fun logTechniqueOpened(techniqueId: String, source: TechniqueOpenSource) = Unit
+}
+
+private class FakeCrashReporter : CrashReporter {
+    override fun setUserId(userId: String) = Unit
+
+    override fun log(message: String) = Unit
+
+    override fun recordNonFatal(throwable: Throwable) = Unit
+
+    override fun setGameContext(
+        difficulty: Difficulty,
+        elapsedSeconds: Long,
+        hintsUsed: Int,
+        mistakesRevealed: Int,
+        isComplete: Boolean
+    ) = Unit
+
+    override fun clearGameContext() = Unit
+
+    override fun throwTestCrash() = Unit
 }
 
 private class FakeRemoteConfigProvider : RemoteConfigProvider {
@@ -414,6 +441,17 @@ private class FakeGameRepository(initialSavedGame: SavedGame? = null) : GameRepo
         victories.add(FakeVictory(time = time, difficulty = difficulty))
         savedGameFlow.value = null
     }
+}
+
+private class FakeUserStatsRepository : UserStatsRepository {
+    override fun trackGameStarted(difficulty: Difficulty) = Unit
+
+    override fun trackGameCompleted(
+        difficulty: Difficulty,
+        elapsedSeconds: Long,
+        hintsUsed: Int,
+        mistakesRevealed: Int
+    ) = Unit
 }
 
 private data class FakeVictory(val time: Long, val difficulty: Difficulty)

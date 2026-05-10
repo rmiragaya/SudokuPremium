@@ -3,6 +3,8 @@ package ropa.miragaya.sudokupremium.analytics
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
 
 interface AnalyticsTracker {
+    fun setUserId(userId: String)
+
     fun logScreenViewed(screenName: String)
 
     fun logDifficultySelected(difficulty: Difficulty)

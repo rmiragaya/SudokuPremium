@@ -39,6 +39,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Undo
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.MoreVert
@@ -146,6 +147,7 @@ fun GameScreen(
             onBackClick = onBackClick,
             onHintClick = viewModel::onRequestHint,
             onGetDebugDumpClick = getDebugDump(viewModel, context),
+            onCrashlyticsTestCrashClick = viewModel::onCrashlyticsTestCrashClick,
             onOpenTechniquesClick = onOpenTechniquesClick,
             onOpenTechniqueClick = onOpenTechniqueClick,
             currentHintIndex = uiState.currentHintIndex,
@@ -180,6 +182,7 @@ fun GameContent(
     onBackClick: () -> Unit,
     onHintClick: () -> Unit,
     onGetDebugDumpClick: () -> Unit,
+    onCrashlyticsTestCrashClick: () -> Unit,
     onOpenTechniquesClick: () -> Unit,
     onOpenTechniqueClick: (String) -> Unit,
     currentHintIndex: Int,
@@ -206,6 +209,7 @@ fun GameContent(
             difficulty = uiState.difficulty.name,
             onBackClick = onBackClick,
             onGetDebugDumpClick = onGetDebugDumpClick,
+            onCrashlyticsTestCrashClick = onCrashlyticsTestCrashClick,
             onOpenTechniquesClick = onOpenTechniquesClick
         )
 
@@ -596,6 +600,7 @@ fun GameTopBar(
     difficulty: String,
     onBackClick: () -> Unit,
     onGetDebugDumpClick: () -> Unit,
+    onCrashlyticsTestCrashClick: () -> Unit,
     onOpenTechniquesClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -670,6 +675,21 @@ fun GameTopBar(
                         onOpenTechniquesClick()
                     }
                 )
+                if (BuildConfig.DEBUG) {
+                    DropdownMenuItem(
+                        text = { Text(text = "Probar Crashlytics") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.BugReport,
+                                contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            isMenuExpanded = false
+                            onCrashlyticsTestCrashClick()
+                        }
+                    )
+                }
             }
         }
     }
@@ -812,6 +832,7 @@ fun GameScreenPreview(@PreviewParameter(GamePreviewProvider::class) uiState: Gam
         onToggleNoteMode = {},
         onHintClick = {},
         onGetDebugDumpClick = {},
+        onCrashlyticsTestCrashClick = {},
         onOpenTechniquesClick = {},
         onOpenTechniqueClick = {},
         currentHintIndex = 0,

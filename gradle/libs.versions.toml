@@ -53,7 +53,9 @@ gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics" }
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
 firebase-config = { group = "com.google.firebase", name = "firebase-config" }
 
 [plugins]
