@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
@@ -18,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -55,9 +57,21 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                         startDestination = HomeRoute,
                         modifier = Modifier.padding(innerPadding),
-                        enterTransition = { calmScreenEnterTransition() },
+                        enterTransition = {
+                            if (isInitialDestinationTransition()) {
+                                EnterTransition.None
+                            } else {
+                                calmScreenEnterTransition()
+                            }
+                        },
                         exitTransition = { calmScreenExitTransition() },
-                        popEnterTransition = { calmScreenEnterTransition() },
+                        popEnterTransition = {
+                            if (isInitialDestinationTransition()) {
+                                EnterTransition.None
+                            } else {
+                                calmScreenEnterTransition()
+                            }
+                        },
                         popExitTransition = { calmScreenExitTransition() }
                     ) {
                         composable<HomeRoute> {
@@ -133,6 +147,10 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+}
+
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.isInitialDestinationTransition(): Boolean {
+    return initialState.destination.route == targetState.destination.route
 }
 
 private fun calmScreenEnterTransition(): EnterTransition {
