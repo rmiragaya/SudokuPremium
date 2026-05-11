@@ -12,5 +12,7 @@ data class GameEntity(
     val solvedBoard: Board,
     val elapsedTimeSeconds: Long = 0,
     val difficulty: Difficulty = Difficulty.MEDIUM,
+    val hintsUsed: Int = 0,
+    val rewardedHintsAvailable: Int = 0,
     val lastPlayed: Long = System.currentTimeMillis()
 )

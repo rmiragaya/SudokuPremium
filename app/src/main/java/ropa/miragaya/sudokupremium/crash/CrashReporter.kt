@@ -13,6 +13,8 @@ interface CrashReporter {
         difficulty: Difficulty,
         elapsedSeconds: Long,
         hintsUsed: Int,
+        rewardedHintsAvailable: Int,
+        isPremium: Boolean,
         mistakesRevealed: Int,
         isComplete: Boolean
     )

@@ -23,7 +23,7 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "sudoku_db"
-        )
+        ).addMigrations(AppDatabase.MIGRATION_3_4)
 
         if (BuildConfig.DEBUG) {
             builder.fallbackToDestructiveMigration(true)

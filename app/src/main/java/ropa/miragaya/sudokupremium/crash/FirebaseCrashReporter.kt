@@ -25,12 +25,16 @@ class FirebaseCrashReporter @Inject constructor(private val crashlytics: Firebas
         difficulty: Difficulty,
         elapsedSeconds: Long,
         hintsUsed: Int,
+        rewardedHintsAvailable: Int,
+        isPremium: Boolean,
         mistakesRevealed: Int,
         isComplete: Boolean
     ) {
         crashlytics.setCustomKey(KEY_GAME_DIFFICULTY, difficulty.name)
         crashlytics.setCustomKey(KEY_GAME_ELAPSED_SECONDS, elapsedSeconds)
         crashlytics.setCustomKey(KEY_GAME_HINTS_USED, hintsUsed)
+        crashlytics.setCustomKey(KEY_GAME_REWARDED_HINTS_AVAILABLE, rewardedHintsAvailable)
+        crashlytics.setCustomKey(KEY_IS_PREMIUM, isPremium)
         crashlytics.setCustomKey(KEY_GAME_MISTAKES_REVEALED, mistakesRevealed)
         crashlytics.setCustomKey(KEY_GAME_IS_COMPLETE, isComplete)
     }
@@ -39,6 +43,8 @@ class FirebaseCrashReporter @Inject constructor(private val crashlytics: Firebas
         crashlytics.setCustomKey(KEY_GAME_DIFFICULTY, VALUE_NONE)
         crashlytics.setCustomKey(KEY_GAME_ELAPSED_SECONDS, 0L)
         crashlytics.setCustomKey(KEY_GAME_HINTS_USED, 0)
+        crashlytics.setCustomKey(KEY_GAME_REWARDED_HINTS_AVAILABLE, 0)
+        crashlytics.setCustomKey(KEY_IS_PREMIUM, false)
         crashlytics.setCustomKey(KEY_GAME_MISTAKES_REVEALED, 0)
         crashlytics.setCustomKey(KEY_GAME_IS_COMPLETE, false)
     }
@@ -53,6 +59,8 @@ class FirebaseCrashReporter @Inject constructor(private val crashlytics: Firebas
         const val KEY_GAME_DIFFICULTY = "game_difficulty"
         const val KEY_GAME_ELAPSED_SECONDS = "game_elapsed_seconds"
         const val KEY_GAME_HINTS_USED = "game_hints_used"
+        const val KEY_GAME_REWARDED_HINTS_AVAILABLE = "rewarded_hints_available"
+        const val KEY_IS_PREMIUM = "is_premium"
         const val KEY_GAME_MISTAKES_REVEALED = "game_mistakes_revealed"
         const val KEY_GAME_IS_COMPLETE = "game_is_complete"
         const val VALUE_NONE = "none"

@@ -8,7 +8,9 @@ fun GameEntity.toDomain(): SavedGame {
         board = this.board,
         solvedBoard = this.solvedBoard,
         elapsedTimeSeconds = this.elapsedTimeSeconds,
-        difficulty = this.difficulty
+        difficulty = this.difficulty,
+        hintsUsed = this.hintsUsed,
+        rewardedHintsAvailable = this.rewardedHintsAvailable
     )
 }
 
@@ -19,6 +21,8 @@ fun SavedGame.toEntity(): GameEntity {
         solvedBoard = this.solvedBoard,
         elapsedTimeSeconds = this.elapsedTimeSeconds,
         difficulty = this.difficulty,
+        hintsUsed = this.hintsUsed,
+        rewardedHintsAvailable = this.rewardedHintsAvailable,
         lastPlayed = System.currentTimeMillis()
     )
 }

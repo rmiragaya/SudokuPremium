@@ -19,6 +19,20 @@ interface AnalyticsTracker {
 
     fun logHintShown(difficulty: Difficulty, strategyName: String, hintCount: Int)
 
+    fun logHintLimitReached(difficulty: Difficulty, hintsUsed: Int)
+
+    fun logRewardedHintAdRequested()
+
+    fun logRewardedHintAdEarned()
+
+    fun logRewardedHintAdFailed(reason: String?)
+
+    fun logPremiumPurchaseStarted()
+
+    fun logPremiumPurchaseCompleted()
+
+    fun logPremiumPurchaseRestored()
+
     fun logTechniqueOpened(techniqueId: String, source: TechniqueOpenSource)
 }
 

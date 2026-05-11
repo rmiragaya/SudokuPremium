@@ -1,5 +1,6 @@
 package ropa.miragaya.sudokupremium.ui.game
 
+import android.app.Activity
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -31,6 +32,10 @@ import ropa.miragaya.sudokupremium.domain.solver.Solver
 import ropa.miragaya.sudokupremium.domain.solver.hints.HintProvider
 import ropa.miragaya.sudokupremium.domain.solver.utils.DebugBoardSource
 import ropa.miragaya.sudokupremium.domain.stats.UserStatsRepository
+import ropa.miragaya.sudokupremium.monetization.PremiumEntitlementRepository
+import ropa.miragaya.sudokupremium.monetization.PremiumPurchaseState
+import ropa.miragaya.sudokupremium.monetization.RewardedHintAdManager
+import ropa.miragaya.sudokupremium.monetization.RewardedHintAdResult
 import ropa.miragaya.sudokupremium.ui.navigation.GameRoute
 import ropa.miragaya.sudokupremium.util.DispatcherProvider
 
@@ -48,6 +53,8 @@ class GameViewModel @Inject constructor(
     private val analyticsTracker: AnalyticsTracker,
     private val crashReporter: CrashReporter,
     private val remoteConfigProvider: RemoteConfigProvider,
+    private val premiumEntitlementRepository: PremiumEntitlementRepository,
+    private val rewardedHintAdManager: RewardedHintAdManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -57,13 +64,19 @@ class GameViewModel @Inject constructor(
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
 
     private var timerJob: Job? = null
-    private var hintsUsedForGame = 0
     private var mistakesRevealedForGame = 0
 
     private val history = ArrayDeque<Board>()
 
     init {
         val args = savedStateHandle.toGameRoute()
+        observePremiumEntitlement()
+        observePurchaseState()
+        premiumEntitlementRepository.refreshPurchases()
+
+        _uiState.update {
+            it.copy(freeHintsPerGame = remoteConfigProvider.freeHintsPerGame)
+        }
 
         if (args.createNew) {
             startNewGame(args.difficulty)
@@ -121,11 +134,13 @@ class GameViewModel @Inject constructor(
                         solvedBoard = savedGame.solvedBoard,
                         elapsedTimeSeconds = savedGame.elapsedTimeSeconds,
                         difficulty = savedGame.difficulty,
+                        hintsUsed = savedGame.hintsUsed,
+                        rewardedHintsAvailable = savedGame.rewardedHintsAvailable,
+                        freeHintsPerGame = remoteConfigProvider.freeHintsPerGame,
                         isLoading = false,
                         completedNumbers = calculateCompletedNumbers(savedGame.board, savedGame.solvedBoard)
                     )
                 }
-                hintsUsedForGame = 0
                 mistakesRevealedForGame = 0
                 updateCrashGameContext()
                 resumeTimer()
@@ -227,7 +242,7 @@ class GameViewModel @Inject constructor(
         analyticsTracker.logGameCompleted(
             difficulty = difficulty,
             elapsedSeconds = finalTime,
-            hintsUsed = hintsUsedForGame,
+            hintsUsed = _uiState.value.hintsUsed,
             mistakesRevealed = mistakesRevealedForGame
         )
 
@@ -235,7 +250,7 @@ class GameViewModel @Inject constructor(
             userStatsRepository.trackGameCompleted(
                 difficulty = difficulty,
                 elapsedSeconds = finalTime,
-                hintsUsed = hintsUsedForGame,
+                hintsUsed = _uiState.value.hintsUsed,
                 mistakesRevealed = mistakesRevealedForGame
             )
             repository.saveVictory(finalTime, difficulty)
@@ -304,7 +319,9 @@ class GameViewModel @Inject constructor(
                         board = currentState.board,
                         solvedBoard = solution,
                         elapsedTimeSeconds = currentState.elapsedTimeSeconds,
-                        difficulty = currentState.difficulty
+                        difficulty = currentState.difficulty,
+                        hintsUsed = currentState.hintsUsed,
+                        rewardedHintsAvailable = currentState.rewardedHintsAvailable
                     )
                 )
             }
@@ -347,12 +364,14 @@ class GameViewModel @Inject constructor(
                     activeHints = emptyList(),
                     currentHintIndex = 0,
                     showNoHintFound = false,
-                    showMistakeError = false
+                    showMistakeError = false,
+                    showHintLimitSheet = false,
+                    showPremiumSheet = false,
+                    showRewardedHintError = false
                 )
             }
 
             history.clear()
-            hintsUsedForGame = 0
             mistakesRevealedForGame = 0
 
             val puzzle = generator.generate(difficulty)
@@ -373,6 +392,12 @@ class GameViewModel @Inject constructor(
                     currentHintIndex = 0,
                     showNoHintFound = false,
                     showMistakeError = false,
+                    showHintLimitSheet = false,
+                    showPremiumSheet = false,
+                    showRewardedHintError = false,
+                    hintsUsed = 0,
+                    rewardedHintsAvailable = 0,
+                    freeHintsPerGame = remoteConfigProvider.freeHintsPerGame,
                     isLoading = false,
                     completedNumbers = calculateCompletedNumbers(puzzle.board, puzzle.solvedBoard)
                 )
@@ -387,6 +412,18 @@ class GameViewModel @Inject constructor(
     }
 
     fun onRequestHint() {
+        if (!canRequestHintNow()) {
+            val state = _uiState.value
+            analyticsTracker.logHintLimitReached(state.difficulty, state.hintsUsed)
+            _uiState.update { it.copy(showHintLimitSheet = true, showRewardedHintError = false) }
+            updateCrashGameContext()
+            return
+        }
+
+        requestHintAfterAccessGranted()
+    }
+
+    private fun requestHintAfterAccessGranted() {
         val currentState = _uiState.value
         val solution = currentState.solvedBoard
         crashReporter.log("Hint requested: difficulty=${currentState.difficulty}")
@@ -413,27 +450,116 @@ class GameViewModel @Inject constructor(
             val hints = hintProvider.findAllHints(currentState.board)
 
             if (hints.isNotEmpty()) {
-                hintsUsedForGame++
+                val shouldConsumeRewardedHint = shouldConsumeRewardedHint(currentState)
+                val newHintsUsed = currentState.hintsUsed + 1
+                val newRewardedHintsAvailable = if (shouldConsumeRewardedHint) {
+                    (currentState.rewardedHintsAvailable - 1).coerceAtLeast(0)
+                } else {
+                    currentState.rewardedHintsAvailable
+                }
                 analyticsTracker.logHintShown(
                     difficulty = currentState.difficulty,
                     strategyName = hints.first().strategyName,
                     hintCount = hints.size
                 )
-                updateCrashGameContext()
-            }
-
-            _uiState.update {
-                if (hints.isNotEmpty()) {
+                _uiState.update {
                     it.copy(
                         activeHints = hints,
                         currentHintIndex = 0,
-                        showNoHintFound = false
+                        showNoHintFound = false,
+                        showHintLimitSheet = false,
+                        showRewardedHintError = false,
+                        hintsUsed = newHintsUsed,
+                        rewardedHintsAvailable = newRewardedHintsAvailable
                     )
-                } else {
-                    it.copy(showNoHintFound = true)
+                }
+                updateCrashGameContext()
+                saveGame()
+            } else {
+                _uiState.update { it.copy(showNoHintFound = true) }
+            }
+        }
+    }
+
+    private fun canRequestHintNow(): Boolean {
+        val state = _uiState.value
+        return state.isPremium ||
+            state.hintsUsed < state.freeHintsPerGame ||
+            state.rewardedHintsAvailable > 0
+    }
+
+    private fun shouldConsumeRewardedHint(state: GameUiState): Boolean {
+        return !state.isPremium &&
+            state.hintsUsed >= state.freeHintsPerGame &&
+            state.rewardedHintsAvailable > 0
+    }
+
+    fun onDismissHintLimitSheet() {
+        _uiState.update { it.copy(showHintLimitSheet = false, showRewardedHintError = false) }
+    }
+
+    fun onUnlockPremiumClick() {
+        _uiState.update { it.copy(showHintLimitSheet = false, showPremiumSheet = true) }
+    }
+
+    fun onDismissPremiumSheet() {
+        _uiState.update { it.copy(showPremiumSheet = false, premiumStatusMessage = null) }
+    }
+
+    fun onWatchRewardedHintAdClick(activity: Activity?) {
+        if (activity == null) {
+            _uiState.update { it.copy(showRewardedHintError = true) }
+            analyticsTracker.logRewardedHintAdFailed("Activity unavailable")
+            return
+        }
+
+        _uiState.update { it.copy(isRewardedHintLoading = true, showRewardedHintError = false) }
+        analyticsTracker.logRewardedHintAdRequested()
+
+        rewardedHintAdManager.showRewardedHintAd(activity) { result ->
+            when (result) {
+                RewardedHintAdResult.Earned -> {
+                    analyticsTracker.logRewardedHintAdEarned()
+                    _uiState.update {
+                        it.copy(
+                            rewardedHintsAvailable = it.rewardedHintsAvailable + 1,
+                            isRewardedHintLoading = false,
+                            showHintLimitSheet = false,
+                            showRewardedHintError = false
+                        )
+                    }
+                    updateCrashGameContext()
+                    requestHintAfterAccessGranted()
+                }
+
+                RewardedHintAdResult.Dismissed -> {
+                    _uiState.update { it.copy(isRewardedHintLoading = false) }
+                }
+
+                is RewardedHintAdResult.Failed -> {
+                    analyticsTracker.logRewardedHintAdFailed(result.reason)
+                    _uiState.update {
+                        it.copy(
+                            isRewardedHintLoading = false,
+                            showRewardedHintError = true
+                        )
+                    }
                 }
             }
         }
+    }
+
+    fun onPurchasePremiumClick(activity: Activity?) {
+        if (activity == null) {
+            _uiState.update { it.copy(premiumStatusMessage = "No se pudo iniciar la compra.") }
+            return
+        }
+
+        premiumEntitlementRepository.launchPremiumPurchase(activity)
+    }
+
+    fun onRestorePremiumClick() {
+        premiumEntitlementRepository.refreshPurchases()
     }
 
     fun onNextHint() {
@@ -496,6 +622,8 @@ class GameViewModel @Inject constructor(
     }
 
     fun onCrashlyticsTestCrashClick() {
+        if (!BuildConfig.DEBUG) return
+
         crashReporter.throwTestCrash()
     }
 
@@ -577,13 +705,60 @@ class GameViewModel @Inject constructor(
         crashReporter.setGameContext(
             difficulty = state.difficulty,
             elapsedSeconds = state.elapsedTimeSeconds,
-            hintsUsed = hintsUsedForGame,
+            hintsUsed = state.hintsUsed,
+            rewardedHintsAvailable = state.rewardedHintsAvailable,
+            isPremium = state.isPremium,
             mistakesRevealed = mistakesRevealedForGame,
             isComplete = state.isComplete
         )
     }
 
+    private fun observePremiumEntitlement() {
+        viewModelScope.launch(dispatcherProvider.main) {
+            premiumEntitlementRepository.isPremium.collect { isPremium ->
+                _uiState.update {
+                    it.copy(
+                        isPremium = isPremium,
+                        showHintLimitSheet = if (isPremium) false else it.showHintLimitSheet
+                    )
+                }
+                updateCrashGameContext()
+            }
+        }
+    }
+
+    private fun observePurchaseState() {
+        viewModelScope.launch(dispatcherProvider.main) {
+            premiumEntitlementRepository.purchaseState.collect { purchaseState ->
+                val message = when (purchaseState) {
+                    PremiumPurchaseState.Purchased -> "Premium activado."
+                    PremiumPurchaseState.Restored -> "Premium restaurado."
+                    PremiumPurchaseState.Pending -> "La compra quedó pendiente."
+                    PremiumPurchaseState.Canceled -> "Compra cancelada."
+                    is PremiumPurchaseState.Failed -> "No se pudo activar Premium."
+                    PremiumPurchaseState.Idle,
+                    PremiumPurchaseState.Loading -> null
+                }
+
+                _uiState.update {
+                    it.copy(
+                        showPremiumSheet = if (purchaseState == PremiumPurchaseState.Purchased ||
+                            purchaseState == PremiumPurchaseState.Restored
+                        ) {
+                            false
+                        } else {
+                            it.showPremiumSheet
+                        },
+                        premiumStatusMessage = message
+                    )
+                }
+            }
+        }
+    }
+
     fun getDebugDump(): String {
+        if (!BuildConfig.DEBUG) return ""
+
         val currentBoard = _uiState.value.board
         val visualGrid = currentBoard.toGridString()
         val jsonString = com.google.gson.Gson().toJson(currentBoard)

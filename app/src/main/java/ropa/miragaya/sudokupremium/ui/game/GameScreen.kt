@@ -1,5 +1,6 @@
 package ropa.miragaya.sudokupremium.ui.game
 
+import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -47,8 +48,10 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -56,6 +59,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -103,10 +107,15 @@ fun GameScreen(
     onOpenTechniqueClick: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val activity = context as? Activity
 
     val lifecycleOwner = LocalLifecycleOwner.current
-
-    val context = LocalContext.current // todo solo lo uso para debug, tiene sentido que este aca asi?
+    val onGetDebugDumpClick = if (BuildConfig.DEBUG) {
+        getDebugDump(viewModel, context)
+    } else {
+        {}
+    }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -138,6 +147,26 @@ fun GameScreen(
         )
     }
 
+    if (uiState.showHintLimitSheet) {
+        HintLimitDialog(
+            freeHintsPerGame = uiState.freeHintsPerGame,
+            isLoading = uiState.isRewardedHintLoading,
+            showError = uiState.showRewardedHintError,
+            onWatchAd = { viewModel.onWatchRewardedHintAdClick(activity) },
+            onUnlockPremium = viewModel::onUnlockPremiumClick,
+            onDismiss = viewModel::onDismissHintLimitSheet
+        )
+    }
+
+    if (uiState.showPremiumSheet) {
+        PremiumDialog(
+            statusMessage = uiState.premiumStatusMessage,
+            onPurchase = { viewModel.onPurchasePremiumClick(activity) },
+            onRestore = viewModel::onRestorePremiumClick,
+            onDismiss = viewModel::onDismissPremiumSheet
+        )
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         GameContent(
             uiState = uiState,
@@ -148,7 +177,7 @@ fun GameScreen(
             onUndo = viewModel::onUndo,
             onBackClick = onBackClick,
             onHintClick = viewModel::onRequestHint,
-            onGetDebugDumpClick = getDebugDump(viewModel, context),
+            onGetDebugDumpClick = onGetDebugDumpClick,
             onCrashlyticsTestCrashClick = viewModel::onCrashlyticsTestCrashClick,
             onDebugFillCandidatesClick = viewModel::onDebugFillCandidatesClick,
             onDebugPrepareVictoryClick = viewModel::onDebugPrepareVictoryClick,
@@ -173,6 +202,123 @@ private fun getDebugDump(viewModel: GameViewModel, context: Context): () -> Unit
     clipboard.setPrimaryClip(clip)
 
     Toast.makeText(context, "¡JSON copiado!", Toast.LENGTH_SHORT).show()
+}
+
+@Composable
+private fun HintLimitDialog(
+    freeHintsPerGame: Int,
+    isLoading: Boolean,
+    showError: Boolean,
+    onWatchAd: () -> Unit,
+    onUnlockPremium: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = SudokuPalette.HomePanel,
+        title = {
+            Text(
+                text = "Pistas agotadas",
+                color = SudokuPalette.TextPrimary,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    text = "Usaste tus $freeHintsPerGame pistas gratis de esta partida.",
+                    color = SudokuPalette.TextSecondary
+                )
+                if (showError) {
+                    Text(
+                        text = "No se pudo cargar el anuncio. Proba de nuevo en un momento.",
+                        color = SudokuPalette.TextError
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onWatchAd,
+                enabled = !isLoading,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = SudokuPalette.TextAccent,
+                    contentColor = SudokuPalette.ScreenBackground
+                )
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = SudokuPalette.ScreenBackground
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                }
+                Text("Ver anuncio para 1 pista")
+            }
+        },
+        dismissButton = {
+            Column(horizontalAlignment = Alignment.End) {
+                TextButton(onClick = onUnlockPremium) {
+                    Text("Desbloquear Premium", color = SudokuPalette.TextAccent)
+                }
+                TextButton(onClick = onDismiss) {
+                    Text("Ahora no", color = SudokuPalette.TextSecondary)
+                }
+            }
+        }
+    )
+}
+
+@Composable
+private fun PremiumDialog(
+    statusMessage: String?,
+    onPurchase: () -> Unit,
+    onRestore: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = SudokuPalette.HomePanel,
+        title = {
+            Text(
+                text = "Sudoku Premium",
+                color = SudokuPalette.TextPrimary,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("Hints ilimitadas", color = SudokuPalette.TextPrimary)
+                Text("Sin anuncios para pedir pistas", color = SudokuPalette.TextPrimary)
+                Text("Apoyás el desarrollo de Sudoku Premium", color = SudokuPalette.TextPrimary)
+                statusMessage?.let {
+                    Text(text = it, color = SudokuPalette.TextAccent)
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onPurchase,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = SudokuPalette.TextAccent,
+                    contentColor = SudokuPalette.ScreenBackground
+                )
+            ) {
+                Text("Desbloquear Premium")
+            }
+        },
+        dismissButton = {
+            Column(horizontalAlignment = Alignment.End) {
+                TextButton(onClick = onRestore) {
+                    Text("Restaurar compra", color = SudokuPalette.TextAccent)
+                }
+                TextButton(onClick = onDismiss) {
+                    Text("Ahora no", color = SudokuPalette.TextSecondary)
+                }
+            }
+        }
+    )
 }
 
 @Composable

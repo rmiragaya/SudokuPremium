@@ -23,6 +23,10 @@ import ropa.miragaya.sudokupremium.domain.solver.utils.DebugBoardLoader
 import ropa.miragaya.sudokupremium.domain.solver.utils.DebugBoardSource
 import ropa.miragaya.sudokupremium.domain.stats.FirebaseUserStatsRepository
 import ropa.miragaya.sudokupremium.domain.stats.UserStatsRepository
+import ropa.miragaya.sudokupremium.monetization.AdMobRewardedHintAdManager
+import ropa.miragaya.sudokupremium.monetization.GooglePlayPremiumEntitlementRepository
+import ropa.miragaya.sudokupremium.monetization.PremiumEntitlementRepository
+import ropa.miragaya.sudokupremium.monetization.RewardedHintAdManager
 import ropa.miragaya.sudokupremium.util.DefaultDispatcherProvider
 import ropa.miragaya.sudokupremium.util.DispatcherProvider
 
@@ -67,4 +71,16 @@ abstract class RepositoryModule {
     abstract fun bindRemoteConfigProvider(
         firebaseRemoteConfigProvider: FirebaseRemoteConfigProvider
     ): RemoteConfigProvider
+
+    @Binds
+    @Singleton
+    abstract fun bindPremiumEntitlementRepository(
+        googlePlayPremiumEntitlementRepository: GooglePlayPremiumEntitlementRepository
+    ): PremiumEntitlementRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindRewardedHintAdManager(
+        adMobRewardedHintAdManager: AdMobRewardedHintAdManager
+    ): RewardedHintAdManager
 }

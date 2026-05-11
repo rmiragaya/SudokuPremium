@@ -71,6 +71,41 @@ class FirebaseAnalyticsTracker @Inject constructor(private val firebaseAnalytics
         )
     }
 
+    override fun logHintLimitReached(difficulty: Difficulty, hintsUsed: Int) {
+        logEvent(
+            name = EVENT_HINT_LIMIT_REACHED,
+            PARAM_DIFFICULTY to difficulty.analyticsValue(),
+            PARAM_HINTS_USED to hintsUsed
+        )
+    }
+
+    override fun logRewardedHintAdRequested() {
+        logEvent(name = EVENT_REWARDED_HINT_AD_REQUESTED)
+    }
+
+    override fun logRewardedHintAdEarned() {
+        logEvent(name = EVENT_REWARDED_HINT_AD_EARNED)
+    }
+
+    override fun logRewardedHintAdFailed(reason: String?) {
+        logEvent(
+            name = EVENT_REWARDED_HINT_AD_FAILED,
+            PARAM_REASON to (reason ?: VALUE_UNKNOWN)
+        )
+    }
+
+    override fun logPremiumPurchaseStarted() {
+        logEvent(name = EVENT_PREMIUM_PURCHASE_STARTED)
+    }
+
+    override fun logPremiumPurchaseCompleted() {
+        logEvent(name = EVENT_PREMIUM_PURCHASE_COMPLETED)
+    }
+
+    override fun logPremiumPurchaseRestored() {
+        logEvent(name = EVENT_PREMIUM_PURCHASE_RESTORED)
+    }
+
     override fun logTechniqueOpened(techniqueId: String, source: TechniqueOpenSource) {
         logEvent(
             name = EVENT_TECHNIQUE_OPENED,
@@ -103,6 +138,13 @@ class FirebaseAnalyticsTracker @Inject constructor(private val firebaseAnalytics
         const val EVENT_GAME_COMPLETED = "game_completed"
         const val EVENT_HINT_REQUESTED = "hint_requested"
         const val EVENT_HINT_SHOWN = "hint_shown"
+        const val EVENT_HINT_LIMIT_REACHED = "hint_limit_reached"
+        const val EVENT_REWARDED_HINT_AD_REQUESTED = "rewarded_hint_ad_requested"
+        const val EVENT_REWARDED_HINT_AD_EARNED = "rewarded_hint_ad_earned"
+        const val EVENT_REWARDED_HINT_AD_FAILED = "rewarded_hint_ad_failed"
+        const val EVENT_PREMIUM_PURCHASE_STARTED = "premium_purchase_started"
+        const val EVENT_PREMIUM_PURCHASE_COMPLETED = "premium_purchase_completed"
+        const val EVENT_PREMIUM_PURCHASE_RESTORED = "premium_purchase_restored"
         const val EVENT_TECHNIQUE_OPENED = "technique_opened"
 
         const val PARAM_DIFFICULTY = "difficulty"
@@ -114,5 +156,7 @@ class FirebaseAnalyticsTracker @Inject constructor(private val firebaseAnalytics
         const val PARAM_HINT_COUNT = "hint_count"
         const val PARAM_TECHNIQUE_ID = "technique_id"
         const val PARAM_SOURCE = "source"
+        const val PARAM_REASON = "reason"
+        const val VALUE_UNKNOWN = "unknown"
     }
 }

@@ -1,5 +1,6 @@
 package ropa.miragaya.sudokupremium
 
+import android.app.Activity
 import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +40,10 @@ import ropa.miragaya.sudokupremium.domain.solver.Solver
 import ropa.miragaya.sudokupremium.domain.solver.hints.HintProvider
 import ropa.miragaya.sudokupremium.domain.solver.utils.DebugBoardSource
 import ropa.miragaya.sudokupremium.domain.stats.UserStatsRepository
+import ropa.miragaya.sudokupremium.monetization.PremiumEntitlementRepository
+import ropa.miragaya.sudokupremium.monetization.PremiumPurchaseState
+import ropa.miragaya.sudokupremium.monetization.RewardedHintAdManager
+import ropa.miragaya.sudokupremium.monetization.RewardedHintAdResult
 import ropa.miragaya.sudokupremium.ui.game.GameViewModel
 import ropa.miragaya.sudokupremium.ui.navigation.GameRoute
 import ropa.miragaya.sudokupremium.util.DispatcherProvider
@@ -59,7 +64,9 @@ class GameViewModelTest {
             board = savedBoard,
             solvedBoard = solvedBoard,
             elapsedTimeSeconds = 42,
-            difficulty = Difficulty.HARD
+            difficulty = Difficulty.HARD,
+            hintsUsed = 2,
+            rewardedHintsAvailable = 1
         )
         val repository = FakeGameRepository(savedGame)
 
@@ -74,6 +81,8 @@ class GameViewModelTest {
         assertSame(solvedBoard, state.solvedBoard)
         assertEquals(Difficulty.HARD, state.difficulty)
         assertEquals(42, state.elapsedTimeSeconds)
+        assertEquals(2, state.hintsUsed)
+        assertEquals(1, state.rewardedHintsAvailable)
         assertFalse(state.isLoading)
 
         viewModel.pauseTimer()
@@ -231,6 +240,111 @@ class GameViewModelTest {
     }
 
     @Test
+    fun `free user can request hints before limit`() = runTestWithDispatcher {
+        val board = boardWithEmptyCells(80)
+        val hint = SudokuHint(
+            strategyName = "Naked Single",
+            description = "Pista",
+            targetCellIndex = 80,
+            valueToSet = solutionValue(80),
+            stepBoard = board
+        )
+        val hintProvider = FakeHintProvider(listOf(hint))
+        val viewModel = createViewModel(
+            repository = FakeGameRepository(SavedGame(board, solvedBoard, 0, Difficulty.EASY, hintsUsed = 2)),
+            hintProvider = hintProvider
+        )
+        runCurrent()
+
+        viewModel.onRequestHint()
+        runCurrent()
+
+        assertEquals(1, hintProvider.requestCount)
+        assertEquals(3, viewModel.uiState.value.hintsUsed)
+        assertFalse(viewModel.uiState.value.showHintLimitSheet)
+
+        viewModel.pauseTimer()
+    }
+
+    @Test
+    fun `free user at hint limit sees paywall`() = runTestWithDispatcher {
+        val board = boardWithEmptyCells(80)
+        val hintProvider = FakeHintProvider()
+        val viewModel = createViewModel(
+            repository = FakeGameRepository(SavedGame(board, solvedBoard, 0, Difficulty.EASY, hintsUsed = 3)),
+            hintProvider = hintProvider
+        )
+        runCurrent()
+
+        viewModel.onRequestHint()
+        runCurrent()
+
+        assertEquals(0, hintProvider.requestCount)
+        assertTrue(viewModel.uiState.value.showHintLimitSheet)
+
+        viewModel.pauseTimer()
+    }
+
+    @Test
+    fun `rewarded hint earned grants and consumes one hint`() = runTestWithDispatcher {
+        val board = boardWithEmptyCells(80)
+        val hint = SudokuHint(
+            strategyName = "Naked Single",
+            description = "Pista",
+            targetCellIndex = 80,
+            valueToSet = solutionValue(80),
+            stepBoard = board
+        )
+        val hintProvider = FakeHintProvider(listOf(hint))
+        val adManager = FakeRewardedHintAdManager(RewardedHintAdResult.Earned)
+        val viewModel = createViewModel(
+            repository = FakeGameRepository(SavedGame(board, solvedBoard, 0, Difficulty.EASY, hintsUsed = 3)),
+            hintProvider = hintProvider,
+            rewardedHintAdManager = adManager
+        )
+        runCurrent()
+
+        viewModel.onWatchRewardedHintAdClick(FakeActivity())
+        runCurrent()
+
+        assertEquals(1, hintProvider.requestCount)
+        assertEquals(4, viewModel.uiState.value.hintsUsed)
+        assertEquals(0, viewModel.uiState.value.rewardedHintsAvailable)
+        assertTrue(viewModel.uiState.value.activeHints.isNotEmpty())
+
+        viewModel.pauseTimer()
+    }
+
+    @Test
+    fun `premium user can request hints after free limit`() = runTestWithDispatcher {
+        val board = boardWithEmptyCells(80)
+        val hint = SudokuHint(
+            strategyName = "Naked Single",
+            description = "Pista",
+            targetCellIndex = 80,
+            valueToSet = solutionValue(80),
+            stepBoard = board
+        )
+        val premiumRepository = FakePremiumEntitlementRepository(isPremium = true)
+        val hintProvider = FakeHintProvider(listOf(hint))
+        val viewModel = createViewModel(
+            repository = FakeGameRepository(SavedGame(board, solvedBoard, 0, Difficulty.EASY, hintsUsed = 3)),
+            hintProvider = hintProvider,
+            premiumEntitlementRepository = premiumRepository
+        )
+        runCurrent()
+
+        viewModel.onRequestHint()
+        runCurrent()
+
+        assertEquals(1, hintProvider.requestCount)
+        assertEquals(4, viewModel.uiState.value.hintsUsed)
+        assertFalse(viewModel.uiState.value.showHintLimitSheet)
+
+        viewModel.pauseTimer()
+    }
+
+    @Test
     fun `hints with mistakes show error and do not request hints`() = runTestWithDispatcher {
         val board = boardWithWrongEditableValue()
         val hintProvider = FakeHintProvider()
@@ -335,6 +449,8 @@ class GameViewModelTest {
             SudokuPuzzle(boardWithEmptyCells(80), solvedBoard, Difficulty.MEDIUM)
         ),
         hintProvider: FakeHintProvider = FakeHintProvider(),
+        premiumEntitlementRepository: FakePremiumEntitlementRepository = FakePremiumEntitlementRepository(),
+        rewardedHintAdManager: FakeRewardedHintAdManager = FakeRewardedHintAdManager(),
         route: GameRoute = GameRoute(createNew = false)
     ): GameViewModel {
         return GameViewModel(
@@ -348,6 +464,8 @@ class GameViewModelTest {
             analyticsTracker = FakeAnalyticsTracker(),
             crashReporter = FakeCrashReporter(),
             remoteConfigProvider = FakeRemoteConfigProvider(),
+            premiumEntitlementRepository = premiumEntitlementRepository,
+            rewardedHintAdManager = rewardedHintAdManager,
             savedStateHandle = savedStateHandleFor(route)
         )
     }
@@ -426,6 +544,20 @@ private class FakeAnalyticsTracker : AnalyticsTracker {
 
     override fun logHintShown(difficulty: Difficulty, strategyName: String, hintCount: Int) = Unit
 
+    override fun logHintLimitReached(difficulty: Difficulty, hintsUsed: Int) = Unit
+
+    override fun logRewardedHintAdRequested() = Unit
+
+    override fun logRewardedHintAdEarned() = Unit
+
+    override fun logRewardedHintAdFailed(reason: String?) = Unit
+
+    override fun logPremiumPurchaseStarted() = Unit
+
+    override fun logPremiumPurchaseCompleted() = Unit
+
+    override fun logPremiumPurchaseRestored() = Unit
+
     override fun logTechniqueOpened(techniqueId: String, source: TechniqueOpenSource) = Unit
 }
 
@@ -440,6 +572,8 @@ private class FakeCrashReporter : CrashReporter {
         difficulty: Difficulty,
         elapsedSeconds: Long,
         hintsUsed: Int,
+        rewardedHintsAvailable: Int,
+        isPremium: Boolean,
         mistakesRevealed: Int,
         isComplete: Boolean
     ) = Unit
@@ -453,11 +587,44 @@ private class FakeRemoteConfigProvider : RemoteConfigProvider {
     override val newGameLoadingMinDurationMs: Long = RemoteConfigDefaults.NEW_GAME_LOADING_MIN_DURATION_MS
     override val adsEnabled: Boolean = RemoteConfigDefaults.ADS_ENABLED
     override val techniquesEnabled: Boolean = RemoteConfigDefaults.TECHNIQUES_ENABLED
+    override val freeHintsPerGame: Int = RemoteConfigDefaults.FREE_HINTS_PER_GAME
+    override val rewardedHintsEnabled: Boolean = RemoteConfigDefaults.REWARDED_HINTS_ENABLED
+    override val premiumEnabled: Boolean = RemoteConfigDefaults.PREMIUM_ENABLED
+    override val rewardedHintAdUnitId: String = RemoteConfigDefaults.REWARDED_HINT_AD_UNIT_ID
 
     override fun initialize() = Unit
 
     override fun fetchAndActivate() = Unit
 }
+
+private class FakePremiumEntitlementRepository(isPremium: Boolean = false) : PremiumEntitlementRepository {
+    private val premiumFlow = MutableStateFlow(isPremium)
+    override val isPremium = premiumFlow
+
+    private val purchaseStateFlow = MutableStateFlow<PremiumPurchaseState>(PremiumPurchaseState.Idle)
+    override val purchaseState = purchaseStateFlow
+
+    override fun refreshPurchases() = Unit
+
+    override fun launchPremiumPurchase(activity: Activity) {
+        premiumFlow.value = true
+        purchaseStateFlow.value = PremiumPurchaseState.Purchased
+    }
+}
+
+private class FakeRewardedHintAdManager(
+    private val result: RewardedHintAdResult = RewardedHintAdResult.Failed("not configured")
+) : RewardedHintAdManager {
+    var requestCount = 0
+        private set
+
+    override fun showRewardedHintAd(activity: Activity, onResult: (RewardedHintAdResult) -> Unit) {
+        requestCount++
+        onResult(result)
+    }
+}
+
+private class FakeActivity : Activity()
 
 private class FakeGameRepository(initialSavedGame: SavedGame? = null) : GameRepository {
     val savedGameFlow = MutableStateFlow(initialSavedGame)

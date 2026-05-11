@@ -20,7 +20,16 @@ data class GameUiState(
     val showNoHintFound: Boolean = false,
     val showMistakeError: Boolean = false,
     val mistakeCount: Int = 0,
-    val completedNumbers: Set<Int> = emptySet()
+    val completedNumbers: Set<Int> = emptySet(),
+    val freeHintsPerGame: Int = 3,
+    val hintsUsed: Int = 0,
+    val rewardedHintsAvailable: Int = 0,
+    val isPremium: Boolean = false,
+    val showHintLimitSheet: Boolean = false,
+    val showPremiumSheet: Boolean = false,
+    val isRewardedHintLoading: Boolean = false,
+    val showRewardedHintError: Boolean = false,
+    val premiumStatusMessage: String? = null
 ) {
     val activeHint: SudokuHint?
         get() = activeHints.getOrNull(currentHintIndex)
