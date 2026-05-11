@@ -27,6 +27,8 @@ import ropa.miragaya.sudokupremium.monetization.AdMobRewardedHintAdManager
 import ropa.miragaya.sudokupremium.monetization.GooglePlayPremiumEntitlementRepository
 import ropa.miragaya.sudokupremium.monetization.PremiumEntitlementRepository
 import ropa.miragaya.sudokupremium.monetization.RewardedHintAdManager
+import ropa.miragaya.sudokupremium.settings.AppSettingsRepository
+import ropa.miragaya.sudokupremium.settings.SharedPreferencesAppSettingsRepository
 import ropa.miragaya.sudokupremium.util.DefaultDispatcherProvider
 import ropa.miragaya.sudokupremium.util.DispatcherProvider
 
@@ -83,4 +85,10 @@ abstract class RepositoryModule {
     abstract fun bindRewardedHintAdManager(
         adMobRewardedHintAdManager: AdMobRewardedHintAdManager
     ): RewardedHintAdManager
+
+    @Binds
+    @Singleton
+    abstract fun bindAppSettingsRepository(
+        sharedPreferencesAppSettingsRepository: SharedPreferencesAppSettingsRepository
+    ): AppSettingsRepository
 }

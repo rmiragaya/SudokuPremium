@@ -27,9 +27,11 @@ data class GameUiState(
     val isPremium: Boolean = false,
     val showHintLimitSheet: Boolean = false,
     val showPremiumSheet: Boolean = false,
+    val showSettingsDialog: Boolean = false,
     val isRewardedHintLoading: Boolean = false,
     val showRewardedHintError: Boolean = false,
-    val premiumStatusMessage: String? = null
+    val premiumStatusMessage: String? = null,
+    val hapticsEnabled: Boolean = true
 ) {
     val activeHint: SudokuHint?
         get() = activeHints.getOrNull(currentHintIndex)

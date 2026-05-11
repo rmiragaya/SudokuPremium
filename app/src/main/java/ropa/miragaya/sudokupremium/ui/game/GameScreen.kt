@@ -4,6 +4,12 @@ import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import android.view.HapticFeedbackConstants
+import android.view.View
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -58,6 +64,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -75,6 +82,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -109,6 +117,7 @@ fun GameScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val activity = context as? Activity
+    val view = LocalView.current
 
     val lifecycleOwner = LocalLifecycleOwner.current
     val onGetDebugDumpClick = if (BuildConfig.DEBUG) {
@@ -167,20 +176,48 @@ fun GameScreen(
         )
     }
 
+    if (uiState.showSettingsDialog) {
+        SettingsDialog(
+            hapticsEnabled = uiState.hapticsEnabled,
+            isPremium = uiState.isPremium,
+            premiumStatusMessage = uiState.premiumStatusMessage,
+            onHapticsEnabledChanged = viewModel::onHapticsEnabledChanged,
+            onRestorePremium = viewModel::onRestorePremiumClick,
+            onDismiss = viewModel::onDismissSettingsDialog
+        )
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         GameContent(
             uiState = uiState,
             onCellClick = viewModel::onCellClicked,
-            onNumberInput = viewModel::onNumberInput,
-            onDeleteInput = viewModel::onDeleteInput,
-            onToggleNoteMode = viewModel::toggleNoteMode,
-            onUndo = viewModel::onUndo,
+            onNumberInput = { number ->
+                performSudokuHaptic(context, view, uiState.hapticsEnabled, HapticFeedbackConstants.KEYBOARD_TAP)
+                viewModel.onNumberInput(number)
+            },
+            onDeleteInput = {
+                performSudokuHaptic(context, view, uiState.hapticsEnabled, HapticFeedbackConstants.VIRTUAL_KEY)
+                viewModel.onDeleteInput()
+            },
+            onToggleNoteMode = {
+                performSudokuHaptic(context, view, uiState.hapticsEnabled, HapticFeedbackConstants.VIRTUAL_KEY)
+                viewModel.toggleNoteMode()
+            },
+            onUndo = {
+                performSudokuHaptic(context, view, uiState.hapticsEnabled, HapticFeedbackConstants.VIRTUAL_KEY)
+                viewModel.onUndo()
+            },
             onBackClick = onBackClick,
-            onHintClick = viewModel::onRequestHint,
+            onHintClick = {
+                performSudokuHaptic(context, view, uiState.hapticsEnabled, HapticFeedbackConstants.VIRTUAL_KEY)
+                viewModel.onRequestHint()
+            },
             onGetDebugDumpClick = onGetDebugDumpClick,
             onCrashlyticsTestCrashClick = viewModel::onCrashlyticsTestCrashClick,
             onDebugFillCandidatesClick = viewModel::onDebugFillCandidatesClick,
             onDebugPrepareVictoryClick = viewModel::onDebugPrepareVictoryClick,
+            onDebugResetPremiumClick = viewModel::onDebugResetPremiumClick,
+            onSettingsClick = viewModel::onSettingsClick,
             onOpenTechniquesClick = onOpenTechniquesClick,
             onOpenTechniqueClick = onOpenTechniqueClick,
             currentHintIndex = uiState.currentHintIndex,
@@ -202,6 +239,34 @@ private fun getDebugDump(viewModel: GameViewModel, context: Context): () -> Unit
     clipboard.setPrimaryClip(clip)
 
     Toast.makeText(context, "¡JSON copiado!", Toast.LENGTH_SHORT).show()
+}
+
+private fun performSudokuHaptic(context: Context, view: View, enabled: Boolean, feedbackConstant: Int) {
+    if (!enabled) return
+
+    val didPerformViewHaptic = view.performHapticFeedback(feedbackConstant)
+    if (didPerformViewHaptic) return
+
+    val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        context.getSystemService(VibratorManager::class.java).defaultVibrator
+    } else {
+        @Suppress("DEPRECATION")
+        context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+    }
+
+    if (!vibrator.hasVibrator()) return
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        vibrator.vibrate(
+            VibrationEffect.createOneShot(
+                SUDOKU_HAPTIC_DURATION_MILLIS,
+                SUDOKU_HAPTIC_AMPLITUDE
+            )
+        )
+    } else {
+        @Suppress("DEPRECATION")
+        vibrator.vibrate(SUDOKU_HAPTIC_DURATION_MILLIS)
+    }
 }
 
 @Composable
@@ -271,6 +336,134 @@ private fun HintLimitDialog(
 }
 
 @Composable
+private fun SettingsDialog(
+    hapticsEnabled: Boolean,
+    isPremium: Boolean,
+    premiumStatusMessage: String?,
+    onHapticsEnabledChanged: (Boolean) -> Unit,
+    onRestorePremium: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = SudokuPalette.HomePanel,
+        title = {
+            Text(
+                text = "Configuración",
+                color = SudokuPalette.TextPrimary,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
+                SettingsSwitchRow(
+                    title = "Vibración",
+                    description = "Respuesta suave al ingresar números y usar acciones del tablero.",
+                    checked = hapticsEnabled,
+                    onCheckedChange = onHapticsEnabledChanged
+                )
+
+                SettingsPremiumRow(
+                    isPremium = isPremium,
+                    premiumStatusMessage = premiumStatusMessage,
+                    onRestorePremium = onRestorePremium
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = SudokuPalette.TextAccent,
+                    contentColor = SudokuPalette.ScreenBackground
+                )
+            ) {
+                Text("Listo")
+            }
+        }
+    )
+}
+
+@Composable
+private fun SettingsSwitchRow(
+    title: String,
+    description: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                color = SudokuPalette.TextPrimary,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = description,
+                color = SudokuPalette.TextSecondary,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange
+        )
+    }
+}
+
+@Composable
+private fun SettingsPremiumRow(isPremium: Boolean, premiumStatusMessage: String?, onRestorePremium: () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = SudokuPalette.HomeBadgeBackground,
+        border = BorderStroke(1.dp, SudokuPalette.HomeBorder)
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = if (isPremium) "Premium activo" else "Premium",
+                color = SudokuPalette.TextPrimary,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = if (isPremium) {
+                    "Tenés hints ilimitadas en esta cuenta."
+                } else {
+                    "Restaurá tu compra si ya activaste Sudoku Mentor Premium."
+                },
+                color = SudokuPalette.TextSecondary,
+                style = MaterialTheme.typography.bodySmall
+            )
+            premiumStatusMessage?.let {
+                if (!isPremium) {
+                    Text(
+                        text = it,
+                        color = SudokuPalette.TextAccent,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+            if (!isPremium) {
+                TextButton(onClick = onRestorePremium) {
+                    Text("Restaurar Premium", color = SudokuPalette.TextAccent)
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun PremiumDialog(
     statusMessage: String?,
     onPurchase: () -> Unit,
@@ -335,6 +528,8 @@ fun GameContent(
     onCrashlyticsTestCrashClick: () -> Unit,
     onDebugFillCandidatesClick: () -> Unit,
     onDebugPrepareVictoryClick: () -> Unit,
+    onDebugResetPremiumClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     onOpenTechniquesClick: () -> Unit,
     onOpenTechniqueClick: (String) -> Unit,
     currentHintIndex: Int,
@@ -364,6 +559,8 @@ fun GameContent(
             onCrashlyticsTestCrashClick = onCrashlyticsTestCrashClick,
             onDebugFillCandidatesClick = onDebugFillCandidatesClick,
             onDebugPrepareVictoryClick = onDebugPrepareVictoryClick,
+            onDebugResetPremiumClick = onDebugResetPremiumClick,
+            onSettingsClick = onSettingsClick,
             onOpenTechniquesClick = onOpenTechniquesClick
         )
 
@@ -757,6 +954,8 @@ fun GameTopBar(
     onCrashlyticsTestCrashClick: () -> Unit,
     onDebugFillCandidatesClick: () -> Unit,
     onDebugPrepareVictoryClick: () -> Unit,
+    onDebugResetPremiumClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     onOpenTechniquesClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -816,7 +1015,10 @@ fun GameTopBar(
                             contentDescription = null
                         )
                     },
-                    onClick = { isMenuExpanded = false }
+                    onClick = {
+                        isMenuExpanded = false
+                        onSettingsClick()
+                    }
                 )
                 DropdownMenuItem(
                     text = { Text(text = "Técnicas") },
@@ -856,6 +1058,19 @@ fun GameTopBar(
                         onClick = {
                             isMenuExpanded = false
                             onDebugPrepareVictoryClick()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = "Resetear Premium") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            isMenuExpanded = false
+                            onDebugResetPremiumClick()
                         }
                     )
                     DropdownMenuItem(
@@ -914,6 +1129,9 @@ private fun String.toTechniqueId(): String {
         .filter { it.isNotBlank() }
         .joinToString("_")
 }
+
+private const val SUDOKU_HAPTIC_DURATION_MILLIS = 18L
+private const val SUDOKU_HAPTIC_AMPLITUDE = 36
 
 @Composable
 fun GameControls(
@@ -1017,6 +1235,8 @@ fun GameScreenPreview(@PreviewParameter(GamePreviewProvider::class) uiState: Gam
         onCrashlyticsTestCrashClick = {},
         onDebugFillCandidatesClick = {},
         onDebugPrepareVictoryClick = {},
+        onDebugResetPremiumClick = {},
+        onSettingsClick = {},
         onOpenTechniquesClick = {},
         onOpenTechniqueClick = {},
         currentHintIndex = 0,

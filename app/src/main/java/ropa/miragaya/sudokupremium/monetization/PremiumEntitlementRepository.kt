@@ -10,6 +10,8 @@ interface PremiumEntitlementRepository {
     fun refreshPurchases()
 
     fun launchPremiumPurchase(activity: Activity)
+
+    fun resetPremiumForDebug()
 }
 
 sealed interface PremiumPurchaseState {

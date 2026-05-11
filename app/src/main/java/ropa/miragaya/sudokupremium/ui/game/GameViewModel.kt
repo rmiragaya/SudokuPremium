@@ -36,6 +36,7 @@ import ropa.miragaya.sudokupremium.monetization.PremiumEntitlementRepository
 import ropa.miragaya.sudokupremium.monetization.PremiumPurchaseState
 import ropa.miragaya.sudokupremium.monetization.RewardedHintAdManager
 import ropa.miragaya.sudokupremium.monetization.RewardedHintAdResult
+import ropa.miragaya.sudokupremium.settings.AppSettingsRepository
 import ropa.miragaya.sudokupremium.ui.navigation.GameRoute
 import ropa.miragaya.sudokupremium.util.DispatcherProvider
 
@@ -55,6 +56,7 @@ class GameViewModel @Inject constructor(
     private val remoteConfigProvider: RemoteConfigProvider,
     private val premiumEntitlementRepository: PremiumEntitlementRepository,
     private val rewardedHintAdManager: RewardedHintAdManager,
+    private val appSettingsRepository: AppSettingsRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -72,6 +74,7 @@ class GameViewModel @Inject constructor(
         val args = savedStateHandle.toGameRoute()
         observePremiumEntitlement()
         observePurchaseState()
+        observeAppSettings()
         premiumEntitlementRepository.refreshPurchases()
 
         _uiState.update {
@@ -562,6 +565,18 @@ class GameViewModel @Inject constructor(
         premiumEntitlementRepository.refreshPurchases()
     }
 
+    fun onSettingsClick() {
+        _uiState.update { it.copy(showSettingsDialog = true) }
+    }
+
+    fun onDismissSettingsDialog() {
+        _uiState.update { it.copy(showSettingsDialog = false) }
+    }
+
+    fun onHapticsEnabledChanged(enabled: Boolean) {
+        appSettingsRepository.setHapticsEnabled(enabled)
+    }
+
     fun onNextHint() {
         _uiState.update {
             if (it.activeHints.isNotEmpty() && it.currentHintIndex < it.activeHints.lastIndex) {
@@ -625,6 +640,12 @@ class GameViewModel @Inject constructor(
         if (!BuildConfig.DEBUG) return
 
         crashReporter.throwTestCrash()
+    }
+
+    fun onDebugResetPremiumClick() {
+        if (!BuildConfig.DEBUG) return
+
+        premiumEntitlementRepository.resetPremiumForDebug()
     }
 
     fun onDebugFillCandidatesClick() {
@@ -732,7 +753,7 @@ class GameViewModel @Inject constructor(
             premiumEntitlementRepository.purchaseState.collect { purchaseState ->
                 val message = when (purchaseState) {
                     PremiumPurchaseState.Purchased -> "Premium activado."
-                    PremiumPurchaseState.Restored -> "Premium restaurado."
+                    PremiumPurchaseState.Restored -> null
                     PremiumPurchaseState.Pending -> "La compra quedó pendiente."
                     PremiumPurchaseState.Canceled -> "Compra cancelada."
                     is PremiumPurchaseState.Failed -> "No se pudo activar Premium."
@@ -752,6 +773,14 @@ class GameViewModel @Inject constructor(
                         premiumStatusMessage = message
                     )
                 }
+            }
+        }
+    }
+
+    private fun observeAppSettings() {
+        viewModelScope.launch(dispatcherProvider.main) {
+            appSettingsRepository.settings.collect { settings ->
+                _uiState.update { it.copy(hapticsEnabled = settings.hapticsEnabled) }
             }
         }
     }

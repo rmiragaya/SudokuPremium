@@ -44,6 +44,8 @@ import ropa.miragaya.sudokupremium.monetization.PremiumEntitlementRepository
 import ropa.miragaya.sudokupremium.monetization.PremiumPurchaseState
 import ropa.miragaya.sudokupremium.monetization.RewardedHintAdManager
 import ropa.miragaya.sudokupremium.monetization.RewardedHintAdResult
+import ropa.miragaya.sudokupremium.settings.AppSettings
+import ropa.miragaya.sudokupremium.settings.AppSettingsRepository
 import ropa.miragaya.sudokupremium.ui.game.GameViewModel
 import ropa.miragaya.sudokupremium.ui.navigation.GameRoute
 import ropa.miragaya.sudokupremium.util.DispatcherProvider
@@ -439,6 +441,32 @@ class GameViewModelTest {
         viewModel.pauseTimer()
     }
 
+    @Test
+    fun `settings dialog toggles persisted haptics preference`() = runTestWithDispatcher {
+        val board = boardWithEmptyCells(80)
+        val settingsRepository = FakeAppSettingsRepository()
+        val viewModel = createViewModel(
+            repository = FakeGameRepository(SavedGame(board, solvedBoard, 0, Difficulty.EASY)),
+            appSettingsRepository = settingsRepository
+        )
+        runCurrent()
+
+        viewModel.onSettingsClick()
+        assertTrue(viewModel.uiState.value.showSettingsDialog)
+        assertTrue(viewModel.uiState.value.hapticsEnabled)
+
+        viewModel.onHapticsEnabledChanged(false)
+        runCurrent()
+
+        assertFalse(settingsRepository.settings.value.hapticsEnabled)
+        assertFalse(viewModel.uiState.value.hapticsEnabled)
+
+        viewModel.onDismissSettingsDialog()
+        assertFalse(viewModel.uiState.value.showSettingsDialog)
+
+        viewModel.pauseTimer()
+    }
+
     private fun runTestWithDispatcher(testBody: suspend TestScope.() -> Unit) {
         runTest(mainDispatcherRule.testDispatcher, testBody = testBody)
     }
@@ -451,6 +479,7 @@ class GameViewModelTest {
         hintProvider: FakeHintProvider = FakeHintProvider(),
         premiumEntitlementRepository: FakePremiumEntitlementRepository = FakePremiumEntitlementRepository(),
         rewardedHintAdManager: FakeRewardedHintAdManager = FakeRewardedHintAdManager(),
+        appSettingsRepository: FakeAppSettingsRepository = FakeAppSettingsRepository(),
         route: GameRoute = GameRoute(createNew = false)
     ): GameViewModel {
         return GameViewModel(
@@ -466,6 +495,7 @@ class GameViewModelTest {
             remoteConfigProvider = FakeRemoteConfigProvider(),
             premiumEntitlementRepository = premiumEntitlementRepository,
             rewardedHintAdManager = rewardedHintAdManager,
+            appSettingsRepository = appSettingsRepository,
             savedStateHandle = savedStateHandleFor(route)
         )
     }
@@ -610,6 +640,11 @@ private class FakePremiumEntitlementRepository(isPremium: Boolean = false) : Pre
         premiumFlow.value = true
         purchaseStateFlow.value = PremiumPurchaseState.Purchased
     }
+
+    override fun resetPremiumForDebug() {
+        premiumFlow.value = false
+        purchaseStateFlow.value = PremiumPurchaseState.Idle
+    }
 }
 
 private class FakeRewardedHintAdManager(
@@ -621,6 +656,15 @@ private class FakeRewardedHintAdManager(
     override fun showRewardedHintAd(activity: Activity, onResult: (RewardedHintAdResult) -> Unit) {
         requestCount++
         onResult(result)
+    }
+}
+
+private class FakeAppSettingsRepository : AppSettingsRepository {
+    private val settingsFlow = MutableStateFlow(AppSettings())
+    override val settings = settingsFlow
+
+    override fun setHapticsEnabled(enabled: Boolean) {
+        settingsFlow.value = settingsFlow.value.copy(hapticsEnabled = enabled)
     }
 }
 

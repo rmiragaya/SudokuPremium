@@ -7,6 +7,7 @@ import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
+import com.android.billingclient.api.ConsumeParams
 import com.android.billingclient.api.PendingPurchasesParams
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
@@ -19,6 +20,7 @@ import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import ropa.miragaya.sudokupremium.BuildConfig
 import ropa.miragaya.sudokupremium.analytics.AnalyticsTracker
 import ropa.miragaya.sudokupremium.config.RemoteConfigProvider
 import ropa.miragaya.sudokupremium.crash.CrashReporter
@@ -109,6 +111,46 @@ class GooglePlayPremiumEntitlementRepository @Inject constructor(
                 val result = billingClient.launchBillingFlow(activity, billingParams)
                 if (result.responseCode != BillingClient.BillingResponseCode.OK) {
                     _purchaseState.value = PremiumPurchaseState.Failed(result.debugMessage)
+                }
+            }
+        }
+    }
+
+    override fun resetPremiumForDebug() {
+        if (!BuildConfig.DEBUG) return
+
+        ensureConnected {
+            billingClient.queryPurchasesAsync(
+                QueryPurchasesParams.newBuilder()
+                    .setProductType(BillingClient.ProductType.INAPP)
+                    .build()
+            ) { billingResult, purchases ->
+                if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
+                    _purchaseState.value = PremiumPurchaseState.Failed(billingResult.debugMessage)
+                    return@queryPurchasesAsync
+                }
+
+                val premiumPurchase = purchases.firstOrNull { purchase ->
+                    purchase.products.contains(PREMIUM_PRODUCT_ID)
+                }
+
+                if (premiumPurchase == null) {
+                    _isPremium.value = false
+                    _purchaseState.value = PremiumPurchaseState.Idle
+                    return@queryPurchasesAsync
+                }
+
+                val consumeParams = ConsumeParams.newBuilder()
+                    .setPurchaseToken(premiumPurchase.purchaseToken)
+                    .build()
+
+                billingClient.consumeAsync(consumeParams) { consumeResult, _ ->
+                    if (consumeResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                        _isPremium.value = false
+                        _purchaseState.value = PremiumPurchaseState.Idle
+                    } else {
+                        _purchaseState.value = PremiumPurchaseState.Failed(consumeResult.debugMessage)
+                    }
                 }
             }
         }
