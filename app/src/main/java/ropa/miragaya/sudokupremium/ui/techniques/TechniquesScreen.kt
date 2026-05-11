@@ -191,7 +191,7 @@ private fun TechniquesIntroCard() {
             )
 
             Text(
-                text = "La idea de Sudoku Premium es explicar cómo llegar a una solución. " +
+                text = "La idea de Sudoku Mentor es explicar cómo llegar a una solución. " +
                     "Los tableros están pensados para que siempre puedas avanzar usando técnicas, sin adivinar.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = SudokuPalette.TextSecondary

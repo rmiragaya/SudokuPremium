@@ -282,7 +282,7 @@ private fun PremiumDialog(
         containerColor = SudokuPalette.HomePanel,
         title = {
             Text(
-                text = "Sudoku Premium",
+                text = "Sudoku Mentor Premium",
                 color = SudokuPalette.TextPrimary,
                 fontWeight = FontWeight.Bold
             )
@@ -291,7 +291,7 @@ private fun PremiumDialog(
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text("Hints ilimitadas", color = SudokuPalette.TextPrimary)
                 Text("Sin anuncios para pedir pistas", color = SudokuPalette.TextPrimary)
-                Text("Apoyás el desarrollo de Sudoku Premium", color = SudokuPalette.TextPrimary)
+                Text("Apoyás el desarrollo de Sudoku Mentor", color = SudokuPalette.TextPrimary)
                 statusMessage?.let {
                     Text(text = it, color = SudokuPalette.TextAccent)
                 }

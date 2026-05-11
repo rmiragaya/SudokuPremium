@@ -204,7 +204,7 @@ private fun HomeHeader() {
         Spacer(modifier = Modifier.height(14.dp))
 
         Text(
-            text = "Sudoku Premium",
+            text = "Sudoku Mentor",
             style = MaterialTheme.typography.displaySmall,
             fontWeight = FontWeight.Bold,
             color = SudokuPalette.TextPrimary

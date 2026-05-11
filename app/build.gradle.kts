@@ -15,7 +15,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "ropa.miragaya.sudokupremium"
+        applicationId = "ropa.miragaya.sudokumentor"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

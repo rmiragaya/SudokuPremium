@@ -17,6 +17,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("ropa.miragaya.sudokupremium", appContext.packageName)
+        assertEquals("ropa.miragaya.sudokumentor", appContext.packageName)
     }
 }

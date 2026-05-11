@@ -52,7 +52,7 @@ class FirebaseCrashReporter @Inject constructor(private val crashlytics: Firebas
     override fun throwTestCrash() {
         check(BuildConfig.DEBUG) { "Crashlytics test crash is only available in debug builds." }
         crashlytics.log("Manual Crashlytics test crash requested from debug menu.")
-        throw RuntimeException("Sudoku Premium Crashlytics test crash")
+        throw RuntimeException("Sudoku Mentor Crashlytics test crash")
     }
 
     private companion object {
