@@ -11,12 +11,16 @@ out/
 
 # Local config (SDK path, etc)
 local.properties
+keystore.properties
 
 # Keystore / secrets
 *.jks
 *.keystore
 *.pem
 *.key
+
+# Local release artifacts
+app/release/
 
 # Log files
 *.log
