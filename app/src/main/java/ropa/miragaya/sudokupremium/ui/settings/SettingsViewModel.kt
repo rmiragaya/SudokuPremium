@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import ropa.miragaya.sudokupremium.monetization.PremiumEntitlementRepository
 import ropa.miragaya.sudokupremium.monetization.PremiumPurchaseState
 import ropa.miragaya.sudokupremium.settings.AppSettingsRepository
+import ropa.miragaya.sudokupremium.ui.model.PremiumStatusMessage
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -22,6 +23,8 @@ class SettingsViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+
+    private var didRequestPremiumAction = false
 
     init {
         observeSettings()
@@ -33,8 +36,9 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun onPurchasePremiumClick(activity: Activity?) {
+        didRequestPremiumAction = true
         if (activity == null) {
-            _uiState.update { it.copy(premiumStatusMessage = "No se pudo iniciar la compra.") }
+            _uiState.update { it.copy(premiumStatusMessage = PremiumStatusMessage.PURCHASE_NOT_STARTED) }
             return
         }
 
@@ -42,6 +46,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun onRestorePremiumClick() {
+        didRequestPremiumAction = true
         premiumEntitlementRepository.refreshPurchases()
     }
 
@@ -74,7 +79,7 @@ class SettingsViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isPurchaseLoading = purchaseState == PremiumPurchaseState.Loading,
-                        premiumStatusMessage = purchaseState.toSettingsMessage()
+                        premiumStatusMessage = purchaseState.toSettingsMessage(didRequestPremiumAction)
                     )
                 }
             }
@@ -82,13 +87,17 @@ class SettingsViewModel @Inject constructor(
     }
 }
 
-private fun PremiumPurchaseState.toSettingsMessage(): String? {
+private fun PremiumPurchaseState.toSettingsMessage(didRequestPremiumAction: Boolean): PremiumStatusMessage? {
     return when (this) {
         PremiumPurchaseState.Purchased,
-        PremiumPurchaseState.Restored -> "Premium activado."
-        PremiumPurchaseState.Pending -> "La compra quedó pendiente."
-        PremiumPurchaseState.Canceled -> "Compra cancelada."
-        is PremiumPurchaseState.Failed -> "No se pudo activar Premium."
+        PremiumPurchaseState.Restored -> PremiumStatusMessage.PREMIUM_ACTIVATED
+        PremiumPurchaseState.Pending -> if (didRequestPremiumAction) PremiumStatusMessage.PURCHASE_PENDING else null
+        PremiumPurchaseState.Canceled -> if (didRequestPremiumAction) PremiumStatusMessage.PURCHASE_CANCELED else null
+        is PremiumPurchaseState.Failed -> if (didRequestPremiumAction) {
+            PremiumStatusMessage.PREMIUM_ACTIVATION_FAILED
+        } else {
+            null
+        }
         PremiumPurchaseState.Idle,
         PremiumPurchaseState.Loading -> null
     }

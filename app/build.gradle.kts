@@ -111,6 +111,7 @@ dependencies {
     implementation(libs.play.billing.ktx)
     implementation(libs.play.services.ads)
     implementation(libs.user.messaging.platform)
+    implementation(libs.konfetti.compose)
     ksp(libs.hilt.compiler)
     ksp(libs.kotlin.metadata.jvm)
     implementation(libs.androidx.hilt.navigation.compose)

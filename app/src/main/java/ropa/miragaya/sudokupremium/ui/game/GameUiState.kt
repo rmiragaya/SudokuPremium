@@ -3,6 +3,7 @@ package ropa.miragaya.sudokupremium.ui.game
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.domain.model.SudokuHint
+import ropa.miragaya.sudokupremium.ui.model.PremiumStatusMessage
 
 data class GameUiState(
     val board: Board,
@@ -30,7 +31,7 @@ data class GameUiState(
     val showSettingsDialog: Boolean = false,
     val isRewardedHintLoading: Boolean = false,
     val showRewardedHintError: Boolean = false,
-    val premiumStatusMessage: String? = null,
+    val premiumStatusMessage: PremiumStatusMessage? = null,
     val hapticsEnabled: Boolean = true
 ) {
     val activeHint: SudokuHint?

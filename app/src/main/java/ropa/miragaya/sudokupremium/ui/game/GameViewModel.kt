@@ -37,6 +37,7 @@ import ropa.miragaya.sudokupremium.monetization.PremiumPurchaseState
 import ropa.miragaya.sudokupremium.monetization.RewardedHintAdManager
 import ropa.miragaya.sudokupremium.monetization.RewardedHintAdResult
 import ropa.miragaya.sudokupremium.settings.AppSettingsRepository
+import ropa.miragaya.sudokupremium.ui.model.PremiumStatusMessage
 import ropa.miragaya.sudokupremium.ui.navigation.GameRoute
 import ropa.miragaya.sudokupremium.util.DispatcherProvider
 
@@ -560,7 +561,7 @@ class GameViewModel @Inject constructor(
 
     fun onPurchasePremiumClick(activity: Activity?) {
         if (activity == null) {
-            _uiState.update { it.copy(premiumStatusMessage = "No se pudo iniciar la compra.") }
+            _uiState.update { it.copy(premiumStatusMessage = PremiumStatusMessage.PURCHASE_NOT_STARTED) }
             return
         }
 
@@ -758,11 +759,11 @@ class GameViewModel @Inject constructor(
         viewModelScope.launch(dispatcherProvider.main) {
             premiumEntitlementRepository.purchaseState.collect { purchaseState ->
                 val message = when (purchaseState) {
-                    PremiumPurchaseState.Purchased -> "Premium activado."
+                    PremiumPurchaseState.Purchased -> PremiumStatusMessage.PREMIUM_ACTIVATED
                     PremiumPurchaseState.Restored -> null
-                    PremiumPurchaseState.Pending -> "La compra quedó pendiente."
-                    PremiumPurchaseState.Canceled -> "Compra cancelada."
-                    is PremiumPurchaseState.Failed -> "No se pudo activar Premium."
+                    PremiumPurchaseState.Pending -> PremiumStatusMessage.PURCHASE_PENDING
+                    PremiumPurchaseState.Canceled -> PremiumStatusMessage.PURCHASE_CANCELED
+                    is PremiumPurchaseState.Failed -> PremiumStatusMessage.PREMIUM_ACTIVATION_FAILED
                     PremiumPurchaseState.Idle,
                     PremiumPurchaseState.Loading -> null
                 }

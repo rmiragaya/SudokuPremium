@@ -2,7 +2,6 @@ package ropa.miragaya.sudokupremium.ui.home
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,7 +27,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,7 +36,10 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import ropa.miragaya.sudokupremium.R
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
+import ropa.miragaya.sudokupremium.ui.component.MentorButton
+import ropa.miragaya.sudokupremium.ui.component.MentorButtonVariant
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
 
 private val HomeBodyFont = FontFamily.SansSerif
@@ -96,7 +98,7 @@ fun HomeScreenContent(hasSavedGame: Boolean, onNewGameClick: () -> Unit, onConti
         Spacer(modifier = Modifier.weight(0.9f))
 
         HomeActionButton(
-            text = "Nueva partida",
+            text = stringResource(R.string.home_new_game),
             onClick = onNewGameClick,
             isPrimary = true,
             modifier = Modifier.fillMaxWidth()
@@ -106,7 +108,7 @@ fun HomeScreenContent(hasSavedGame: Boolean, onNewGameClick: () -> Unit, onConti
             Spacer(modifier = Modifier.height(12.dp))
 
             HomeActionButton(
-                text = "Continuar",
+                text = stringResource(R.string.home_continue),
                 onClick = onContinueClick,
                 isPrimary = false,
                 modifier = Modifier.fillMaxWidth()
@@ -192,7 +194,7 @@ private fun HomeHeader() {
                     modifier = Modifier.size(16.dp)
                 )
                 Text(
-                    text = "Logic trainer",
+                    text = stringResource(R.string.home_badge),
                     style = MaterialTheme.typography.labelMedium,
                     fontFamily = HomeBodyFont,
                     color = SudokuPalette.TextSecondary,
@@ -204,7 +206,7 @@ private fun HomeHeader() {
         Spacer(modifier = Modifier.height(14.dp))
 
         Text(
-            text = "Sudoku Mentor",
+            text = stringResource(R.string.home_title),
             style = MaterialTheme.typography.displaySmall,
             fontWeight = FontWeight.Bold,
             color = SudokuPalette.TextPrimary
@@ -213,7 +215,7 @@ private fun HomeHeader() {
         Spacer(modifier = Modifier.height(6.dp))
 
         Text(
-            text = "Pensado para resolver, no adivinar.",
+            text = stringResource(R.string.home_subtitle),
             style = MaterialTheme.typography.bodyLarge,
             fontFamily = HomeBodyFont,
             color = SudokuPalette.TextSecondary,
@@ -224,48 +226,12 @@ private fun HomeHeader() {
 
 @Composable
 private fun HomeActionButton(text: String, onClick: () -> Unit, isPrimary: Boolean, modifier: Modifier = Modifier) {
-    val shape = RoundedCornerShape(24.dp)
-
-    if (isPrimary) {
-        Box(
-            modifier = modifier
-                .height(64.dp)
-                .background(SudokuPalette.ButtonGradient, shape)
-                .clickable(onClick = onClick),
-            contentAlignment = Alignment.Center
-        ) {
-            HomeButtonText(
-                text = text,
-                color = Color.White
-            )
-        }
-    } else {
-        Surface(
-            modifier = modifier
-                .height(58.dp)
-                .clickable(onClick = onClick),
-            shape = shape,
-            color = SudokuPalette.HomePanel.copy(alpha = 0.86f),
-            border = BorderStroke(1.dp, SudokuPalette.HomeBorder)
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                HomeButtonText(
-                    text = text,
-                    color = SudokuPalette.TextPrimary
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun HomeButtonText(text: String, color: Color) {
-    Text(
+    MentorButton(
         text = text,
-        style = MaterialTheme.typography.titleMedium,
-        fontFamily = HomeBodyFont,
-        color = color,
-        fontWeight = FontWeight.Bold
+        onClick = onClick,
+        variant = if (isPrimary) MentorButtonVariant.Primary else MentorButtonVariant.Secondary,
+        modifier = modifier,
+        height = 52.dp
     )
 }
 

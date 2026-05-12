@@ -215,9 +215,11 @@ sealed class StrategyContext {
 
         override fun getEliminationMessage(notesToRemoveMap: Map<Int, List<Int>>): String {
             return "Las casillas resaltadas en amarillo forman un Y-Wing. " +
-                "La casilla pivote tiene dos opciones: ${numbersLabel(pivotCandidates)}, y las alas fuerzan " +
-                "que una de ellas contenga el número $candidateToRemove. " +
-                "Cualquier casilla marcada en rojo ve ambas alas, así que no puede contener ese candidato."
+                "La casilla pivote tiene dos opciones: ${numbersLabel(pivotCandidates)}. " +
+                "Según cuál de esas opciones sea correcta, una de las dos alas queda obligada a tener " +
+                "el número $candidateToRemove. " +
+                "Por eso, cualquier casilla marcada en rojo que comparta fila, columna o caja con ambas alas " +
+                "no puede contener ese candidato."
         }
     }
 

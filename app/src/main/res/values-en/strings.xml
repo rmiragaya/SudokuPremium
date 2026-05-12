@@ -1,0 +1,8 @@
+<resources>
+    <!--
+        English localization scaffold.
+
+        Keep this file intentionally empty until the English copy is complete, so Android
+        falls back to the default Spanish strings instead of mixing languages in production.
+    -->
+</resources>

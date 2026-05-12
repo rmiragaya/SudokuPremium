@@ -7,6 +7,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -28,8 +29,6 @@ import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TouchApp
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +46,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,6 +55,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ropa.miragaya.sudokupremium.BuildConfig
+import ropa.miragaya.sudokupremium.R
+import ropa.miragaya.sudokupremium.ui.component.MentorButton
+import ropa.miragaya.sudokupremium.ui.model.PremiumStatusMessage
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPremiumTheme
 
@@ -109,7 +112,7 @@ private fun SettingsContent(
             .fillMaxSize()
             .background(brush = SudokuPalette.MainGradient)
     ) {
-        SettingsTopBar(title = "Configuración", onBackClick = onBackClick)
+        SettingsTopBar(title = stringResource(R.string.settings_title), onBackClick = onBackClick)
 
         Column(
             modifier = Modifier
@@ -118,23 +121,23 @@ private fun SettingsContent(
                 .padding(horizontal = 18.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            SettingsSectionTitle("Juego")
+            SettingsSectionTitle(stringResource(R.string.settings_section_game))
             SettingsSwitchRow(
                 icon = Icons.Default.TouchApp,
-                title = "Vibración",
-                description = "Respuesta suave al ingresar números y usar acciones del tablero.",
+                title = stringResource(R.string.settings_haptics_title),
+                description = stringResource(R.string.settings_haptics_description),
                 checked = uiState.hapticsEnabled,
                 onCheckedChange = onHapticsEnabledChanged
             )
 
-            SettingsSectionTitle("Apariencia")
+            SettingsSectionTitle(stringResource(R.string.settings_section_appearance))
             SettingsInfoRow(
                 icon = Icons.Default.Palette,
-                title = "Estilo del tablero",
-                description = "Preparado para temas visuales, contraste y tamaño de lectura."
+                title = stringResource(R.string.settings_board_style_title),
+                description = stringResource(R.string.settings_board_style_description)
             )
 
-            SettingsSectionTitle("Premium")
+            SettingsSectionTitle(stringResource(R.string.settings_section_premium))
             SettingsPremiumRow(
                 isPremium = uiState.isPremium,
                 premiumStatusMessage = uiState.premiumStatusMessage,
@@ -142,7 +145,7 @@ private fun SettingsContent(
             )
 
             if (BuildConfig.DEBUG) {
-                SettingsSectionTitle("Debug")
+                SettingsSectionTitle(stringResource(R.string.settings_section_debug))
                 SettingsDebugRow(onDebugResetPremiumClick = onDebugResetPremiumClick)
             }
 
@@ -164,78 +167,75 @@ private fun PremiumContent(
             .fillMaxSize()
             .background(brush = SudokuPalette.MainGradient)
     ) {
-        SettingsTopBar(title = "Sudoku Mentor Premium", onBackClick = onBackClick)
+        SettingsTopBar(title = stringResource(R.string.premium_title), onBackClick = onBackClick)
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 18.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp),
+                .padding(horizontal = 18.dp, vertical = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            PremiumHeroBoard()
-
-            Text(
-                text = if (uiState.isPremium) {
-                    "Premium activado"
-                } else {
-                    "Aprendé sin quedarte trabado"
-                },
-                style = MaterialTheme.typography.headlineMedium,
-                color = SudokuPalette.TextPrimary,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
-
-            Text(
-                text = if (uiState.isPremium) {
-                    "Tenés pistas ilimitadas para entrenar técnicas y resolver con calma."
-                } else {
-                    "Desbloqueá pistas ilimitadas para practicar técnicas, entender patrones y avanzar sin anuncios."
-                },
-                style = MaterialTheme.typography.bodyLarge,
-                color = SudokuPalette.TextSecondary,
-                textAlign = TextAlign.Center
-            )
-
-            PremiumBenefits()
-
-            uiState.premiumStatusMessage?.let { message ->
-                Text(
-                    text = message,
-                    color = SudokuPalette.TextAccent,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center
-                )
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                val boardSize = minOf(maxWidth * PREMIUM_HERO_BOARD_WIDTH_FRACTION, maxHeight)
+                PremiumHeroBoard(modifier = Modifier.size(boardSize))
             }
 
-            if (!uiState.isPremium) {
-                Button(
-                    onClick = onPurchaseClick,
-                    enabled = !uiState.isPurchaseLoading,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(54.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = SudokuPalette.TextAccent,
-                        contentColor = SudokuPalette.ScreenBackground
-                    ),
-                    shape = RoundedCornerShape(18.dp)
-                ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = if (uiState.isPremium) {
+                        stringResource(R.string.premium_headline_active)
+                    } else {
+                        stringResource(R.string.premium_headline_locked)
+                    },
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = SudokuPalette.TextPrimary,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+
+                Text(
+                    text = if (uiState.isPremium) {
+                        stringResource(R.string.premium_body_active)
+                    } else {
+                        stringResource(R.string.premium_body_locked)
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = SudokuPalette.TextSecondary,
+                    textAlign = TextAlign.Center
+                )
+
+                PremiumBenefits()
+
+                uiState.premiumStatusMessage?.let { message ->
                     Text(
-                        text = if (uiState.isPurchaseLoading) "Abriendo compra..." else "Desbloquear Premium",
-                        fontWeight = FontWeight.Bold
+                        text = stringResource(message.stringRes),
+                        color = SudokuPalette.TextAccent,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center
                     )
                 }
 
-                TextButton(onClick = onRestoreClick) {
-                    Text("Ya compré Premium", color = SudokuPalette.TextAccent)
+                if (!uiState.isPremium) {
+                    PremiumUnlockButton(
+                        isLoading = uiState.isPurchaseLoading,
+                        onClick = onPurchaseClick
+                    )
+
+                    TextButton(onClick = onRestoreClick) {
+                        Text(stringResource(R.string.premium_already_bought), color = SudokuPalette.TextAccent)
+                    }
                 }
             }
-
-            Spacer(modifier = Modifier.height(10.dp))
         }
     }
 }
@@ -254,7 +254,7 @@ private fun SettingsTopBar(title: String, onBackClick: () -> Unit) {
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Volver",
+                contentDescription = stringResource(R.string.action_back),
                 tint = SudokuPalette.TextSecondary
             )
         }
@@ -307,7 +307,11 @@ private fun SettingsInfoRow(icon: ImageVector, title: String, description: Strin
 }
 
 @Composable
-private fun SettingsPremiumRow(isPremium: Boolean, premiumStatusMessage: String?, onOpenPremiumClick: () -> Unit) {
+private fun SettingsPremiumRow(
+    isPremium: Boolean,
+    premiumStatusMessage: PremiumStatusMessage?,
+    onOpenPremiumClick: () -> Unit
+) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(22.dp),
@@ -328,7 +332,11 @@ private fun SettingsPremiumRow(isPremium: Boolean, premiumStatusMessage: String?
                 )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = if (isPremium) "Premium activado" else "Sudoku Mentor Premium",
+                        text = if (isPremium) {
+                            stringResource(R.string.premium_active)
+                        } else {
+                            stringResource(R.string.premium_title)
+                        },
                         color = SudokuPalette.TextPrimary,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
@@ -336,9 +344,9 @@ private fun SettingsPremiumRow(isPremium: Boolean, premiumStatusMessage: String?
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = if (isPremium) {
-                            "Pistas ilimitadas activas en esta cuenta."
+                            stringResource(R.string.premium_card_active_description)
                         } else {
-                            "Pistas ilimitadas, sin anuncios y una forma simple de apoyar la app."
+                            stringResource(R.string.premium_card_description)
                         },
                         color = SudokuPalette.TextSecondary,
                         style = MaterialTheme.typography.bodyMedium
@@ -348,7 +356,7 @@ private fun SettingsPremiumRow(isPremium: Boolean, premiumStatusMessage: String?
 
             premiumStatusMessage?.let { message ->
                 Text(
-                    text = message,
+                    text = stringResource(message.stringRes),
                     color = SudokuPalette.TextAccent,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold
@@ -356,21 +364,24 @@ private fun SettingsPremiumRow(isPremium: Boolean, premiumStatusMessage: String?
             }
 
             if (!isPremium) {
-                Button(
+                PremiumUnlockButton(
+                    isLoading = false,
                     onClick = onOpenPremiumClick,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = SudokuPalette.TextAccent,
-                        contentColor = SudokuPalette.ScreenBackground
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Text("Desbloquear Premium", fontWeight = FontWeight.Bold)
-                }
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
     }
 }
+
+private val PremiumStatusMessage.stringRes: Int
+    get() = when (this) {
+        PremiumStatusMessage.PURCHASE_NOT_STARTED -> R.string.premium_status_purchase_not_started
+        PremiumStatusMessage.PREMIUM_ACTIVATED -> R.string.premium_status_activated
+        PremiumStatusMessage.PURCHASE_PENDING -> R.string.premium_status_purchase_pending
+        PremiumStatusMessage.PURCHASE_CANCELED -> R.string.premium_status_purchase_canceled
+        PremiumStatusMessage.PREMIUM_ACTIVATION_FAILED -> R.string.premium_status_activation_failed
+    }
 
 @Composable
 private fun SettingsDebugRow(onDebugResetPremiumClick: () -> Unit) {
@@ -378,12 +389,12 @@ private fun SettingsDebugRow(onDebugResetPremiumClick: () -> Unit) {
         SettingsIcon(imageVector = Icons.Default.Settings, accent = SudokuPalette.CellEliminationBorder)
         Column(modifier = Modifier.weight(1f)) {
             SettingsRowText(
-                title = "Resetear Premium",
-                description = "Vuelve a dejar la compra disponible para probar el flujo."
+                title = stringResource(R.string.settings_debug_reset_premium_title),
+                description = stringResource(R.string.settings_debug_reset_premium_description)
             )
         }
         TextButton(onClick = onDebugResetPremiumClick) {
-            Text("Resetear", color = SudokuPalette.CellEliminationBorder)
+            Text(stringResource(R.string.settings_debug_reset), color = SudokuPalette.CellEliminationBorder)
         }
     }
 }
@@ -443,38 +454,75 @@ private fun SettingsRowText(title: String, description: String) {
 private fun PremiumBenefits() {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        PremiumBenefitRow("Pistas ilimitadas por partida")
-        PremiumBenefitRow("Sin anuncios para pedir pistas")
-        PremiumBenefitRow("Más práctica para aprender técnicas")
-        PremiumBenefitRow("Apoyás el desarrollo de Sudoku Mentor", Icons.Default.Favorite)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            PremiumBenefitRow(
+                text = stringResource(R.string.premium_benefit_unlimited_hints),
+                modifier = Modifier.weight(1f)
+            )
+            PremiumBenefitRow(
+                text = stringResource(R.string.premium_benefit_no_ads),
+                modifier = Modifier.weight(1f)
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            PremiumBenefitRow(
+                text = stringResource(R.string.premium_benefit_practice),
+                modifier = Modifier.weight(1f)
+            )
+            PremiumBenefitRow(
+                text = stringResource(R.string.premium_benefit_support),
+                icon = Icons.Default.Favorite,
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 }
 
 @Composable
-private fun PremiumBenefitRow(text: String, icon: ImageVector = Icons.Default.CheckCircle) {
+private fun PremiumUnlockButton(isLoading: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    MentorButton(
+        text = if (isLoading) {
+            stringResource(R.string.premium_purchase_loading)
+        } else {
+            stringResource(R.string.premium_unlock)
+        },
+        onClick = onClick,
+        enabled = !isLoading,
+        isLoading = isLoading,
+        showGlow = true,
+        modifier = modifier,
+        height = 50.dp
+    )
+}
+
+@Composable
+private fun PremiumBenefitRow(
+    text: String,
+    modifier: Modifier = Modifier,
+    icon: ImageVector = Icons.Default.CheckCircle
+) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier,
         shape = RoundedCornerShape(16.dp),
         color = SudokuPalette.HomePanel.copy(alpha = 0.78f),
         border = BorderStroke(1.dp, SudokuPalette.HomeBorder)
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = SudokuPalette.TextAccent,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(18.dp)
             )
             Text(
                 text = text,
                 color = SudokuPalette.TextPrimary,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.SemiBold
             )
         }
@@ -482,11 +530,9 @@ private fun PremiumBenefitRow(text: String, icon: ImageVector = Icons.Default.Ch
 }
 
 @Composable
-private fun PremiumHeroBoard() {
+private fun PremiumHeroBoard(modifier: Modifier = Modifier) {
     Surface(
-        modifier = Modifier
-            .fillMaxWidth(0.82f)
-            .aspectRatio(1f),
+        modifier = modifier.aspectRatio(1f),
         shape = RoundedCornerShape(22.dp),
         color = SudokuPalette.BoardBackground,
         border = BorderStroke(1.dp, SudokuPalette.HomeBorder)
@@ -603,6 +649,7 @@ private val premiumBoardNumbers = listOf(
 private val premiumHighlightCells = setOf(3, 12)
 private val premiumEliminationCells = setOf(21)
 private val HeroBoardCellSpacing: Dp = 1.dp
+private const val PREMIUM_HERO_BOARD_WIDTH_FRACTION = 0.86f
 
 @Preview
 @Composable

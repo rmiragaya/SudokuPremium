@@ -1,5 +1,6 @@
 package ropa.miragaya.sudokupremium.ui.home
 
+import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -44,12 +45,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import ropa.miragaya.sudokupremium.R
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
 
@@ -147,7 +150,7 @@ private fun DifficultySheetPanel(onDifficultySelected: (Difficulty) -> Unit) {
                 modifier = Modifier.padding(bottom = 6.dp)
             ) {
                 Text(
-                    text = "Elegí dificultad",
+                    text = stringResource(R.string.difficulty_sheet_title),
                     style = MaterialTheme.typography.headlineSmall,
                     fontFamily = DifficultyBodyFont,
                     color = SudokuPalette.TextPrimary,
@@ -157,7 +160,7 @@ private fun DifficultySheetPanel(onDifficultySelected: (Difficulty) -> Unit) {
                 Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
-                    text = "Cada nivel cambia el tipo de técnica que vas a practicar.",
+                    text = stringResource(R.string.difficulty_sheet_description),
                     style = MaterialTheme.typography.bodyMedium,
                     fontFamily = DifficultyBodyFont,
                     color = SudokuPalette.TextSecondary
@@ -212,7 +215,7 @@ fun DifficultyItem(difficulty: Difficulty, onClick: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = spec.title,
+                        text = stringResource(spec.titleRes),
                         style = MaterialTheme.typography.titleMedium,
                         fontFamily = DifficultyBodyFont,
                         color = SudokuPalette.TextPrimary,
@@ -220,7 +223,7 @@ fun DifficultyItem(difficulty: Difficulty, onClick: () -> Unit) {
                     )
 
                     DifficultyPill(
-                        text = spec.pill,
+                        text = stringResource(spec.pillRes),
                         accent = spec.accent
                     )
                 }
@@ -228,7 +231,7 @@ fun DifficultyItem(difficulty: Difficulty, onClick: () -> Unit) {
                 Spacer(modifier = Modifier.height(5.dp))
 
                 Text(
-                    text = spec.description,
+                    text = stringResource(spec.descriptionRes),
                     style = MaterialTheme.typography.bodySmall,
                     fontFamily = DifficultyBodyFont,
                     color = SudokuPalette.TextSecondary,
@@ -272,9 +275,9 @@ private fun DifficultyPill(text: String, accent: Color) {
 }
 
 private data class DifficultySpec(
-    val title: String,
-    val pill: String,
-    val description: String,
+    @param:StringRes val titleRes: Int,
+    @param:StringRes val pillRes: Int,
+    @param:StringRes val descriptionRes: Int,
     val level: Int,
     val accent: Color,
     val icon: ImageVector
@@ -291,36 +294,36 @@ private const val DIFFICULTY_SHEET_CONTENT_EXIT_FADE_MILLIS = 260
 private fun Difficulty.spec(): DifficultySpec {
     return when (this) {
         Difficulty.EASY -> DifficultySpec(
-            title = "Easy",
-            pill = "Calma",
-            description = "Ideal para entrar en ritmo y practicar singles.",
+            titleRes = R.string.difficulty_easy_title,
+            pillRes = R.string.difficulty_easy_pill,
+            descriptionRes = R.string.difficulty_easy_description,
             level = 1,
             accent = Color(0xFF6ED6A5),
             icon = Icons.Default.School
         )
 
         Difficulty.MEDIUM -> DifficultySpec(
-            title = "Medium",
-            pill = "Técnica",
-            description = "Pares, intersecciones y lectura de candidatos.",
+            titleRes = R.string.difficulty_medium_title,
+            pillRes = R.string.difficulty_medium_pill,
+            descriptionRes = R.string.difficulty_medium_description,
             level = 2,
             accent = SudokuPalette.TextAccent,
             icon = Icons.Default.Psychology
         )
 
         Difficulty.HARD -> DifficultySpec(
-            title = "Hard",
-            pill = "Desafío",
-            description = "Patrones encadenados y tableros más cerrados.",
+            titleRes = R.string.difficulty_hard_title,
+            pillRes = R.string.difficulty_hard_pill,
+            descriptionRes = R.string.difficulty_hard_description,
             level = 3,
             accent = Color(0xFFFFB86B),
             icon = Icons.Default.Bolt
         )
 
         Difficulty.EXPERT -> DifficultySpec(
-            title = "Expert",
-            pill = "Avanzada",
-            description = "Técnicas exigentes y sesiones con más análisis.",
+            titleRes = R.string.difficulty_expert_title,
+            pillRes = R.string.difficulty_expert_pill,
+            descriptionRes = R.string.difficulty_expert_description,
             level = 4,
             accent = Color(0xFFFF6B8A),
             icon = Icons.Default.SportsScore

@@ -35,17 +35,22 @@ La prioridad no es agregar features por volumen, sino construir una experiencia 
   - Settings.
   - Dialogs.
 
-- [ ] Mejorar el dialog de error en hints.
+- [x] Mejorar el dialog de error en hints.
   - El dialog actual quedó viejo y visualmente pobre.
   - Debe explicar mejor qué pasó cuando hay errores en el tablero.
   - Debe mantener el tono calmo de la app.
 
-- [ ] Mejorar la pantalla/dialog de victoria.
+- [x] Mejorar la pantalla/dialog de victoria.
   - Agregar algún efecto visual de resolución.
   - Mostrar resumen claro: dificultad, tiempo, hints usadas, errores, quizá técnica final.
   - Hacer que se sienta como cierre de partida, no solo un popup.
 
-- [ ] Mejorar el acceso desde hint a técnica.
+- [ ] Agregar confetti al ganar una partida.
+  - Evaluar la librería Konfetti: https://github.com/DanielMartinus/Konfetti
+  - Usarlo con moderación para que se sienta celebratorio sin romper el tono calmo de la app.
+  - Activarlo solo en victoria real, no en estados debug o previews.
+
+- [x] Mejorar el acceso desde hint a técnica.
   - Hoy tocar el nombre de la técnica es poco evidente.
   - Agregar un affordance más claro: icono, texto secundario o botón "Ver técnica".
 
@@ -60,6 +65,8 @@ La prioridad no es agregar features por volumen, sino construir una experiencia 
 - [ ] Mover textos hardcodeados a `strings.xml`.
   - Preparar estructura para múltiples idiomas.
   - Separar textos de UI, hints, técnicas, premium, errores y release.
+  - Primera pasada hecha para textos cortos de home, juego, settings, premium, dialogs y shell de técnicas.
+  - Pendiente: textos pedagógicos largos, mensajes dinámicos de ViewModels y templates de hints.
 
 - [ ] Preparar localización.
   - `values/strings.xml` base.
@@ -161,6 +168,17 @@ La prioridad no es agregar features por volumen, sino construir una experiencia 
   - Revisar países/regiones y privacidad.
 
 ## Login, Usuario Y Datos
+
+- [ ] Agregar sección para enviar comentarios.
+  - Permitir que el usuario mande feedback desde Settings o una pantalla dedicada.
+  - Recomendación inicial: guardar en Firestore, no enviar email directo desde la app.
+  - Asociar el comentario al usuario anónimo si existe, versión de app, dispositivo y fecha.
+  - Poner límite de caracteres razonable, por ejemplo 500 o 1000.
+  - Validar input en cliente y reglas/backend: no vacío, largo máximo, texto plano.
+  - Evitar renderizar contenido como HTML/Markdown ejecutable en herramientas internas.
+  - Agregar rate limit o protección equivalente para evitar spam.
+  - Evaluar más adelante Cloud Function para reenviar comentarios importantes por mail.
+  - Revisar App Check y reglas de Firestore antes de publicarlo.
 
 - [ ] Evaluar login con Google.
   - Hoy existe anonymous login.

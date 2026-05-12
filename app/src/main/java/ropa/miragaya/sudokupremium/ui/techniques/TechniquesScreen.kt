@@ -40,6 +40,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -47,6 +48,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ropa.miragaya.sudokupremium.R
 import ropa.miragaya.sudokupremium.domain.techniques.TechniqueTutorialExample
 import ropa.miragaya.sudokupremium.domain.techniques.TechniqueTutorialFixtures
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
@@ -107,6 +109,7 @@ fun TechniqueDetailScreen(techniqueId: String, onBackClick: () -> Unit, modifier
         ) {
             TechniqueHeroCard(technique = technique)
             TechniqueDetailCard(technique = technique)
+            TechniqueDeepDiveCard(technique = technique)
             technique.examples.forEach { example ->
                 TechniqueExampleSection(
                     technique = technique,
@@ -119,7 +122,9 @@ fun TechniqueDetailScreen(techniqueId: String, onBackClick: () -> Unit, modifier
 }
 
 @Composable
-private fun TechniquesTopBar(onBackClick: () -> Unit, title: String = "Técnicas") {
+private fun TechniquesTopBar(onBackClick: () -> Unit, title: String? = null) {
+    val topBarTitle = title ?: stringResource(R.string.techniques_title)
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -132,13 +137,13 @@ private fun TechniquesTopBar(onBackClick: () -> Unit, title: String = "Técnicas
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Volver",
+                contentDescription = stringResource(R.string.action_back),
                 tint = SudokuPalette.TextSecondary
             )
         }
 
         Text(
-            text = title,
+            text = topBarTitle,
             style = MaterialTheme.typography.titleLarge,
             color = SudokuPalette.TextPrimary,
             fontWeight = FontWeight.Bold,
@@ -175,7 +180,7 @@ private fun TechniquesIntroCard() {
                         modifier = Modifier.size(15.dp)
                     )
                     Text(
-                        text = "Resolver con lógica",
+                        text = stringResource(R.string.techniques_badge),
                         style = MaterialTheme.typography.labelMedium,
                         color = SudokuPalette.TextSecondary,
                         fontWeight = FontWeight.SemiBold
@@ -184,15 +189,14 @@ private fun TechniquesIntroCard() {
             }
 
             Text(
-                text = "Aprendé las técnicas",
+                text = stringResource(R.string.techniques_intro_title),
                 style = MaterialTheme.typography.headlineSmall,
                 color = SudokuPalette.TextPrimary,
                 fontWeight = FontWeight.Bold
             )
 
             Text(
-                text = "La idea de Sudoku Mentor es explicar cómo llegar a una solución. " +
-                    "Los tableros están pensados para que siempre puedas avanzar usando técnicas, sin adivinar.",
+                text = stringResource(R.string.techniques_intro_body),
                 style = MaterialTheme.typography.bodyLarge,
                 color = SudokuPalette.TextSecondary
             )
@@ -301,7 +305,7 @@ private fun TechniqueDetailCard(technique: TechniqueUiModel) {
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Text(
-                text = "Idea",
+                text = stringResource(R.string.techniques_idea),
                 style = MaterialTheme.typography.titleMedium,
                 color = technique.accent,
                 fontWeight = FontWeight.Bold
@@ -314,7 +318,7 @@ private fun TechniqueDetailCard(technique: TechniqueUiModel) {
             )
 
             TechniqueTextBlock(
-                title = "Regla rápida",
+                title = stringResource(R.string.techniques_rule),
                 body = technique.rule,
                 accent = technique.accent
             )
@@ -325,8 +329,52 @@ private fun TechniqueDetailCard(technique: TechniqueUiModel) {
             )
 
             TechniqueTextBlock(
-                title = "Qué cambia en el tablero",
+                title = stringResource(R.string.techniques_result),
                 body = technique.result,
+                accent = technique.accent
+            )
+        }
+    }
+}
+
+@Composable
+private fun TechniqueDeepDiveCard(technique: TechniqueUiModel) {
+    if (!technique.hasDeepDive) return
+
+    Surface(
+        shape = RoundedCornerShape(22.dp),
+        color = SudokuPalette.BoardBackground.copy(alpha = 0.94f),
+        border = BorderStroke(1.dp, technique.accent.copy(alpha = 0.38f))
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            technique.whatToWatch?.let { body ->
+                TechniqueTextBlock(
+                    title = stringResource(R.string.techniques_what_to_watch),
+                    body = body,
+                    accent = technique.accent
+                )
+            }
+
+            technique.whyItWorks?.let { body ->
+                TechniqueTextBlock(
+                    title = stringResource(R.string.techniques_why_it_works),
+                    body = body,
+                    accent = technique.accent
+                )
+            }
+
+            TechniqueBulletBlock(
+                title = stringResource(R.string.techniques_common_mistakes),
+                items = technique.commonMistakes,
+                accent = technique.accent
+            )
+
+            TechniqueBulletBlock(
+                title = stringResource(R.string.techniques_practical_checklist),
+                items = technique.practicalChecklist,
                 accent = technique.accent
             )
         }
@@ -352,10 +400,42 @@ private fun TechniqueTextBlock(title: String, body: String, accent: Color) {
 }
 
 @Composable
+private fun TechniqueBulletBlock(title: String, items: List<String>, accent: Color) {
+    if (items.isEmpty()) return
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleSmall,
+            color = accent,
+            fontWeight = FontWeight.Bold
+        )
+
+        items.forEach { item ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = "•",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = accent,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = item,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = SudokuPalette.TextSecondary,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun TechniqueStepsBlock(steps: List<String>, accent: Color) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-            text = "Cómo reconocerla",
+            text = stringResource(R.string.techniques_how_to_recognize),
             style = MaterialTheme.typography.titleSmall,
             color = accent,
             fontWeight = FontWeight.Bold
@@ -593,14 +673,14 @@ private fun TechniqueSourceCard(technique: TechniqueUiModel) {
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
-                text = "Referencia conceptual",
+                text = stringResource(R.string.techniques_source_title),
                 style = MaterialTheme.typography.labelMedium,
                 color = technique.accent,
                 fontWeight = FontWeight.Bold
             )
 
             Text(
-                text = "Explicación propia basada en el enfoque de SudokuWiki. No usamos sus textos ni sus imágenes.",
+                text = stringResource(R.string.techniques_source_body),
                 style = MaterialTheme.typography.bodyMedium,
                 color = SudokuPalette.TextSecondary
             )
@@ -633,11 +713,21 @@ private data class TechniqueUiModel(
     val rule: String,
     val steps: List<String>,
     val result: String,
+    val whatToWatch: String? = null,
+    val whyItWorks: String? = null,
+    val commonMistakes: List<String> = emptyList(),
+    val practicalChecklist: List<String> = emptyList(),
     val sourceUrl: String,
     val examples: List<TechniqueTutorialExample>,
     val accent: Color,
     val icon: ImageVector
-)
+) {
+    val hasDeepDive: Boolean =
+        whatToWatch != null ||
+            whyItWorks != null ||
+            commonMistakes.isNotEmpty() ||
+            practicalChecklist.isNotEmpty()
+}
 
 private val TechniqueBoardPadding: Dp = 6.dp
 private val TechniqueCellSpacing: Dp = 1.dp
@@ -720,6 +810,22 @@ private val techniques = listOf(
         ),
         result = "No resuelve la casilla final todavía, pero borra candidatos que parecen posibles " +
             "si se mira una sola región. Es una buena técnica puente entre singles y pares.",
+        whatToWatch = "Prestá atención a candidatos que, dentro de una caja, aparecen todos en la misma fila " +
+            "o columna. También sirve mirar una fila o columna y notar si todas sus posiciones posibles " +
+            "caen dentro de una sola caja.",
+        whyItWorks = "El número sigue perteneciendo a las dos regiones a la vez. Si dentro de la caja solo puede " +
+            "salir por una línea, entonces cualquier aparición del mismo candidato en esa línea pero fuera " +
+            "de la caja se contradice con esa obligación.",
+        commonMistakes = listOf(
+            "No alcanza con que el candidato aparezca en la caja: todas sus posiciones posibles deben estar alineadas.",
+            "La eliminación ocurre fuera de la región que encierra el candidato, no sobre las casillas que forman el patrón."
+        ),
+        practicalChecklist = listOf(
+            "Un candidato.",
+            "Una caja y una línea conectadas.",
+            "Todas las posiciones posibles alineadas.",
+            "Eliminaciones fuera del grupo que fuerza la alineación."
+        ),
         sourceUrl = "https://www.sudokuwiki.org/Intersection_Removal",
         examples = TechniqueTutorialFixtures.forTechnique("intersection_removal"),
         accent = SudokuPalette.TextAccent,
@@ -767,6 +873,22 @@ private val techniques = listOf(
         ),
         result = "Produce eliminaciones más amplias que un par. No define el orden de los tres números, " +
             "pero sí asegura que el resto de la región no puede usarlos.",
+        whatToWatch = "Buscá tres casillas vacías dentro de una misma fila, columna o caja. Lo importante no es " +
+            "que todas tengan los mismos candidatos, sino que entre las tres solo aparezcan tres números " +
+            "distintos.",
+        whyItWorks = "Esas tres casillas necesitan tres valores y solo pueden usar esos tres candidatos. " +
+            "Como el grupo " +
+            "queda completo dentro de la región, ninguna otra casilla de esa misma región puede usar esos números.",
+        commonMistakes = listOf(
+            "Incluir una casilla con un cuarto candidato rompe el triple.",
+            "Mezclar casillas de distintas regiones no sirve: las tres deben compartir fila, columna o caja."
+        ),
+        practicalChecklist = listOf(
+            "Tres casillas en la misma región.",
+            "Dos o tres candidatos por casilla.",
+            "Tres candidatos distintos en total.",
+            "Eliminar esos candidatos del resto de la región."
+        ),
         sourceUrl = "https://www.sudokuwiki.org/Naked_Candidates",
         examples = TechniqueTutorialFixtures.forTechnique("naked_triple"),
         accent = Color(0xFFFFB86B),
@@ -791,6 +913,24 @@ private val techniques = listOf(
         ),
         result = "No importa cuál de las cuatro esquinas termine siendo correcta: el rectángulo garantiza " +
             "que las columnas o filas cruzadas ya están cubiertas por esas dos líneas.",
+        whatToWatch = "Elegí un solo candidato y mirá sus posiciones por fila. Si dos filas tienen ese candidato " +
+            "exactamente en las mismas dos columnas, esas cuatro casillas son el rectángulo. También podés " +
+            "hacer la lectura inversa: dos columnas con las mismas dos filas.",
+        whyItWorks = "En cada una de las dos filas debe ir una copia del candidato. Como ambas filas solo tienen " +
+            "las mismas dos columnas disponibles, el candidato ocupará una esquina en cada fila. Eso cubre " +
+            "las dos columnas del rectángulo, así que el mismo candidato no puede aparecer en otras casillas " +
+            "de esas columnas.",
+        commonMistakes = listOf(
+            "No alcanza con ver cuatro candidatos formando un rectángulo: en las líneas base no puede haber un tercer lugar posible.",
+            "Las eliminaciones no se hacen dentro de las cuatro esquinas, sino fuera del rectángulo en las líneas cruzadas.",
+            "Hay que trabajar con un solo candidato; mezclar números distintos invalida el patrón."
+        ),
+        practicalChecklist = listOf(
+            "Un candidato fijo.",
+            "Dos filas con exactamente dos posiciones posibles cada una.",
+            "Las dos filas usan las mismas dos columnas.",
+            "Eliminar ese candidato de las demás casillas de esas columnas."
+        ),
         sourceUrl = "https://www.sudokuwiki.org/X_Wing_Strategy",
         examples = TechniqueTutorialFixtures.forTechnique("x_wing"),
         accent = Color(0xFFFFB86B),
@@ -815,6 +955,24 @@ private val techniques = listOf(
         ),
         result = "Es una técnica de eliminación, no de colocación directa. Su fuerza está en conectar regiones: " +
             "las tres casillas no necesitan estar todas en la misma fila, columna o caja.",
+        whatToWatch = "Buscá una casilla pivote con dos candidatos. Después buscá dos alas que vean a la pivote: " +
+            "una comparte el primer candidato y la otra comparte el segundo. Las alas además deben compartir " +
+            "un tercer candidato entre ellas.",
+        whyItWorks = "La pivote solo tiene dos caminos. Si toma el primer candidato, una de las alas queda forzada " +
+            "al candidato compartido. Si toma el segundo candidato, queda forzada la otra ala. En ambos caminos, " +
+            "una de las alas termina usando ese candidato compartido, por eso se puede quitar de cualquier " +
+            "casilla que vea simultáneamente a las dos alas.",
+        commonMistakes = listOf(
+            "Las alas no necesitan verse entre sí; la casilla eliminada sí debe ver a ambas alas.",
+            "La pivote debe tener exactamente dos candidatos. Si tiene tres o más, la cadena no fuerza nada.",
+            "El candidato que se elimina es el que comparten las dos alas, no los candidatos de la pivote."
+        ),
+        practicalChecklist = listOf(
+            "Pivote con candidatos A y B.",
+            "Un ala con A y C que vea a la pivote.",
+            "Otra ala con B y C que vea a la pivote.",
+            "Eliminar C solo de casillas que vean ambas alas."
+        ),
         sourceUrl = "https://www.sudokuwiki.org/Y_Wing_Strategy",
         examples = TechniqueTutorialFixtures.forTechnique("y_wing"),
         accent = Color(0xFFFF6B8A),

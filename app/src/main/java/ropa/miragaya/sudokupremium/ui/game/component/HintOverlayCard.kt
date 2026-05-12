@@ -18,8 +18,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lightbulb
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -30,12 +29,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import ropa.miragaya.sudokupremium.R
 import ropa.miragaya.sudokupremium.domain.model.SudokuHint
+import ropa.miragaya.sudokupremium.ui.component.MentorButton
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
 
 @Composable
@@ -84,20 +85,13 @@ fun HintOverlayCard(
                     .verticalScroll(rememberScrollState())
             )
 
-            Button(
+            MentorButton(
+                text = stringResource(R.string.action_understood),
                 onClick = onDismiss,
-                colors = ButtonDefaults.buttonColors(containerColor = SudokuPalette.TextAccent),
-                shape = RoundedCornerShape(14.dp),
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(42.dp)
-            ) {
-                Text(
-                    text = "Entendido",
-                    color = SudokuPalette.BoardBackground,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+                    .fillMaxWidth(),
+                height = 44.dp
+            )
         }
     }
 }
@@ -141,18 +135,48 @@ private fun HintHeader(
                 style = MaterialTheme.typography.titleMedium,
                 color = SudokuPalette.CellHintBorder,
                 fontWeight = FontWeight.Bold,
-                textDecoration = TextDecoration.Underline,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.clickable(onClick = onTechniqueClick)
+                overflow = TextOverflow.Ellipsis
             )
 
-            if (totalSteps > 1) {
-                Text(
-                    text = "${currentStep + 1} de $totalSteps",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = SudokuPalette.TextSecondary
-                )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (totalSteps > 1) {
+                    Text(
+                        text = stringResource(R.string.hint_step_count, currentStep + 1, totalSteps),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = SudokuPalette.TextSecondary
+                    )
+                }
+
+                Surface(
+                    shape = RoundedCornerShape(999.dp),
+                    color = SudokuPalette.TextAccent.copy(alpha = 0.12f),
+                    modifier = Modifier
+                        .padding(top = 3.dp)
+                        .clickable(onClick = onTechniqueClick)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.School,
+                            contentDescription = null,
+                            tint = SudokuPalette.TextAccent,
+                            modifier = Modifier.size(13.dp)
+                        )
+                        Text(
+                            text = stringResource(R.string.hint_view_technique),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = SudokuPalette.TextAccent,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
         }
 
@@ -164,7 +188,7 @@ private fun HintHeader(
             ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Anterior",
+                    contentDescription = stringResource(R.string.action_previous),
                     tint = if (canGoPrev) SudokuPalette.TextAccent else SudokuPalette.TextSecondary.copy(alpha = 0.35f)
                 )
             }
@@ -175,7 +199,7 @@ private fun HintHeader(
             ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = "Siguiente",
+                    contentDescription = stringResource(R.string.action_next),
                     tint = if (canGoNext) SudokuPalette.TextAccent else SudokuPalette.TextSecondary.copy(alpha = 0.35f)
                 )
             }
@@ -187,7 +211,7 @@ private fun HintHeader(
         ) {
             Icon(
                 Icons.Default.Close,
-                contentDescription = "Cerrar",
+                contentDescription = stringResource(R.string.action_close),
                 tint = SudokuPalette.TextSecondary
             )
         }
@@ -238,8 +262,9 @@ private fun HintChip(text: String, modifier: Modifier = Modifier) {
     }
 }
 
+@Composable
 private fun SudokuHint.actionLabel(): String? {
-    valueToSet?.let { return "Colocar $it" }
+    valueToSet?.let { return stringResource(R.string.hint_action_place, it) }
 
     val removedNotes = notesToRemove.values
         .flatten()
@@ -247,33 +272,37 @@ private fun SudokuHint.actionLabel(): String? {
         .sorted()
 
     return if (removedNotes.isNotEmpty()) {
-        "Quitar ${formatNumbers(removedNotes)}"
+        stringResource(R.string.hint_action_remove, formatNumbers(removedNotes))
     } else {
         null
     }
 }
 
+@Composable
 private fun SudokuHint.scopeLabel(): String? {
     val affectedCells: Int
 
     when {
         notesToRemove.isNotEmpty() -> {
             affectedCells = notesToRemove.keys.size
-            val noun = if (affectedCells == 1) "casilla" else "casillas"
-            return "Eliminar en $affectedCells $noun"
+            return if (affectedCells == 1) {
+                stringResource(R.string.hint_scope_remove_one)
+            } else {
+                stringResource(R.string.hint_scope_remove_many, affectedCells)
+            }
         }
 
         highlightCells.isNotEmpty() -> {
             affectedCells = highlightCells.size
             return if (affectedCells == 1) {
-                "Casilla resaltada"
+                stringResource(R.string.hint_scope_highlight_one)
             } else {
-                "Casillas resaltadas: $affectedCells"
+                stringResource(R.string.hint_scope_highlight_many, affectedCells)
             }
         }
 
         targetCellIndex != null -> {
-            return "Casilla sugerida"
+            return stringResource(R.string.hint_scope_target)
         }
 
         else -> return null

@@ -1,4 +1,138 @@
 <resources>
     <string name="app_name">Sudoku Mentor</string>
     <string name="admob_app_id">ca-app-pub-5540204037457036~4708738094</string>
+
+    <!-- Home -->
+    <string name="home_new_game">Nueva partida</string>
+    <string name="home_continue">Continuar</string>
+    <string name="home_badge">Entrenador lógico</string>
+    <string name="home_title">Sudoku Mentor</string>
+    <string name="home_subtitle">Pensado para resolver, no adivinar.</string>
+
+    <!-- Difficulty -->
+    <string name="difficulty_sheet_title">Elegí dificultad</string>
+    <string name="difficulty_sheet_description">Cada nivel cambia el tipo de técnica que vas a practicar.</string>
+    <string name="difficulty_easy_title">Fácil</string>
+    <string name="difficulty_easy_pill">Calma</string>
+    <string name="difficulty_easy_description">Ideal para entrar en ritmo y practicar singles.</string>
+    <string name="difficulty_medium_title">Media</string>
+    <string name="difficulty_medium_pill">Técnica</string>
+    <string name="difficulty_medium_description">Pares, intersecciones y lectura de candidatos.</string>
+    <string name="difficulty_hard_title">Difícil</string>
+    <string name="difficulty_hard_pill">Desafío</string>
+    <string name="difficulty_hard_description">Patrones encadenados y tableros más cerrados.</string>
+    <string name="difficulty_expert_title">Experta</string>
+    <string name="difficulty_expert_pill">Avanzada</string>
+    <string name="difficulty_expert_description">Técnicas exigentes y sesiones con más análisis.</string>
+
+    <!-- Common navigation/accessibility -->
+    <string name="action_back">Volver</string>
+    <string name="action_previous">Anterior</string>
+    <string name="action_next">Siguiente</string>
+    <string name="action_close">Cerrar</string>
+    <string name="action_understood">Entendido</string>
+    <string name="action_now_not">Ahora no</string>
+
+    <!-- Game -->
+    <string name="game_more_options">Más opciones</string>
+    <string name="game_menu_settings">Configuración</string>
+    <string name="game_menu_techniques">Técnicas</string>
+    <string name="game_menu_add_candidates">Agregar candidatos</string>
+    <string name="game_menu_prepare_victory">Preparar victoria</string>
+    <string name="game_menu_reset_premium">Resetear Premium</string>
+    <string name="game_menu_test_crashlytics">Probar Crashlytics</string>
+    <string name="game_undo">Deshacer</string>
+    <string name="game_note_mode">Modo notas</string>
+    <string name="game_note_mode_on">ON</string>
+    <string name="game_note_mode_off">OFF</string>
+    <string name="game_hint">Pista</string>
+    <string name="game_delete">Borrar</string>
+    <string name="debug_json_label">SudokuDump</string>
+    <string name="debug_json_copied">JSON copiado</string>
+
+    <!-- Hint limit and hint card -->
+    <string name="hint_limit_title">Pistas agotadas</string>
+    <string name="hint_limit_message">Usaste tus %1$d pistas gratis de esta partida.</string>
+    <string name="hint_limit_ad_error">No se pudo cargar el anuncio. Probá de nuevo en un momento.</string>
+    <string name="hint_limit_watch_ad">Ver anuncio para 1 pista</string>
+    <string name="premium_unlock">Desbloquear Premium</string>
+    <string name="hint_view_technique">Ver técnica</string>
+    <string name="hint_step_count">%1$d de %2$d</string>
+    <string name="hint_action_place">Colocar %1$d</string>
+    <string name="hint_action_remove">Quitar %1$s</string>
+    <string name="hint_scope_remove_one">Eliminar en 1 casilla</string>
+    <string name="hint_scope_remove_many">Eliminar en %1$d casillas</string>
+    <string name="hint_scope_highlight_one">Casilla resaltada</string>
+    <string name="hint_scope_highlight_many">Casillas resaltadas: %1$d</string>
+    <string name="hint_scope_target">Casilla sugerida</string>
+
+    <!-- Mistakes -->
+    <string name="mistake_dialog_title">Antes de la pista</string>
+    <plurals name="mistake_dialog_count">
+        <item quantity="one">Hay 1 número que no coincide con la solución.</item>
+        <item quantity="other">Hay %1$d números que no coinciden con la solución.</item>
+    </plurals>
+    <string name="mistake_dialog_body">%1$s Para darte una pista lógica, primero necesitamos que el tablero sea válido.</string>
+    <string name="mistake_dialog_tip">Podés revisar por tu cuenta o dejar que Sudoku Mentor marque las casillas a corregir.</string>
+    <string name="mistake_dialog_review">Revisar</string>
+    <string name="mistake_dialog_mark">Marcar errores</string>
+
+    <!-- Victory -->
+    <string name="victory_title">Sudoku resuelto</string>
+    <string name="victory_body">Completaste el tablero con lógica. Buen cierre.</string>
+    <string name="victory_time">Tiempo</string>
+    <string name="victory_difficulty">Dificultad</string>
+    <string name="victory_hints">Pistas</string>
+    <string name="victory_no_hints">Sin pistas</string>
+    <string name="victory_one_hint">1 pista</string>
+    <string name="victory_many_hints">%1$d pistas</string>
+
+    <!-- Settings and Premium -->
+    <string name="settings_title">Configuración</string>
+    <string name="settings_section_game">Juego</string>
+    <string name="settings_section_appearance">Apariencia</string>
+    <string name="settings_section_premium">Premium</string>
+    <string name="settings_section_debug">Debug</string>
+    <string name="settings_haptics_title">Vibración</string>
+    <string name="settings_haptics_description">Respuesta suave al ingresar números y usar acciones del tablero.</string>
+    <string name="settings_board_style_title">Estilo del tablero</string>
+    <string name="settings_board_style_description">Preparado para temas visuales, contraste y tamaño de lectura.</string>
+    <string name="settings_debug_reset_premium_title">Resetear Premium</string>
+    <string name="settings_debug_reset_premium_description">Vuelve a dejar la compra disponible para probar el flujo.</string>
+    <string name="settings_debug_reset">Resetear</string>
+    <string name="premium_title">Sudoku Mentor Premium</string>
+    <string name="premium_active">Premium activado</string>
+    <string name="premium_card_active_description">Pistas ilimitadas activas en esta cuenta.</string>
+    <string name="premium_card_description">Pistas ilimitadas, sin anuncios y una forma simple de apoyar la app.</string>
+    <string name="premium_headline_locked">Aprendé sin quedarte trabado</string>
+    <string name="premium_headline_active">Premium activado</string>
+    <string name="premium_body_locked">Desbloqueá pistas ilimitadas para practicar técnicas, entender patrones y avanzar sin anuncios.</string>
+    <string name="premium_body_active">Tenés pistas ilimitadas para entrenar técnicas y resolver con calma.</string>
+    <string name="premium_purchase_loading">Abriendo compra...</string>
+    <string name="premium_already_bought">Ya compré Premium</string>
+    <string name="premium_status_purchase_not_started">No se pudo iniciar la compra.</string>
+    <string name="premium_status_activated">Premium activado.</string>
+    <string name="premium_status_purchase_pending">La compra quedó pendiente.</string>
+    <string name="premium_status_purchase_canceled">Compra cancelada.</string>
+    <string name="premium_status_activation_failed">No se pudo activar Premium.</string>
+    <string name="premium_benefit_unlimited_hints">Pistas ilimitadas por partida</string>
+    <string name="premium_benefit_no_ads">Sin anuncios para pedir pistas</string>
+    <string name="premium_benefit_practice">Más práctica para aprender técnicas</string>
+    <string name="premium_benefit_support">Apoyás el desarrollo de Sudoku Mentor</string>
+
+    <!-- Techniques -->
+    <string name="techniques_title">Técnicas</string>
+    <string name="techniques_badge">Resolver con lógica</string>
+    <string name="techniques_intro_title">Aprendé las técnicas</string>
+    <string name="techniques_intro_body">La idea de Sudoku Mentor es explicar cómo llegar a una solución. Los tableros están pensados para que siempre puedas avanzar usando técnicas, sin adivinar.</string>
+    <string name="techniques_idea">Idea</string>
+    <string name="techniques_rule">Regla rápida</string>
+    <string name="techniques_result">Qué cambia en el tablero</string>
+    <string name="techniques_how_to_recognize">Cómo reconocerla</string>
+    <string name="techniques_what_to_watch">Qué mirar primero</string>
+    <string name="techniques_why_it_works">Por qué funciona</string>
+    <string name="techniques_common_mistakes">Errores comunes</string>
+    <string name="techniques_practical_checklist">Checklist práctico</string>
+    <string name="techniques_source_title">Referencia conceptual</string>
+    <string name="techniques_source_body">Explicación propia basada en el enfoque de SudokuWiki. No usamos sus textos ni sus imágenes.</string>
 </resources>

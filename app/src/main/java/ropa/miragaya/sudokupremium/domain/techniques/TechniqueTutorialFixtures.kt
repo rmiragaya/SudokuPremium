@@ -524,7 +524,8 @@ private val xWingRowsExample = TechniqueTutorialExample(
     techniqueId = "x_wing",
     strategyName = "X-Wing",
     title = "X-Wing por filas",
-    description = "El 1 aparece en las mismas dos columnas de dos filas. El 1 rojo queda descartado.",
+    description = "Primero mirá las cuatro casillas amarillas: el 1 aparece exactamente en las mismas dos " +
+        "columnas de dos filas. Por eso el 1 marcado en rojo queda descartado de esa columna.",
     grid = "830200940290804003514793862001420030003070420042008009379146285168002794425987316",
     notesSpec = """
         2:67
@@ -561,7 +562,8 @@ private val xWingColumnsExample = TechniqueTutorialExample(
     techniqueId = "x_wing",
     strategyName = "X-Wing",
     title = "X-Wing por columnas",
-    description = "El 7 aparece en las mismas dos filas de dos columnas. Las marcas rojas pierden el 7.",
+    description = "La misma idea también funciona por columnas: el 7 aparece en las mismas dos filas de dos " +
+        "columnas, así que las casillas rojas no pueden conservar ese candidato.",
     grid = "907305146015407800430900257849000005573804021000500408000600504050040000704050080",
     notesSpec = """
         1:28
@@ -617,7 +619,8 @@ private val yWingBoxExample = TechniqueTutorialExample(
     techniqueId = "y_wing",
     strategyName = "Y-Wing",
     title = "Y-Wing con pivote y dos alas",
-    description = "Las casillas amarillas fuerzan un 5 en una de las alas; la casilla roja ve ambas alas.",
+    description = "La pivote y las dos alas están en amarillo. Pase lo que pase con la pivote, una de las alas " +
+        "termina usando el 5; la casilla roja ve ambas alas y pierde ese candidato.",
     grid = "830200940290804003514793862001420030003070420042008009379146285168002794425987316",
     notesSpec = """
         2:67
@@ -654,7 +657,8 @@ private val yWingLineExample = TechniqueTutorialExample(
     techniqueId = "y_wing",
     strategyName = "Y-Wing",
     title = "Y-Wing con eliminación doble",
-    description = "Ambas casillas rojas ven las alas del patrón, así que ninguna puede conservar el 9.",
+    description = "Este caso muestra dos eliminaciones: ambas casillas rojas ven las dos alas del patrón, " +
+        "así que ninguna puede conservar el 9.",
     grid = "830200940290804003514793862001420630003070420042008009379146285168002794425987316",
     notesSpec = """
         2:67

@@ -57,14 +57,13 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -84,6 +83,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -96,9 +96,12 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ropa.miragaya.sudokupremium.BuildConfig
+import ropa.miragaya.sudokupremium.R
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Cell
+import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.domain.model.SudokuHint
+import ropa.miragaya.sudokupremium.ui.component.MentorButton
 import ropa.miragaya.sudokupremium.ui.game.component.GameWonDialog
 import ropa.miragaya.sudokupremium.ui.game.component.HintOverlayCard
 import ropa.miragaya.sudokupremium.ui.game.component.MistakeDialog
@@ -122,8 +125,10 @@ fun GameScreen(
     val view = LocalView.current
 
     val lifecycleOwner = LocalLifecycleOwner.current
+    val debugDumpLabel = stringResource(R.string.debug_json_label)
+    val debugDumpCopiedMessage = stringResource(R.string.debug_json_copied)
     val onGetDebugDumpClick = if (BuildConfig.DEBUG) {
-        getDebugDump(viewModel, context)
+        getDebugDump(viewModel, context, debugDumpLabel, debugDumpCopiedMessage)
     } else {
         {}
     }
@@ -145,7 +150,9 @@ fun GameScreen(
 
     if (uiState.isComplete) {
         GameWonDialog(
+            difficulty = uiState.difficulty.name,
             elapsedTimeSeconds = uiState.elapsedTimeSeconds,
+            hintsUsed = uiState.hintsUsed,
             onStartNewGame = { viewModel.startNewGame(uiState.difficulty) }
         )
     }
@@ -216,14 +223,19 @@ fun GameScreen(
 }
 
 @Composable
-private fun getDebugDump(viewModel: GameViewModel, context: Context): () -> Unit = {
+private fun getDebugDump(
+    viewModel: GameViewModel,
+    context: Context,
+    clipLabel: String,
+    copiedMessage: String
+): () -> Unit = {
     val dumpString = viewModel.getDebugDump()
 
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    val clip = ClipData.newPlainText("SudokuDump", dumpString)
+    val clip = ClipData.newPlainText(clipLabel, dumpString)
     clipboard.setPrimaryClip(clip)
 
-    Toast.makeText(context, "¡JSON copiado!", Toast.LENGTH_SHORT).show()
+    Toast.makeText(context, copiedMessage, Toast.LENGTH_SHORT).show()
 }
 
 private fun performSudokuHaptic(context: Context, view: View, enabled: Boolean, feedbackConstant: Int) {
@@ -268,7 +280,7 @@ private fun HintLimitDialog(
         containerColor = SudokuPalette.HomePanel,
         title = {
             Text(
-                text = "Pistas agotadas",
+                text = stringResource(R.string.hint_limit_title),
                 color = SudokuPalette.TextPrimary,
                 fontWeight = FontWeight.Bold
             )
@@ -276,44 +288,33 @@ private fun HintLimitDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
-                    text = "Usaste tus $freeHintsPerGame pistas gratis de esta partida.",
+                    text = stringResource(R.string.hint_limit_message, freeHintsPerGame),
                     color = SudokuPalette.TextSecondary
                 )
                 if (showError) {
                     Text(
-                        text = "No se pudo cargar el anuncio. Proba de nuevo en un momento.",
+                        text = stringResource(R.string.hint_limit_ad_error),
                         color = SudokuPalette.TextError
                     )
                 }
             }
         },
         confirmButton = {
-            Button(
+            MentorButton(
+                text = stringResource(R.string.hint_limit_watch_ad),
                 onClick = onWatchAd,
                 enabled = !isLoading,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = SudokuPalette.TextAccent,
-                    contentColor = SudokuPalette.ScreenBackground
-                )
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp,
-                        color = SudokuPalette.ScreenBackground
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                }
-                Text("Ver anuncio para 1 pista")
-            }
+                isLoading = isLoading,
+                height = 46.dp
+            )
         },
         dismissButton = {
             Column(horizontalAlignment = Alignment.End) {
                 TextButton(onClick = onUnlockPremium) {
-                    Text("Desbloquear Premium", color = SudokuPalette.TextAccent)
+                    Text(stringResource(R.string.premium_unlock), color = SudokuPalette.TextAccent)
                 }
                 TextButton(onClick = onDismiss) {
-                    Text("Ahora no", color = SudokuPalette.TextSecondary)
+                    Text(stringResource(R.string.action_now_not), color = SudokuPalette.TextSecondary)
                 }
             }
         }
@@ -321,188 +322,13 @@ private fun HintLimitDialog(
 }
 
 @Composable
-private fun SettingsDialog(
-    hapticsEnabled: Boolean,
-    isPremium: Boolean,
-    premiumStatusMessage: String?,
-    onHapticsEnabledChanged: (Boolean) -> Unit,
-    onOpenPremium: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = SudokuPalette.HomePanel,
-        title = {
-            Text(
-                text = "Configuración",
-                color = SudokuPalette.TextPrimary,
-                fontWeight = FontWeight.Bold
-            )
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
-                SettingsSwitchRow(
-                    title = "Vibración",
-                    description = "Respuesta suave al ingresar números y usar acciones del tablero.",
-                    checked = hapticsEnabled,
-                    onCheckedChange = onHapticsEnabledChanged
-                )
-
-                SettingsPremiumRow(
-                    isPremium = isPremium,
-                    premiumStatusMessage = premiumStatusMessage,
-                    onOpenPremium = onOpenPremium
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = onDismiss,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = SudokuPalette.TextAccent,
-                    contentColor = SudokuPalette.ScreenBackground
-                )
-            ) {
-                Text("Listo")
-            }
-        }
-    )
-}
-
-@Composable
-private fun SettingsSwitchRow(
-    title: String,
-    description: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp)
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                color = SudokuPalette.TextPrimary,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = description,
-                color = SudokuPalette.TextSecondary,
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange
-        )
+private fun Difficulty.displayName(): String {
+    return when (this) {
+        Difficulty.EASY -> stringResource(R.string.difficulty_easy_title)
+        Difficulty.MEDIUM -> stringResource(R.string.difficulty_medium_title)
+        Difficulty.HARD -> stringResource(R.string.difficulty_hard_title)
+        Difficulty.EXPERT -> stringResource(R.string.difficulty_expert_title)
     }
-}
-
-@Composable
-private fun SettingsPremiumRow(isPremium: Boolean, premiumStatusMessage: String?, onOpenPremium: () -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = SudokuPalette.HomeBadgeBackground,
-        border = BorderStroke(1.dp, SudokuPalette.HomeBorder)
-    ) {
-        Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = if (isPremium) "Premium activado" else "Sudoku Mentor Premium",
-                color = SudokuPalette.TextPrimary,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold
-            )
-            Text(
-                text = if (isPremium) {
-                    "Tenés hints ilimitadas en esta cuenta."
-                } else {
-                    "Hints ilimitadas y sin anuncios."
-                },
-                color = SudokuPalette.TextSecondary,
-                style = MaterialTheme.typography.bodySmall
-            )
-            premiumStatusMessage?.let {
-                if (!isPremium) {
-                    Text(
-                        text = it,
-                        color = SudokuPalette.TextAccent,
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            }
-            if (!isPremium) {
-                Button(
-                    onClick = onOpenPremium,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = SudokuPalette.TextAccent,
-                        contentColor = SudokuPalette.ScreenBackground
-                    )
-                ) {
-                    Text("Ver Premium")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun PremiumDialog(
-    statusMessage: String?,
-    onPurchase: () -> Unit,
-    onRestore: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = SudokuPalette.HomePanel,
-        title = {
-            Text(
-                text = "Sudoku Mentor Premium",
-                color = SudokuPalette.TextPrimary,
-                fontWeight = FontWeight.Bold
-            )
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("Hints ilimitadas", color = SudokuPalette.TextPrimary)
-                Text("Sin anuncios para pedir pistas", color = SudokuPalette.TextPrimary)
-                Text("Apoyás el desarrollo de Sudoku Mentor", color = SudokuPalette.TextPrimary)
-                statusMessage?.let {
-                    Text(text = it, color = SudokuPalette.TextAccent)
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = onPurchase,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = SudokuPalette.TextAccent,
-                    contentColor = SudokuPalette.ScreenBackground
-                )
-            ) {
-                Text("Desbloquear Premium")
-            }
-        },
-        dismissButton = {
-            Column(horizontalAlignment = Alignment.End) {
-                TextButton(onClick = onRestore) {
-                    Text("Ya compré Premium", color = SudokuPalette.TextAccent)
-                }
-                TextButton(onClick = onDismiss) {
-                    Text("Ahora no", color = SudokuPalette.TextSecondary)
-                }
-            }
-        }
-    )
 }
 
 @Composable
@@ -544,7 +370,7 @@ fun GameContent(
             .background(brush = SudokuPalette.MainGradient)
     ) {
         GameTopBar(
-            difficulty = uiState.difficulty.name,
+            difficulty = uiState.difficulty.displayName(),
             onBackClick = onBackClick,
             onGetDebugDumpClick = onGetDebugDumpClick,
             onCrashlyticsTestCrashClick = onCrashlyticsTestCrashClick,
@@ -960,7 +786,7 @@ fun GameTopBar(
     ) {
         Icon(
             imageVector = Icons.AutoMirrored.Default.ArrowBack,
-            contentDescription = "Volver",
+            contentDescription = stringResource(R.string.action_back),
             tint = SudokuPalette.TextSecondary,
             modifier = Modifier
                 .align(Alignment.CenterStart)
@@ -988,7 +814,7 @@ fun GameTopBar(
             IconButton(onClick = { isMenuExpanded = true }) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
-                    contentDescription = "Más opciones",
+                    contentDescription = stringResource(R.string.game_more_options),
                     tint = SudokuPalette.TextSecondary
                 )
             }
@@ -999,7 +825,8 @@ fun GameTopBar(
                 containerColor = SudokuPalette.HomePanel
             ) {
                 DropdownMenuItem(
-                    text = { Text(text = "Configuración") },
+                    text = { Text(text = stringResource(R.string.game_menu_settings)) },
+                    colors = gameMenuItemColors(),
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Settings,
@@ -1012,7 +839,8 @@ fun GameTopBar(
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text(text = "Técnicas") },
+                    text = { Text(text = stringResource(R.string.game_menu_techniques)) },
+                    colors = gameMenuItemColors(),
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.School,
@@ -1026,7 +854,8 @@ fun GameTopBar(
                 )
                 if (BuildConfig.DEBUG) {
                     DropdownMenuItem(
-                        text = { Text(text = "Agregar candidatos") },
+                        text = { Text(text = stringResource(R.string.game_menu_add_candidates)) },
+                        colors = gameMenuItemColors(),
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Numbers,
@@ -1039,7 +868,8 @@ fun GameTopBar(
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text(text = "Preparar victoria") },
+                        text = { Text(text = stringResource(R.string.game_menu_prepare_victory)) },
+                        colors = gameMenuItemColors(),
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.DoneAll,
@@ -1052,7 +882,8 @@ fun GameTopBar(
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text(text = "Resetear Premium") },
+                        text = { Text(text = stringResource(R.string.game_menu_reset_premium)) },
+                        colors = gameMenuItemColors(),
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Settings,
@@ -1065,7 +896,8 @@ fun GameTopBar(
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text(text = "Probar Crashlytics") },
+                        text = { Text(text = stringResource(R.string.game_menu_test_crashlytics)) },
+                        colors = gameMenuItemColors(),
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.BugReport,
@@ -1082,6 +914,12 @@ fun GameTopBar(
         }
     }
 }
+
+@Composable
+private fun gameMenuItemColors() = MenuDefaults.itemColors(
+    textColor = SudokuPalette.TextPrimary,
+    leadingIconColor = SudokuPalette.TextSecondary
+)
 
 @Composable
 fun GameTimerPill(elapsedTimeSeconds: Long, modifier: Modifier = Modifier) {
@@ -1150,18 +988,18 @@ fun GameControls(
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.Undo,
-                contentDescription = "Deshacer",
+                contentDescription = stringResource(R.string.game_undo),
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.size(8.dp))
-            Text("Undo", style = MaterialTheme.typography.labelLarge)
+            Text(stringResource(R.string.game_undo), style = MaterialTheme.typography.labelLarge)
         }
 
         // notas
         val containerColor =
-            if (isNoteMode) SudokuPalette.TextAccent else SudokuPalette.ButtonContainer
+            if (isNoteMode) SudokuPalette.PrimaryButtonSolid else SudokuPalette.ButtonContainer
         val contentColor =
-            if (isNoteMode) SudokuPalette.ScreenBackground else SudokuPalette.TextAccent
+            if (isNoteMode) SudokuPalette.TextOnAccent else SudokuPalette.TextAccent
 
         Button(
             onClick = onToggleNoteMode,
@@ -1175,12 +1013,16 @@ fun GameControls(
         ) {
             Icon(
                 imageVector = Icons.Default.Edit,
-                contentDescription = "Modo Notas",
+                contentDescription = stringResource(R.string.game_note_mode),
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.size(8.dp))
             Text(
-                text = if (isNoteMode) "ON" else "OFF",
+                text = if (isNoteMode) {
+                    stringResource(R.string.game_note_mode_on)
+                } else {
+                    stringResource(R.string.game_note_mode_off)
+                },
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -1199,11 +1041,11 @@ fun GameControls(
         ) {
             Icon(
                 imageVector = Icons.Default.Lightbulb,
-                contentDescription = "Pedir pista",
+                contentDescription = stringResource(R.string.game_hint),
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.size(8.dp))
-            Text("Hint", style = MaterialTheme.typography.labelLarge)
+            Text(stringResource(R.string.game_hint), style = MaterialTheme.typography.labelLarge)
         }
     }
 }

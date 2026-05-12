@@ -24,6 +24,7 @@ firebaseCrashlyticsPlugin = "3.0.6"
 playBilling = "8.3.0"
 playServicesAds = "24.9.0"
 ump = "3.2.0"
+konfetti = "2.0.5"
 #Buscar la version de KSP que funcione bien con la de Kotlin, debiera ser la misma
 
 [libraries]
@@ -63,6 +64,7 @@ firebase-config = { group = "com.google.firebase", name = "firebase-config" }
 play-billing-ktx = { group = "com.android.billingclient", name = "billing-ktx", version.ref = "playBilling" }
 play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playServicesAds" }
 user-messaging-platform = { group = "com.google.android.ump", name = "user-messaging-platform", version.ref = "ump" }
+konfetti-compose = { group = "nl.dionsegijn", name = "konfetti-compose", version.ref = "konfetti" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

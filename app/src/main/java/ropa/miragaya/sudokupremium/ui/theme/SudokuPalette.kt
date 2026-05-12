@@ -21,6 +21,7 @@ object SudokuPalette {
     val TextPrimary = Color(0xFFFFFFFF)
     val TextSecondary = Color(0xFF8F93A3)
     val TextAccent = Color(0xFF64B5F6)
+    val TextOnAccent = Color(0xFFFFFFFF)
     val TextError = Color(0xFFFF5252)
 
     val ButtonContainer = Color(0xFF23263A)
@@ -44,10 +45,17 @@ object SudokuPalette {
         )
     )
 
-    val ButtonGradient = Brush.verticalGradient(
+    val PrimaryButtonGradient = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFF1363F7),
-            Color(0xFF236DF1)
+            Color(0xFF1F73E0),
+            Color(0xFF1458C4)
         )
     )
+    val PrimaryButtonSolid = Color(0xFF1F73E0)
+    val PrimaryButtonBorder = Color(0xFF79BAFF).copy(alpha = 0.38f)
+    val PrimaryButtonSecondaryContainer = Color(0xFF1C2540)
+    val PrimaryButtonSecondaryBorder = Color(0xFF38527F)
+    val PrimaryButtonSecondaryContent = Color(0xFFEAF4FF)
+
+    val ButtonGradient = PrimaryButtonGradient
 }
