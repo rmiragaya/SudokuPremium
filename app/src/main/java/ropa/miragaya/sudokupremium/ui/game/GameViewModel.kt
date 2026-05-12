@@ -502,7 +502,13 @@ class GameViewModel @Inject constructor(
     }
 
     fun onUnlockPremiumClick() {
-        _uiState.update { it.copy(showHintLimitSheet = false, showPremiumSheet = true) }
+        _uiState.update {
+            it.copy(
+                showHintLimitSheet = false,
+                showSettingsDialog = false,
+                showPremiumSheet = true
+            )
+        }
     }
 
     fun onDismissPremiumSheet() {

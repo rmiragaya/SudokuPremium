@@ -32,8 +32,12 @@ import ropa.miragaya.sudokupremium.ui.game.GameScreen
 import ropa.miragaya.sudokupremium.ui.home.HomeScreen
 import ropa.miragaya.sudokupremium.ui.navigation.GameRoute
 import ropa.miragaya.sudokupremium.ui.navigation.HomeRoute
+import ropa.miragaya.sudokupremium.ui.navigation.PremiumRoute
+import ropa.miragaya.sudokupremium.ui.navigation.SettingsRoute
 import ropa.miragaya.sudokupremium.ui.navigation.TechniqueDetailRoute
 import ropa.miragaya.sudokupremium.ui.navigation.TechniquesRoute
+import ropa.miragaya.sudokupremium.ui.settings.PremiumScreen
+import ropa.miragaya.sudokupremium.ui.settings.SettingsScreen
 import ropa.miragaya.sudokupremium.ui.techniques.TechniqueDetailScreen
 import ropa.miragaya.sudokupremium.ui.techniques.TechniquesScreen
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPremiumTheme
@@ -105,9 +109,42 @@ class MainActivity : ComponentActivity() {
                                 onOpenTechniquesClick = {
                                     navController.navigate(TechniquesRoute)
                                 },
+                                onOpenSettingsClick = {
+                                    navController.navigate(SettingsRoute)
+                                },
+                                onOpenPremiumClick = {
+                                    navController.navigate(PremiumRoute)
+                                },
                                 onOpenTechniqueClick = { techniqueId ->
                                     analyticsTracker.logTechniqueOpened(techniqueId, TechniqueOpenSource.HINT)
                                     navController.navigate(TechniqueDetailRoute(techniqueId = techniqueId))
+                                }
+                            )
+                        }
+
+                        composable<SettingsRoute> {
+                            LaunchedEffect(Unit) {
+                                analyticsTracker.logScreenViewed(SCREEN_SETTINGS)
+                            }
+
+                            SettingsScreen(
+                                onBackClick = {
+                                    navController.popBackStack()
+                                },
+                                onOpenPremiumClick = {
+                                    navController.navigate(PremiumRoute)
+                                }
+                            )
+                        }
+
+                        composable<PremiumRoute> {
+                            LaunchedEffect(Unit) {
+                                analyticsTracker.logScreenViewed(SCREEN_PREMIUM)
+                            }
+
+                            PremiumScreen(
+                                onBackClick = {
+                                    navController.popBackStack()
                                 }
                             )
                         }
@@ -184,6 +221,8 @@ private const val SCREEN_TRANSITION_ENTER_SCALE = 0.97f
 private const val SCREEN_TRANSITION_EXIT_SCALE = 0.985f
 private const val SCREEN_HOME = "home"
 private const val SCREEN_GAME = "game"
+private const val SCREEN_SETTINGS = "settings"
+private const val SCREEN_PREMIUM = "premium"
 private const val SCREEN_TECHNIQUES = "techniques"
 private const val SCREEN_TECHNIQUE_DETAIL = "technique_detail"
 
@@ -196,6 +235,8 @@ fun GreetingPreview() {
                 modifier = Modifier.padding(innerPadding),
                 onBackClick = {},
                 onOpenTechniquesClick = {},
+                onOpenSettingsClick = {},
+                onOpenPremiumClick = {},
                 onOpenTechniqueClick = {}
             )
         }

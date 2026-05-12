@@ -11,6 +11,13 @@ object HomeRoute
 @Serializable
 data class GameRoute(val createNew: Boolean = false, val difficulty: Difficulty = Difficulty.EASY)
 
+// Settings
+@Serializable
+object SettingsRoute
+
+@Serializable
+object PremiumRoute
+
 // Techniques
 @Serializable
 object TechniquesRoute

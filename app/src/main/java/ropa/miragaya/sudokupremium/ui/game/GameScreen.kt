@@ -112,6 +112,8 @@ fun GameScreen(
     viewModel: GameViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
     onOpenTechniquesClick: () -> Unit,
+    onOpenSettingsClick: () -> Unit,
+    onOpenPremiumClick: () -> Unit,
     onOpenTechniqueClick: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -162,28 +164,11 @@ fun GameScreen(
             isLoading = uiState.isRewardedHintLoading,
             showError = uiState.showRewardedHintError,
             onWatchAd = { viewModel.onWatchRewardedHintAdClick(activity) },
-            onUnlockPremium = viewModel::onUnlockPremiumClick,
+            onUnlockPremium = {
+                viewModel.onDismissHintLimitSheet()
+                onOpenPremiumClick()
+            },
             onDismiss = viewModel::onDismissHintLimitSheet
-        )
-    }
-
-    if (uiState.showPremiumSheet) {
-        PremiumDialog(
-            statusMessage = uiState.premiumStatusMessage,
-            onPurchase = { viewModel.onPurchasePremiumClick(activity) },
-            onRestore = viewModel::onRestorePremiumClick,
-            onDismiss = viewModel::onDismissPremiumSheet
-        )
-    }
-
-    if (uiState.showSettingsDialog) {
-        SettingsDialog(
-            hapticsEnabled = uiState.hapticsEnabled,
-            isPremium = uiState.isPremium,
-            premiumStatusMessage = uiState.premiumStatusMessage,
-            onHapticsEnabledChanged = viewModel::onHapticsEnabledChanged,
-            onRestorePremium = viewModel::onRestorePremiumClick,
-            onDismiss = viewModel::onDismissSettingsDialog
         )
     }
 
@@ -217,7 +202,7 @@ fun GameScreen(
             onDebugFillCandidatesClick = viewModel::onDebugFillCandidatesClick,
             onDebugPrepareVictoryClick = viewModel::onDebugPrepareVictoryClick,
             onDebugResetPremiumClick = viewModel::onDebugResetPremiumClick,
-            onSettingsClick = viewModel::onSettingsClick,
+            onSettingsClick = onOpenSettingsClick,
             onOpenTechniquesClick = onOpenTechniquesClick,
             onOpenTechniqueClick = onOpenTechniqueClick,
             currentHintIndex = uiState.currentHintIndex,
@@ -341,7 +326,7 @@ private fun SettingsDialog(
     isPremium: Boolean,
     premiumStatusMessage: String?,
     onHapticsEnabledChanged: (Boolean) -> Unit,
-    onRestorePremium: () -> Unit,
+    onOpenPremium: () -> Unit,
     onDismiss: () -> Unit
 ) {
     AlertDialog(
@@ -366,7 +351,7 @@ private fun SettingsDialog(
                 SettingsPremiumRow(
                     isPremium = isPremium,
                     premiumStatusMessage = premiumStatusMessage,
-                    onRestorePremium = onRestorePremium
+                    onOpenPremium = onOpenPremium
                 )
             }
         },
@@ -418,7 +403,7 @@ private fun SettingsSwitchRow(
 }
 
 @Composable
-private fun SettingsPremiumRow(isPremium: Boolean, premiumStatusMessage: String?, onRestorePremium: () -> Unit) {
+private fun SettingsPremiumRow(isPremium: Boolean, premiumStatusMessage: String?, onOpenPremium: () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -430,7 +415,7 @@ private fun SettingsPremiumRow(isPremium: Boolean, premiumStatusMessage: String?
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = if (isPremium) "Premium activo" else "Premium",
+                text = if (isPremium) "Premium activado" else "Sudoku Mentor Premium",
                 color = SudokuPalette.TextPrimary,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold
@@ -439,7 +424,7 @@ private fun SettingsPremiumRow(isPremium: Boolean, premiumStatusMessage: String?
                 text = if (isPremium) {
                     "Tenés hints ilimitadas en esta cuenta."
                 } else {
-                    "Restaurá tu compra si ya activaste Sudoku Mentor Premium."
+                    "Hints ilimitadas y sin anuncios."
                 },
                 color = SudokuPalette.TextSecondary,
                 style = MaterialTheme.typography.bodySmall
@@ -455,8 +440,14 @@ private fun SettingsPremiumRow(isPremium: Boolean, premiumStatusMessage: String?
                 }
             }
             if (!isPremium) {
-                TextButton(onClick = onRestorePremium) {
-                    Text("Restaurar Premium", color = SudokuPalette.TextAccent)
+                Button(
+                    onClick = onOpenPremium,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = SudokuPalette.TextAccent,
+                        contentColor = SudokuPalette.ScreenBackground
+                    )
+                ) {
+                    Text("Ver Premium")
                 }
             }
         }
@@ -504,7 +495,7 @@ private fun PremiumDialog(
         dismissButton = {
             Column(horizontalAlignment = Alignment.End) {
                 TextButton(onClick = onRestore) {
-                    Text("Restaurar compra", color = SudokuPalette.TextAccent)
+                    Text("Ya compré Premium", color = SudokuPalette.TextAccent)
                 }
                 TextButton(onClick = onDismiss) {
                     Text("Ahora no", color = SudokuPalette.TextSecondary)
