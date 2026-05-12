@@ -26,7 +26,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,11 +36,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import java.util.concurrent.TimeUnit
-import nl.dionsegijn.konfetti.compose.KonfettiView
-import nl.dionsegijn.konfetti.core.Party
-import nl.dionsegijn.konfetti.core.Position
-import nl.dionsegijn.konfetti.core.emitter.Emitter
 import ropa.miragaya.sudokupremium.R
 import ropa.miragaya.sudokupremium.ui.component.MentorButton
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
@@ -56,112 +50,68 @@ fun GameWonDialog(
     onDismiss: () -> Unit = {}
 ) {
     Dialog(onDismissRequest = onDismiss) {
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
+        Surface(
+            shape = RoundedCornerShape(28.dp),
+            color = SudokuPalette.HomePanel,
+            border = BorderStroke(1.dp, SudokuPalette.HomeBorder),
+            tonalElevation = 10.dp,
+            modifier = Modifier.padding(16.dp)
         ) {
-            VictoryKonfetti(
+            Column(
                 modifier = Modifier
-                    .matchParentSize()
-            )
-
-            Surface(
-                shape = RoundedCornerShape(28.dp),
-                color = SudokuPalette.HomePanel,
-                border = BorderStroke(1.dp, SudokuPalette.HomeBorder),
-                tonalElevation = 10.dp,
-                modifier = Modifier.padding(16.dp)
+                    .fillMaxWidth()
+                    .padding(22.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(22.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    VictoryGlyph()
+                VictoryGlyph()
 
-                    Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
-                    Text(
-                        text = stringResource(R.string.victory_title),
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = SudokuPalette.TextPrimary,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center
+                Text(
+                    text = stringResource(R.string.victory_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = SudokuPalette.TextPrimary,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = stringResource(R.string.victory_body),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = SudokuPalette.TextSecondary,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    VictoryStatRow(
+                        label = stringResource(R.string.victory_time),
+                        value = elapsedTimeSeconds.toFormattedTime()
                     )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = stringResource(R.string.victory_body),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = SudokuPalette.TextSecondary,
-                        textAlign = TextAlign.Center
+                    VictoryStatRow(
+                        label = stringResource(R.string.victory_difficulty),
+                        value = difficulty.toDifficultyLabel()
                     )
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        VictoryStatRow(
-                            label = stringResource(R.string.victory_time),
-                            value = elapsedTimeSeconds.toFormattedTime()
-                        )
-                        VictoryStatRow(
-                            label = stringResource(R.string.victory_difficulty),
-                            value = difficulty.toDifficultyLabel()
-                        )
-                        VictoryStatRow(
-                            label = stringResource(R.string.victory_hints),
-                            value = hintsUsed.toHintsLabel()
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(22.dp))
-
-                    MentorButton(
-                        text = stringResource(R.string.home_new_game),
-                        onClick = onStartNewGame,
-                        modifier = Modifier
-                            .fillMaxWidth()
+                    VictoryStatRow(
+                        label = stringResource(R.string.victory_hints),
+                        value = hintsUsed.toHintsLabel()
                     )
                 }
+
+                Spacer(modifier = Modifier.height(22.dp))
+
+                MentorButton(
+                    text = stringResource(R.string.home_new_game),
+                    onClick = onStartNewGame,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                )
             }
         }
     }
-}
-
-@Composable
-private fun VictoryKonfetti(modifier: Modifier = Modifier) {
-    val parties = remember {
-        listOf(
-            victoryParty(position = Position.Relative(0.12, 0.08), angle = 35),
-            victoryParty(position = Position.Relative(0.88, 0.08), angle = 145)
-        )
-    }
-
-    KonfettiView(
-        modifier = modifier,
-        parties = parties
-    )
-}
-
-private fun victoryParty(position: Position, angle: Int): Party {
-    return Party(
-        angle = angle,
-        spread = 56,
-        speed = 8f,
-        maxSpeed = 22f,
-        damping = 0.88f,
-        timeToLive = 1900L,
-        colors = listOf(
-            0xFF64B5F6.toInt(),
-            0xFFFFD54F.toInt(),
-            0xFF6ED6A5.toInt(),
-            0xFFFFFFFF.toInt()
-        ),
-        position = position,
-        emitter = Emitter(duration = 850, TimeUnit.MILLISECONDS).max(70)
-    )
 }
 
 @Composable
