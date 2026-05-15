@@ -130,6 +130,165 @@ class GameViewModelTest {
     }
 
     @Test
+    fun `first general game easy shows how to play intro`() = runTestWithDispatcher {
+        val puzzleBoard = boardWithEmptyCells(80)
+        val settingsRepository = FakeAppSettingsRepository()
+        val viewModel = createViewModel(
+            generator = FakePuzzleGenerator(SudokuPuzzle(puzzleBoard, solvedBoard, Difficulty.EASY)),
+            appSettingsRepository = settingsRepository,
+            route = GameRoute(createNew = true, difficulty = Difficulty.EASY)
+        )
+        runCurrent()
+
+        advanceTimeBy(RemoteConfigDefaults.NEW_GAME_LOADING_MIN_DURATION_MS)
+        runCurrent()
+
+        assertTrue(viewModel.uiState.value.showHowToPlayDialog)
+        assertTrue(viewModel.uiState.value.isHowToPlayFirstGameIntro)
+        assertTrue(settingsRepository.settings.value.hasStartedAnyGame)
+        assertFalse(settingsRepository.settings.value.hasSeenHowToPlayTutorial)
+
+        viewModel.pauseTimer()
+    }
+
+    @Test
+    fun `first general game medium blocks future automatic tutorial`() = runTestWithDispatcher {
+        val settingsRepository = FakeAppSettingsRepository()
+        val viewModel = createViewModel(
+            generator = FakePuzzleGenerator(SudokuPuzzle(boardWithEmptyCells(80), solvedBoard, Difficulty.MEDIUM)),
+            appSettingsRepository = settingsRepository,
+            route = GameRoute(createNew = true, difficulty = Difficulty.MEDIUM)
+        )
+        runCurrent()
+        advanceTimeBy(RemoteConfigDefaults.NEW_GAME_LOADING_MIN_DURATION_MS)
+        runCurrent()
+
+        assertFalse(viewModel.uiState.value.showHowToPlayDialog)
+        assertTrue(settingsRepository.settings.value.hasStartedAnyGame)
+
+        viewModel.startNewGame(Difficulty.EASY)
+        runCurrent()
+        advanceTimeBy(RemoteConfigDefaults.NEW_GAME_LOADING_MIN_DURATION_MS)
+        runCurrent()
+
+        assertFalse(viewModel.uiState.value.showHowToPlayDialog)
+
+        viewModel.pauseTimer()
+    }
+
+    @Test
+    fun `skipping first game tutorial marks it as seen`() = runTestWithDispatcher {
+        val settingsRepository = FakeAppSettingsRepository()
+        val viewModel = createViewModel(
+            generator = FakePuzzleGenerator(SudokuPuzzle(boardWithEmptyCells(80), solvedBoard, Difficulty.EASY)),
+            appSettingsRepository = settingsRepository,
+            route = GameRoute(createNew = true, difficulty = Difficulty.EASY)
+        )
+        runCurrent()
+        advanceTimeBy(RemoteConfigDefaults.NEW_GAME_LOADING_MIN_DURATION_MS)
+        runCurrent()
+
+        viewModel.onDismissHowToPlayDialog()
+        runCurrent()
+
+        assertFalse(viewModel.uiState.value.showHowToPlayDialog)
+        assertTrue(settingsRepository.settings.value.hasSeenHowToPlayTutorial)
+
+        viewModel.pauseTimer()
+    }
+
+    @Test
+    fun `guided tutorial starts without consuming hints`() = runTestWithDispatcher {
+        val board = boardWithEmptyCells(80)
+        val hintProvider = GuidedTutorialHintProvider(listOf(80), solvedBoard)
+        val viewModel = createViewModel(
+            repository = FakeGameRepository(SavedGame(board, solvedBoard, 0, Difficulty.EASY)),
+            hintProvider = hintProvider
+        )
+        runCurrent()
+
+        viewModel.onHowToPlayMenuClick()
+        viewModel.onStartGuidedTutorial()
+        runCurrent()
+
+        assertEquals(1, hintProvider.requestCount)
+        assertEquals(0, viewModel.uiState.value.hintsUsed)
+        assertTrue(viewModel.uiState.value.activeHints.isEmpty())
+        assertEquals(1, viewModel.uiState.value.guidedTutorial?.currentStep)
+
+        viewModel.pauseTimer()
+    }
+
+    @Test
+    fun `guided tutorial rejects incorrect input without changing board`() = runTestWithDispatcher {
+        val board = boardWithEmptyCells(80)
+        val viewModel = createViewModel(
+            repository = FakeGameRepository(SavedGame(board, solvedBoard, 0, Difficulty.EASY)),
+            hintProvider = GuidedTutorialHintProvider(listOf(80), solvedBoard)
+        )
+        runCurrent()
+
+        viewModel.onStartGuidedTutorial()
+        runCurrent()
+        viewModel.onCellClicked(80)
+        viewModel.onNumberInput(wrongValueFor(80))
+        runCurrent()
+
+        assertNull(viewModel.uiState.value.board.cells[80].value)
+        assertTrue(viewModel.uiState.value.guidedTutorial != null)
+        assertTrue(viewModel.uiState.value.tutorialInputMessage != null)
+
+        viewModel.pauseTimer()
+    }
+
+    @Test
+    fun `guided tutorial applies correct moves and completes after five steps`() = runTestWithDispatcher {
+        val tutorialCells = listOf(76, 77, 78, 79, 80)
+        val board = boardWithEmptyCells(*tutorialCells.toIntArray())
+        val settingsRepository = FakeAppSettingsRepository()
+        val viewModel = createViewModel(
+            repository = FakeGameRepository(SavedGame(board, solvedBoard, 0, Difficulty.EASY)),
+            hintProvider = GuidedTutorialHintProvider(tutorialCells, solvedBoard),
+            appSettingsRepository = settingsRepository
+        )
+        runCurrent()
+
+        viewModel.onStartGuidedTutorial()
+        runCurrent()
+
+        tutorialCells.forEachIndexed { index, cellId ->
+            assertEquals(index + 1, viewModel.uiState.value.guidedTutorial?.currentStep)
+
+            viewModel.onCellClicked(cellId)
+            viewModel.onNumberInput(solutionValue(cellId))
+            runCurrent()
+
+            assertEquals(solutionValue(cellId), viewModel.uiState.value.board.cells[cellId].value)
+        }
+
+        assertNull(viewModel.uiState.value.guidedTutorial)
+        assertTrue(settingsRepository.settings.value.hasSeenHowToPlayTutorial)
+
+        viewModel.pauseTimer()
+    }
+
+    @Test
+    fun `how to play menu opens manual dialog`() = runTestWithDispatcher {
+        val board = boardWithEmptyCells(80)
+        val viewModel = createViewModel(
+            repository = FakeGameRepository(SavedGame(board, solvedBoard, 0, Difficulty.HARD))
+        )
+        runCurrent()
+
+        viewModel.onHowToPlayMenuClick()
+
+        assertTrue(viewModel.uiState.value.showHowToPlayDialog)
+        assertFalse(viewModel.uiState.value.isHowToPlayFirstGameIntro)
+
+        viewModel.pauseTimer()
+    }
+
+    @Test
     fun `timer advances and stops after victory`() = runTestWithDispatcher {
         val puzzleBoard = boardWithEmptyCells(80)
         val savedGame = SavedGame(puzzleBoard, solvedBoard, 0, Difficulty.EASY)
@@ -476,7 +635,7 @@ class GameViewModelTest {
         generator: FakePuzzleGenerator = FakePuzzleGenerator(
             SudokuPuzzle(boardWithEmptyCells(80), solvedBoard, Difficulty.MEDIUM)
         ),
-        hintProvider: FakeHintProvider = FakeHintProvider(),
+        hintProvider: HintProvider = FakeHintProvider(),
         premiumEntitlementRepository: FakePremiumEntitlementRepository = FakePremiumEntitlementRepository(),
         rewardedHintAdManager: FakeRewardedHintAdManager = FakeRewardedHintAdManager(),
         appSettingsRepository: FakeAppSettingsRepository = FakeAppSettingsRepository(),
@@ -535,6 +694,10 @@ class GameViewModelTest {
 
     private fun solutionValue(cellId: Int): Int {
         return checkNotNull(solvedBoard.cells[cellId].value)
+    }
+
+    private fun wrongValueFor(cellId: Int): Int {
+        return if (solutionValue(cellId) == 1) 2 else 1
     }
 }
 
@@ -659,12 +822,20 @@ private class FakeRewardedHintAdManager(
     }
 }
 
-private class FakeAppSettingsRepository : AppSettingsRepository {
-    private val settingsFlow = MutableStateFlow(AppSettings())
+private class FakeAppSettingsRepository(initialSettings: AppSettings = AppSettings()) : AppSettingsRepository {
+    private val settingsFlow = MutableStateFlow(initialSettings)
     override val settings = settingsFlow
 
     override fun setHapticsEnabled(enabled: Boolean) {
         settingsFlow.value = settingsFlow.value.copy(hapticsEnabled = enabled)
+    }
+
+    override fun setHasStartedAnyGame(started: Boolean) {
+        settingsFlow.value = settingsFlow.value.copy(hasStartedAnyGame = started)
+    }
+
+    override fun setHowToPlayTutorialSeen(seen: Boolean) {
+        settingsFlow.value = settingsFlow.value.copy(hasSeenHowToPlayTutorial = seen)
     }
 }
 
@@ -717,6 +888,32 @@ private class FakeHintProvider(private val hints: List<SudokuHint> = emptyList()
     override fun findAllHints(board: Board): List<SudokuHint> {
         requestCount++
         return hints
+    }
+}
+
+private class GuidedTutorialHintProvider(
+    private val targetCellIds: List<Int>,
+    private val solvedBoard: Board
+) : HintProvider {
+    var requestCount = 0
+        private set
+
+    override fun findAllHints(board: Board): List<SudokuHint> {
+        requestCount++
+        val targetCellId = targetCellIds.firstOrNull { cellId -> board.cells[cellId].value == null }
+            ?: return emptyList()
+        val targetValue = checkNotNull(solvedBoard.cells[targetCellId].value)
+
+        return listOf(
+            SudokuHint(
+                strategyName = "Naked Single",
+                description = "La casilla resaltada solo puede ser $targetValue.",
+                targetCellIndex = targetCellId,
+                valueToSet = targetValue,
+                highlightCells = listOf(targetCellId),
+                stepBoard = board
+            )
+        )
     }
 }
 

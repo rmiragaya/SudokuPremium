@@ -32,8 +32,18 @@ data class GameUiState(
     val isRewardedHintLoading: Boolean = false,
     val showRewardedHintError: Boolean = false,
     val premiumStatusMessage: PremiumStatusMessage? = null,
-    val hapticsEnabled: Boolean = true
+    val hapticsEnabled: Boolean = true,
+    val showHowToPlayDialog: Boolean = false,
+    val isHowToPlayFirstGameIntro: Boolean = false,
+    val guidedTutorial: GuidedTutorialUiState? = null,
+    val tutorialInputMessage: String? = null
 ) {
     val activeHint: SudokuHint?
         get() = activeHints.getOrNull(currentHintIndex)
 }
+
+data class GuidedTutorialUiState(
+    val currentStep: Int,
+    val totalSteps: Int = 5,
+    val currentHint: SudokuHint
+)

@@ -171,6 +171,17 @@ fun GameScreen(
         )
     }
 
+    if (uiState.showHowToPlayDialog) {
+        HowToPlayDialog(
+            isFirstGameIntro = uiState.isHowToPlayFirstGameIntro,
+            canStartGuidedTutorial = uiState.difficulty == Difficulty.EASY &&
+                !uiState.isComplete &&
+                !uiState.isLoading,
+            onStartGuidedTutorial = viewModel::onStartGuidedTutorial,
+            onDismiss = viewModel::onDismissHowToPlayDialog
+        )
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         GameContent(
             uiState = uiState,
@@ -203,12 +214,14 @@ fun GameScreen(
             onDebugResetPremiumClick = viewModel::onDebugResetPremiumClick,
             onSettingsClick = onOpenSettingsClick,
             onOpenTechniquesClick = onOpenTechniquesClick,
+            onHowToPlayClick = viewModel::onHowToPlayMenuClick,
             onOpenTechniqueClick = onOpenTechniqueClick,
             currentHintIndex = uiState.currentHintIndex,
             totalHints = uiState.activeHints.size,
             onDismissHint = viewModel::onDismissHint,
             onNextHint = viewModel::onNextHint,
             onPrevHint = viewModel::onPrevHint,
+            onSkipGuidedTutorial = viewModel::onSkipGuidedTutorial,
             modifier = modifier
         )
 
@@ -324,6 +337,93 @@ private fun HintLimitDialog(
 }
 
 @Composable
+private fun HowToPlayDialog(
+    isFirstGameIntro: Boolean,
+    canStartGuidedTutorial: Boolean,
+    onStartGuidedTutorial: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = SudokuPalette.HomePanel,
+        title = {
+            Text(
+                text = if (isFirstGameIntro) {
+                    stringResource(R.string.how_to_play_intro_title)
+                } else {
+                    stringResource(R.string.how_to_play_title)
+                },
+                color = SudokuPalette.TextPrimary,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = if (isFirstGameIntro) {
+                        stringResource(R.string.how_to_play_intro_body)
+                    } else {
+                        stringResource(R.string.how_to_play_body)
+                    },
+                    color = SudokuPalette.TextSecondary,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                HowToPlayRule(
+                    title = stringResource(R.string.how_to_play_goal_title),
+                    body = stringResource(R.string.how_to_play_goal_body)
+                )
+                HowToPlayRule(
+                    title = stringResource(R.string.how_to_play_rule_title),
+                    body = stringResource(R.string.how_to_play_rule_body)
+                )
+                HowToPlayRule(
+                    title = stringResource(R.string.how_to_play_app_title),
+                    body = stringResource(R.string.how_to_play_app_body)
+                )
+            }
+        },
+        confirmButton = {
+            if (canStartGuidedTutorial) {
+                MentorButton(
+                    text = stringResource(R.string.how_to_play_start_guided),
+                    onClick = onStartGuidedTutorial,
+                    height = 46.dp
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text = if (isFirstGameIntro) {
+                        stringResource(R.string.how_to_play_skip)
+                    } else {
+                        stringResource(R.string.action_close)
+                    },
+                    color = SudokuPalette.TextSecondary
+                )
+            }
+        }
+    )
+}
+
+@Composable
+private fun HowToPlayRule(title: String, body: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Text(
+            text = title,
+            color = SudokuPalette.TextPrimary,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = body,
+            color = SudokuPalette.TextSecondary,
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
+@Composable
 private fun Difficulty.displayName(): String {
     return when (this) {
         Difficulty.EASY -> stringResource(R.string.difficulty_easy_title)
@@ -350,18 +450,22 @@ fun GameContent(
     onDebugResetPremiumClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onOpenTechniquesClick: () -> Unit,
+    onHowToPlayClick: () -> Unit,
     onOpenTechniqueClick: (String) -> Unit,
     currentHintIndex: Int,
     totalHints: Int,
     onDismissHint: () -> Unit,
     onNextHint: () -> Unit,
     onPrevHint: () -> Unit,
+    onSkipGuidedTutorial: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val guidedTutorial = uiState.guidedTutorial
     val activeHint = uiState.activeHint
+    val boardHint = guidedTutorial?.currentHint ?: activeHint
     val contentScrollState = rememberScrollState()
     val boardTopSpacerHeight by animateDpAsState(
-        targetValue = if (activeHint != null) 0.dp else 28.dp,
+        targetValue = if (boardHint != null) 0.dp else 28.dp,
         animationSpec = tween(320),
         label = "BoardTopSpacer"
     )
@@ -380,7 +484,8 @@ fun GameContent(
             onDebugPrepareVictoryClick = onDebugPrepareVictoryClick,
             onDebugResetPremiumClick = onDebugResetPremiumClick,
             onSettingsClick = onSettingsClick,
-            onOpenTechniquesClick = onOpenTechniquesClick
+            onOpenTechniquesClick = onOpenTechniquesClick,
+            onHowToPlayClick = onHowToPlayClick
         )
 
         GameTimerPill(
@@ -394,7 +499,7 @@ fun GameContent(
                 .animateContentSize(animationSpec = tween(320))
                 .padding(16.dp)
                 .then(
-                    if (activeHint != null) Modifier.verticalScroll(contentScrollState) else Modifier
+                    if (boardHint != null) Modifier.verticalScroll(contentScrollState) else Modifier
                 ),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
@@ -414,23 +519,46 @@ fun GameContent(
                 if (isLoading) {
                     SudokuDecodingBoard()
                 } else {
-                    val displayBoard = uiState.activeHint?.stepBoard ?: uiState.board
+                    val displayBoard = boardHint?.stepBoard ?: uiState.board
 
                     SudokuBoardView(
                         board = displayBoard,
                         selectedCellId = uiState.selectedCellId,
                         highlightedIds = uiState.highlightedCellIds,
                         sameValueIds = uiState.sameValueCellIds,
-                        activeHint = uiState.activeHint,
+                        activeHint = boardHint,
                         onCellClick = onCellClick
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(if (activeHint != null) 12.dp else 30.dp))
+            Spacer(modifier = Modifier.height(if (boardHint != null) 12.dp else 30.dp))
 
             AnimatedVisibility(
-                visible = activeHint != null,
+                visible = guidedTutorial != null,
+                enter = fadeIn(animationSpec = tween(260)) +
+                    slideInVertically(
+                        animationSpec = tween(320),
+                        initialOffsetY = { it / 3 }
+                    ),
+                exit = fadeOut(animationSpec = tween(180)) +
+                    slideOutVertically(
+                        animationSpec = tween(220),
+                        targetOffsetY = { it / 5 }
+                    )
+            ) {
+                guidedTutorial?.let { tutorial ->
+                    GuidedTutorialCard(
+                        tutorial = tutorial,
+                        inputMessage = uiState.tutorialInputMessage,
+                        onSkip = onSkipGuidedTutorial,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+
+            AnimatedVisibility(
+                visible = activeHint != null && guidedTutorial == null,
                 enter = fadeIn(animationSpec = tween(260)) +
                     slideInVertically(
                         animationSpec = tween(320),
@@ -456,7 +584,18 @@ fun GameContent(
                 }
             }
 
-            if (activeHint == null && !uiState.isLoading) {
+            if (guidedTutorial != null && !uiState.isLoading) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                NumberPad(
+                    onNumberClick = onNumberInput,
+                    onDeleteClick = onDeleteInput,
+                    completedNumbers = uiState.completedNumbers,
+                    highlightedNumber = guidedTutorial.currentHint.valueToSet
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+            } else if (activeHint == null && !uiState.isLoading) {
                 GameControls(
                     isNoteMode = uiState.isNoteMode,
                     onToggleNoteMode = onToggleNoteMode,
@@ -474,6 +613,69 @@ fun GameContent(
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun GuidedTutorialCard(
+    tutorial: GuidedTutorialUiState,
+    inputMessage: String?,
+    onSkip: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(18.dp),
+        color = SudokuPalette.HomePanel,
+        border = BorderStroke(1.dp, SudokuPalette.CellHintBorder.copy(alpha = 0.42f))
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(
+                        R.string.guided_tutorial_step_count,
+                        tutorial.currentStep,
+                        tutorial.totalSteps
+                    ),
+                    color = SudokuPalette.CellHintBorder,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                TextButton(onClick = onSkip) {
+                    Text(stringResource(R.string.how_to_play_skip), color = SudokuPalette.TextSecondary)
+                }
+            }
+
+            Text(
+                text = tutorial.currentHint.description,
+                color = SudokuPalette.TextPrimary,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = stringResource(
+                    R.string.guided_tutorial_instruction,
+                    tutorial.currentHint.valueToSet ?: 0
+                ),
+                color = SudokuPalette.TextSecondary,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            if (inputMessage != null) {
+                Text(
+                    text = inputMessage,
+                    color = SudokuPalette.CellHintBorder,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }
@@ -687,6 +889,7 @@ fun NumberPad(
     onNumberClick: (Int) -> Unit,
     onDeleteClick: () -> Unit,
     completedNumbers: Set<Int>,
+    highlightedNumber: Int? = null,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -703,7 +906,8 @@ fun NumberPad(
                     text = number.toString(),
                     onClick = { onNumberClick(number) },
                     modifier = Modifier.weight(1f),
-                    enabled = !completedNumbers.contains(number)
+                    enabled = !completedNumbers.contains(number),
+                    isHighlighted = highlightedNumber == number
                 )
             }
         }
@@ -718,7 +922,8 @@ fun NumberPad(
                     text = number.toString(),
                     onClick = { onNumberClick(number) },
                     modifier = Modifier.weight(1f),
-                    enabled = !completedNumbers.contains(number)
+                    enabled = !completedNumbers.contains(number),
+                    isHighlighted = highlightedNumber == number
                 )
             }
             // boton de borrar
@@ -738,12 +943,19 @@ fun SudokuButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    isDestructive: Boolean = false
+    isDestructive: Boolean = false,
+    isHighlighted: Boolean = false
 ) {
-    val containerColor =
-        if (isDestructive) SudokuPalette.ButtonDestructive else SudokuPalette.ButtonContainer
-    val contentColor =
-        if (isDestructive) SudokuPalette.ButtonDestructiveContent else SudokuPalette.ButtonContent
+    val containerColor = when {
+        isDestructive -> SudokuPalette.ButtonDestructive
+        isHighlighted -> SudokuPalette.CellHintBorder
+        else -> SudokuPalette.ButtonContainer
+    }
+    val contentColor = when {
+        isDestructive -> SudokuPalette.ButtonDestructiveContent
+        isHighlighted -> SudokuPalette.BoardBackground
+        else -> SudokuPalette.ButtonContent
+    }
 
     Button(
         onClick = onClick,
@@ -776,6 +988,7 @@ fun GameTopBar(
     onDebugResetPremiumClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onOpenTechniquesClick: () -> Unit,
+    onHowToPlayClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
@@ -852,6 +1065,20 @@ fun GameTopBar(
                     onClick = {
                         isMenuExpanded = false
                         onOpenTechniquesClick()
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(R.string.game_menu_how_to_play)) },
+                    colors = gameMenuItemColors(),
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.School,
+                            contentDescription = null
+                        )
+                    },
+                    onClick = {
+                        isMenuExpanded = false
+                        onHowToPlayClick()
                     }
                 )
                 if (BuildConfig.DEBUG) {
@@ -1073,12 +1300,14 @@ fun GameScreenPreview(@PreviewParameter(GamePreviewProvider::class) uiState: Gam
         onDebugResetPremiumClick = {},
         onSettingsClick = {},
         onOpenTechniquesClick = {},
+        onHowToPlayClick = {},
         onOpenTechniqueClick = {},
         currentHintIndex = 0,
         totalHints = uiState.activeHints.size,
         onDismissHint = {},
         onNextHint = {},
         onPrevHint = {},
+        onSkipGuidedTutorial = {},
         onUndo = {}
     )
 }

@@ -37,6 +37,7 @@
     <string name="game_more_options">Más opciones</string>
     <string name="game_menu_settings">Configuración</string>
     <string name="game_menu_techniques">Técnicas</string>
+    <string name="game_menu_how_to_play">Cómo jugar</string>
     <string name="game_menu_add_candidates">Agregar candidatos</string>
     <string name="game_menu_prepare_victory">Preparar victoria</string>
     <string name="game_menu_reset_premium">Resetear Premium</string>
@@ -49,6 +50,22 @@
     <string name="game_delete">Borrar</string>
     <string name="debug_json_label">SudokuDump</string>
     <string name="debug_json_copied">JSON copiado</string>
+
+    <!-- How to play -->
+    <string name="how_to_play_title">Cómo jugar</string>
+    <string name="how_to_play_intro_title">¿Querés aprender jugando?</string>
+    <string name="how_to_play_body">Sudoku se resuelve mirando relaciones. No hace falta adivinar.</string>
+    <string name="how_to_play_intro_body">Te guiamos por los primeros movimientos de esta partida fácil para que entiendas el ritmo.</string>
+    <string name="how_to_play_goal_title">Objetivo</string>
+    <string name="how_to_play_goal_body">Completá todas las casillas con números del 1 al 9.</string>
+    <string name="how_to_play_rule_title">Regla</string>
+    <string name="how_to_play_rule_body">Un número no puede repetirse en la misma fila, columna ni caja 3x3.</string>
+    <string name="how_to_play_app_title">En la app</string>
+    <string name="how_to_play_app_body">Tocá una casilla, elegí un número y usá notas cuando quieras guardar posibilidades.</string>
+    <string name="how_to_play_start_guided">Practicar 5 movimientos</string>
+    <string name="how_to_play_skip">Saltar</string>
+    <string name="guided_tutorial_step_count">Paso %1$d de %2$d</string>
+    <string name="guided_tutorial_instruction">Tocá la casilla resaltada y después el %1$d resaltado.</string>
 
     <!-- Hint limit and hint card -->
     <string name="hint_limit_title">Pistas agotadas</string>

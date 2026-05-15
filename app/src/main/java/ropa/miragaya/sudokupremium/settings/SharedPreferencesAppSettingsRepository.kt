@@ -16,7 +16,9 @@ class SharedPreferencesAppSettingsRepository @Inject constructor(@ApplicationCon
 
     private val _settings = MutableStateFlow(
         AppSettings(
-            hapticsEnabled = preferences.getBoolean(KEY_HAPTICS_ENABLED, true)
+            hapticsEnabled = preferences.getBoolean(KEY_HAPTICS_ENABLED, true),
+            hasStartedAnyGame = preferences.getBoolean(KEY_HAS_STARTED_ANY_GAME, false),
+            hasSeenHowToPlayTutorial = preferences.getBoolean(KEY_HAS_SEEN_HOW_TO_PLAY_TUTORIAL, false)
         )
     )
     override val settings: StateFlow<AppSettings> = _settings.asStateFlow()
@@ -28,8 +30,24 @@ class SharedPreferencesAppSettingsRepository @Inject constructor(@ApplicationCon
         _settings.value = _settings.value.copy(hapticsEnabled = enabled)
     }
 
+    override fun setHasStartedAnyGame(started: Boolean) {
+        preferences.edit()
+            .putBoolean(KEY_HAS_STARTED_ANY_GAME, started)
+            .apply()
+        _settings.value = _settings.value.copy(hasStartedAnyGame = started)
+    }
+
+    override fun setHowToPlayTutorialSeen(seen: Boolean) {
+        preferences.edit()
+            .putBoolean(KEY_HAS_SEEN_HOW_TO_PLAY_TUTORIAL, seen)
+            .apply()
+        _settings.value = _settings.value.copy(hasSeenHowToPlayTutorial = seen)
+    }
+
     private companion object {
         const val PREFERENCES_NAME = "sudoku_mentor_settings"
         const val KEY_HAPTICS_ENABLED = "haptics_enabled"
+        const val KEY_HAS_STARTED_ANY_GAME = "has_started_any_game"
+        const val KEY_HAS_SEEN_HOW_TO_PLAY_TUTORIAL = "has_seen_how_to_play_tutorial"
     }
 }

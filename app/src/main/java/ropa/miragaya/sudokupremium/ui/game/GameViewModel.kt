@@ -25,6 +25,7 @@ import ropa.miragaya.sudokupremium.domain.generator.PuzzleGenerator
 import ropa.miragaya.sudokupremium.domain.model.Board
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.domain.model.SavedGame
+import ropa.miragaya.sudokupremium.domain.model.SudokuHint
 import ropa.miragaya.sudokupremium.domain.model.initializeCandidates
 import ropa.miragaya.sudokupremium.domain.repository.GameRepository
 import ropa.miragaya.sudokupremium.domain.solver.SolveResult
@@ -42,6 +43,7 @@ import ropa.miragaya.sudokupremium.ui.navigation.GameRoute
 import ropa.miragaya.sudokupremium.util.DispatcherProvider
 
 private const val USE_DEBUG_BOARD = false
+private const val GUIDED_TUTORIAL_TOTAL_STEPS = 5
 
 @HiltViewModel
 class GameViewModel @Inject constructor(
@@ -132,6 +134,7 @@ class GameViewModel @Inject constructor(
             val savedGame = repository.getSavedGame().firstOrNull()
 
             if (savedGame != null) {
+                appSettingsRepository.setHasStartedAnyGame(true)
                 _uiState.update {
                     it.copy(
                         board = savedGame.board,
@@ -182,10 +185,17 @@ class GameViewModel @Inject constructor(
     }
 
     fun toggleNoteMode() {
+        if (_uiState.value.guidedTutorial != null) return
+
         _uiState.update { it.copy(isNoteMode = !it.isNoteMode) }
     }
 
     fun onNumberInput(number: Int) {
+        if (_uiState.value.guidedTutorial != null) {
+            onGuidedTutorialNumberInput(number)
+            return
+        }
+
         val currentSelectedId = _uiState.value.selectedCellId ?: return
         var justWon = false
 
@@ -221,6 +231,122 @@ class GameViewModel @Inject constructor(
         }
 
         if (justWon) handleVictory() else saveGame()
+    }
+
+    private fun onGuidedTutorialNumberInput(number: Int) {
+        val currentState = _uiState.value
+        val tutorial = currentState.guidedTutorial ?: return
+        val selectedCellId = currentState.selectedCellId
+        val targetCellId = tutorial.currentHint.targetCellIndex
+        val targetValue = tutorial.currentHint.valueToSet
+
+        if (selectedCellId == null) {
+            _uiState.update { it.copy(tutorialInputMessage = "Tocá primero la casilla resaltada.") }
+            return
+        }
+
+        if (selectedCellId != targetCellId || number != targetValue) {
+            _uiState.update { it.copy(tutorialInputMessage = "Probá con la casilla y el número resaltados.") }
+            return
+        }
+
+        var justWon = false
+        var appliedMove = false
+
+        _uiState.update { state ->
+            val boardAfterMove = state.board.playMove(
+                cellId = selectedCellId,
+                number = number,
+                isNoteMode = false
+            )
+
+            if (boardAfterMove == state.board) {
+                return@update state.copy(tutorialInputMessage = "Ese movimiento ya no está disponible.")
+            }
+
+            val finalBoard = autoCleanNotes(boardAfterMove, selectedCellId, number)
+            saveToHistory()
+            appliedMove = true
+            justWon = isSolvedAgainstSolution(finalBoard, state.solvedBoard)
+
+            state.copy(
+                board = finalBoard,
+                isComplete = justWon,
+                completedNumbers = calculateCompletedNumbers(finalBoard, state.solvedBoard),
+                activeHints = emptyList(),
+                currentHintIndex = 0,
+                selectedCellId = null,
+                highlightedCellIds = emptySet(),
+                sameValueCellIds = emptySet(),
+                tutorialInputMessage = null
+            )
+        }
+
+        if (!appliedMove) return
+
+        if (justWon) {
+            finishGuidedTutorial(markSeen = true)
+            handleVictory()
+        } else {
+            saveGame()
+            advanceGuidedTutorialAfterMove(tutorial)
+        }
+    }
+
+    private fun advanceGuidedTutorialAfterMove(tutorial: GuidedTutorialUiState) {
+        val nextStep = tutorial.currentStep + 1
+        if (nextStep > tutorial.totalSteps) {
+            finishGuidedTutorial(markSeen = true)
+        } else {
+            loadGuidedTutorialStep(step = nextStep)
+        }
+    }
+
+    private fun loadGuidedTutorialStep(step: Int) {
+        viewModelScope.launch(dispatcherProvider.default) {
+            val state = _uiState.value
+            val hint = nextGuidedTutorialHint(state.board)
+
+            if (hint == null) {
+                finishGuidedTutorial(markSeen = true)
+                return@launch
+            }
+
+            _uiState.update {
+                it.copy(
+                    guidedTutorial = GuidedTutorialUiState(
+                        currentStep = step,
+                        totalSteps = GUIDED_TUTORIAL_TOTAL_STEPS,
+                        currentHint = hint
+                    ),
+                    activeHints = emptyList(),
+                    currentHintIndex = 0,
+                    selectedCellId = null,
+                    highlightedCellIds = emptySet(),
+                    sameValueCellIds = emptySet(),
+                    tutorialInputMessage = null,
+                    isNoteMode = false
+                )
+            }
+        }
+    }
+
+    private fun nextGuidedTutorialHint(board: Board): SudokuHint? {
+        return hintProvider.findAllHints(board)
+            .firstOrNull { hint -> hint.targetCellIndex != null && hint.valueToSet != null }
+            ?.copy(stepBoard = board)
+    }
+
+    private fun finishGuidedTutorial(markSeen: Boolean) {
+        if (markSeen) {
+            appSettingsRepository.setHowToPlayTutorialSeen(true)
+        }
+        _uiState.update {
+            it.copy(
+                guidedTutorial = null,
+                tutorialInputMessage = null
+            )
+        }
     }
 
     private fun autoCleanNotes(board: Board, cellId: Int, number: Int): Board {
@@ -262,6 +388,11 @@ class GameViewModel @Inject constructor(
     }
 
     fun onDeleteInput() {
+        if (_uiState.value.guidedTutorial != null) {
+            _uiState.update { it.copy(tutorialInputMessage = "En la guía solo necesitás colocar el número resaltado.") }
+            return
+        }
+
         val currentSelectedId = _uiState.value.selectedCellId ?: return
 
         _uiState.update { currentState ->
@@ -341,6 +472,11 @@ class GameViewModel @Inject constructor(
     }
 
     fun onUndo() {
+        if (_uiState.value.guidedTutorial != null) {
+            _uiState.update { it.copy(tutorialInputMessage = "Terminá o saltá la guía para deshacer movimientos.") }
+            return
+        }
+
         if (history.isEmpty()) return
 
         val previousBoard = history.removeLast()
@@ -358,6 +494,11 @@ class GameViewModel @Inject constructor(
     fun startNewGame(difficulty: Difficulty) {
         pauseTimer()
         crashReporter.log("Starting new game: difficulty=$difficulty")
+        val settings = appSettingsRepository.settings.value
+        val shouldOfferFirstGameTutorial =
+            !settings.hasStartedAnyGame &&
+                !settings.hasSeenHowToPlayTutorial &&
+                difficulty == Difficulty.EASY
 
         viewModelScope.launch(dispatcherProvider.default) {
             _uiState.update {
@@ -371,7 +512,11 @@ class GameViewModel @Inject constructor(
                     showMistakeError = false,
                     showHintLimitSheet = false,
                     showPremiumSheet = false,
-                    showRewardedHintError = false
+                    showRewardedHintError = false,
+                    showHowToPlayDialog = false,
+                    isHowToPlayFirstGameIntro = false,
+                    guidedTutorial = null,
+                    tutorialInputMessage = null
                 )
             }
 
@@ -380,6 +525,7 @@ class GameViewModel @Inject constructor(
 
             val puzzle = generator.generate(difficulty)
             delay(remoteConfigProvider.newGameLoadingMinDurationMs)
+            appSettingsRepository.setHasStartedAnyGame(true)
 
             _uiState.update {
                 it.copy(
@@ -399,6 +545,10 @@ class GameViewModel @Inject constructor(
                     showHintLimitSheet = false,
                     showPremiumSheet = false,
                     showRewardedHintError = false,
+                    showHowToPlayDialog = shouldOfferFirstGameTutorial,
+                    isHowToPlayFirstGameIntro = shouldOfferFirstGameTutorial,
+                    guidedTutorial = null,
+                    tutorialInputMessage = null,
                     hintsUsed = 0,
                     rewardedHintsAvailable = 0,
                     freeHintsPerGame = remoteConfigProvider.freeHintsPerGame,
@@ -582,6 +732,55 @@ class GameViewModel @Inject constructor(
 
     fun onHapticsEnabledChanged(enabled: Boolean) {
         appSettingsRepository.setHapticsEnabled(enabled)
+    }
+
+    fun onHowToPlayMenuClick() {
+        _uiState.update {
+            it.copy(
+                showHowToPlayDialog = true,
+                isHowToPlayFirstGameIntro = false,
+                tutorialInputMessage = null
+            )
+        }
+    }
+
+    fun onDismissHowToPlayDialog() {
+        val wasFirstGameIntro = _uiState.value.isHowToPlayFirstGameIntro
+        if (wasFirstGameIntro) {
+            appSettingsRepository.setHowToPlayTutorialSeen(true)
+        }
+        _uiState.update {
+            it.copy(
+                showHowToPlayDialog = false,
+                isHowToPlayFirstGameIntro = false
+            )
+        }
+    }
+
+    fun onStartGuidedTutorial() {
+        _uiState.update {
+            it.copy(
+                showHowToPlayDialog = false,
+                isHowToPlayFirstGameIntro = false,
+                activeHints = emptyList(),
+                currentHintIndex = 0,
+                tutorialInputMessage = null,
+                isNoteMode = false
+            )
+        }
+        loadGuidedTutorialStep(step = 1)
+    }
+
+    fun onSkipGuidedTutorial() {
+        appSettingsRepository.setHowToPlayTutorialSeen(true)
+        _uiState.update {
+            it.copy(
+                showHowToPlayDialog = false,
+                isHowToPlayFirstGameIntro = false,
+                guidedTutorial = null,
+                tutorialInputMessage = null
+            )
+        }
     }
 
     fun onNextHint() {

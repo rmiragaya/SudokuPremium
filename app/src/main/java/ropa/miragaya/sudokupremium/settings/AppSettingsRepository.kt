@@ -6,4 +6,8 @@ interface AppSettingsRepository {
     val settings: StateFlow<AppSettings>
 
     fun setHapticsEnabled(enabled: Boolean)
+
+    fun setHasStartedAnyGame(started: Boolean)
+
+    fun setHowToPlayTutorialSeen(seen: Boolean)
 }
