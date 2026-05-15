@@ -76,6 +76,14 @@ android {
     testOptions {
         unitTests.isReturnDefaultValues = true
     }
+
+    sourceSets {
+        getByName("androidTest").assets.srcDir("$projectDir/schemas")
+    }
+}
+
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 ktlint {
@@ -112,6 +120,7 @@ dependencies {
     implementation(libs.play.services.ads)
     implementation(libs.user.messaging.platform)
     implementation(libs.konfetti.compose)
+    implementation(libs.lottie.compose)
     ksp(libs.hilt.compiler)
     ksp(libs.kotlin.metadata.jvm)
     implementation(libs.androidx.hilt.navigation.compose)

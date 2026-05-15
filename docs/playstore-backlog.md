@@ -200,6 +200,7 @@ La prioridad no es agregar features por volumen, sino construir una experiencia 
   - Firestore.
   - AdMob.
   - Billing.
+  - Documento de trabajo: `docs/privacy-data-safety.md`.
 
 ## Play Store Y Release
 
@@ -222,12 +223,13 @@ La prioridad no es agregar features por volumen, sino construir una experiencia 
   - Datos compartidos.
   - Propósito de uso.
   - Borrado de datos si aplica.
+  - Usar como base `docs/privacy-data-safety.md`.
 
 - [ ] Revisar clasificación de contenido.
   - Confirmar que sea apta para todo público.
   - Confirmar ads y compras dentro de la app.
 
-- [ ] Preparar checklist de release.
+- [x] Preparar checklist de release.
   - Version code/name.
   - AAB firmado.
   - Release notes.
@@ -235,6 +237,7 @@ La prioridad no es agregar features por volumen, sino construir una experiencia 
   - Ads reales apagados hasta validar.
   - Crashlytics funcionando.
   - Billing activo.
+  - Checklist creado en `docs/release-checklist.md`.
 
 - [ ] Revisar pre-launch report.
   - Crashes.
@@ -265,8 +268,9 @@ La prioridad no es agregar features por volumen, sino construir una experiencia 
   - Agregar tests para premium/billing con fakes.
   - Agregar tests de fixtures de técnicas.
 
-- [ ] Revisar Room antes de release.
+- [x] Revisar Room antes de release.
   - `exportSchema = true`.
+  - Schema v4 versionado en `app/schemas`.
   - Migraciones reales.
   - No usar destructive migrations en release.
 

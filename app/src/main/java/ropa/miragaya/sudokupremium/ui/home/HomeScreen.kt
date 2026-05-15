@@ -40,6 +40,7 @@ import ropa.miragaya.sudokupremium.R
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.ui.component.MentorButton
 import ropa.miragaya.sudokupremium.ui.component.MentorButtonVariant
+import ropa.miragaya.sudokupremium.ui.component.MentorLogoMark
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
 
 private val HomeBodyFont = FontFamily.SansSerif
@@ -119,56 +120,11 @@ fun HomeScreenContent(hasSavedGame: Boolean, onNewGameClick: () -> Unit, onConti
 
 @Composable
 private fun HomeLogo(modifier: Modifier = Modifier) {
-    Surface(
+    MentorLogoMark(
         modifier = modifier,
-        shape = RoundedCornerShape(44.dp),
-        color = SudokuPalette.HomePanel.copy(alpha = 0.92f),
-        border = BorderStroke(1.dp, SudokuPalette.HomeBorder),
-        shadowElevation = 14.dp
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(28.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                repeat(3) { row ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        repeat(3) { col ->
-                            val isAccent = row == 1 && col == 1
-                            val isHint = row == 0 && col == 2
-                            val isFilled = row == col || row + col == 2
-
-                            Surface(
-                                modifier = Modifier.size(32.dp),
-                                shape = RoundedCornerShape(10.dp),
-                                color = when {
-                                    isAccent -> SudokuPalette.TextAccent
-                                    isHint -> SudokuPalette.CellHintBorder
-                                    isFilled -> SudokuPalette.TextAccent.copy(alpha = 0.24f)
-                                    else -> SudokuPalette.BoardBackground
-                                },
-                                border = BorderStroke(
-                                    width = 1.dp,
-                                    color = if (isAccent) {
-                                        SudokuPalette.TextAccent
-                                    } else if (isHint) {
-                                        SudokuPalette.CellHintBorder
-                                    } else {
-                                        SudokuPalette.HomeBorder
-                                    }
-                                )
-                            ) {}
-                        }
-                    }
-                }
-            }
-        }
-    }
+        outerRadius = 44.dp,
+        cellRadius = 10.dp
+    )
 }
 
 @Composable
