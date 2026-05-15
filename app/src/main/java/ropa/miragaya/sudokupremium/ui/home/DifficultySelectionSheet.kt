@@ -1,5 +1,6 @@
 package ropa.miragaya.sudokupremium.ui.home
 
+import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -77,6 +78,10 @@ fun DifficultySelectionSheet(onDismiss: () -> Unit, onDifficultySelected: (Diffi
 
     LaunchedEffect(Unit) {
         isVisible = true
+    }
+
+    BackHandler(enabled = isVisible && !isClosing) {
+        closeSheet()
     }
 
     Box(modifier = Modifier.fillMaxSize()) {

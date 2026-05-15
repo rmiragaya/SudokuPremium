@@ -43,7 +43,7 @@ import ropa.miragaya.sudokupremium.ui.navigation.GameRoute
 import ropa.miragaya.sudokupremium.util.DispatcherProvider
 
 private const val USE_DEBUG_BOARD = false
-private const val GUIDED_TUTORIAL_TOTAL_STEPS = 5
+private const val GUIDED_TUTORIAL_TOTAL_STEPS = 4
 
 @HiltViewModel
 class GameViewModel @Inject constructor(

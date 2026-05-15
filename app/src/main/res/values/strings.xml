@@ -62,7 +62,7 @@
     <string name="how_to_play_rule_body">Un número no puede repetirse en la misma fila, columna ni caja 3x3.</string>
     <string name="how_to_play_app_title">En la app</string>
     <string name="how_to_play_app_body">Tocá una casilla, elegí un número y usá notas cuando quieras guardar posibilidades.</string>
-    <string name="how_to_play_start_guided">Practicar 5 movimientos</string>
+    <string name="how_to_play_start_guided">Empezar guía</string>
     <string name="how_to_play_skip">Saltar</string>
     <string name="guided_tutorial_step_count">Paso %1$d de %2$d</string>
     <string name="guided_tutorial_instruction">Tocá la casilla resaltada y después el %1$d resaltado.</string>
@@ -96,7 +96,7 @@
 
     <!-- Victory -->
     <string name="victory_title">Sudoku resuelto</string>
-    <string name="victory_body">Completaste el tablero con lógica. Buen cierre.</string>
+    <string name="victory_body">Tablero completo. Buen trabajo.</string>
     <string name="victory_time">Tiempo</string>
     <string name="victory_difficulty">Dificultad</string>
     <string name="victory_hints">Pistas</string>

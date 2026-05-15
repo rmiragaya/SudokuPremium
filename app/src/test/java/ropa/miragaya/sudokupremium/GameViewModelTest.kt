@@ -249,8 +249,8 @@ class GameViewModelTest {
     }
 
     @Test
-    fun `guided tutorial applies correct moves and completes after five steps`() = runTestWithDispatcher {
-        val tutorialCells = listOf(76, 77, 78, 79, 80)
+    fun `guided tutorial applies correct moves and completes after four steps`() = runTestWithDispatcher {
+        val tutorialCells = listOf(77, 78, 79, 80)
         val board = boardWithEmptyCells(*tutorialCells.toIntArray())
         val settingsRepository = FakeAppSettingsRepository()
         val viewModel = createViewModel(

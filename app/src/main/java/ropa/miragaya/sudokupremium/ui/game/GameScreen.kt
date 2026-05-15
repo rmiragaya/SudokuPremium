@@ -107,6 +107,7 @@ import ropa.miragaya.sudokupremium.ui.game.component.HintOverlayCard
 import ropa.miragaya.sudokupremium.ui.game.component.MistakeDialog
 import ropa.miragaya.sudokupremium.ui.game.component.SudokuDecodingBoard
 import ropa.miragaya.sudokupremium.ui.game.component.VictoryKonfettiOverlay
+import ropa.miragaya.sudokupremium.ui.home.DifficultySelectionSheet
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
 import ropa.miragaya.sudokupremium.util.toFormattedTime
 
@@ -124,6 +125,7 @@ fun GameScreen(
     val context = LocalContext.current
     val activity = context as? Activity
     val view = LocalView.current
+    var showVictoryDifficultySheet by remember { mutableStateOf(false) }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     val debugDumpLabel = stringResource(R.string.debug_json_label)
@@ -174,7 +176,8 @@ fun GameScreen(
     if (uiState.showHowToPlayDialog) {
         HowToPlayDialog(
             isFirstGameIntro = uiState.isHowToPlayFirstGameIntro,
-            canStartGuidedTutorial = uiState.difficulty == Difficulty.EASY &&
+            canStartGuidedTutorial = uiState.isHowToPlayFirstGameIntro &&
+                uiState.difficulty == Difficulty.EASY &&
                 !uiState.isComplete &&
                 !uiState.isLoading,
             onStartGuidedTutorial = viewModel::onStartGuidedTutorial,
@@ -228,12 +231,22 @@ fun GameScreen(
 
         if (uiState.isComplete) {
             VictoryKonfettiOverlay(modifier = Modifier.fillMaxSize())
-            GameWonDialog(
-                difficulty = uiState.difficulty.name,
-                elapsedTimeSeconds = uiState.elapsedTimeSeconds,
-                hintsUsed = uiState.hintsUsed,
-                onStartNewGame = { viewModel.startNewGame(uiState.difficulty) }
-            )
+            if (showVictoryDifficultySheet) {
+                DifficultySelectionSheet(
+                    onDismiss = { showVictoryDifficultySheet = false },
+                    onDifficultySelected = { difficulty ->
+                        showVictoryDifficultySheet = false
+                        viewModel.startNewGame(difficulty)
+                    }
+                )
+            } else {
+                GameWonDialog(
+                    difficulty = uiState.difficulty.name,
+                    elapsedTimeSeconds = uiState.elapsedTimeSeconds,
+                    hintsUsed = uiState.hintsUsed,
+                    onStartNewGame = { showVictoryDifficultySheet = true }
+                )
+            }
         }
     }
 }
