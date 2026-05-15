@@ -240,6 +240,11 @@ class GameViewModel @Inject constructor(
         val targetCellId = tutorial.currentHint.targetCellIndex
         val targetValue = tutorial.currentHint.valueToSet
 
+        if (!tutorial.isMoveStep || targetCellId == null || targetValue == null) {
+            _uiState.update { it.copy(tutorialInputMessage = "Leé la explicación y tocá Siguiente.") }
+            return
+        }
+
         if (selectedCellId == null) {
             _uiState.update { it.copy(tutorialInputMessage = "Tocá primero la casilla resaltada.") }
             return
@@ -315,6 +320,7 @@ class GameViewModel @Inject constructor(
             _uiState.update {
                 it.copy(
                     guidedTutorial = GuidedTutorialUiState(
+                        phase = GuidedTutorialPhase.MOVE,
                         currentStep = step,
                         totalSteps = GUIDED_TUTORIAL_TOTAL_STEPS,
                         currentHint = hint
@@ -335,6 +341,71 @@ class GameViewModel @Inject constructor(
         return hintProvider.findAllHints(board)
             .firstOrNull { hint -> hint.targetCellIndex != null && hint.valueToSet != null }
             ?.copy(stepBoard = board)
+    }
+
+    private fun createGuidedTutorialLessonState(
+        board: Board,
+        phase: GuidedTutorialPhase
+    ): GuidedTutorialUiState {
+        return GuidedTutorialUiState(
+            phase = phase,
+            currentStep = 0,
+            totalSteps = GUIDED_TUTORIAL_TOTAL_STEPS,
+            currentHint = createGuidedTutorialLessonHint(board, phase)
+        )
+    }
+
+    private fun createGuidedTutorialLessonHint(
+        board: Board,
+        phase: GuidedTutorialPhase
+    ): SudokuHint {
+        val anchorCell = board.cells
+            .firstOrNull { cell -> cell.isGiven && cell.value != null }
+            ?: board.cells.getOrElse(40) { board.cells.first() }
+
+        val highlightedCells = when (phase) {
+            GuidedTutorialPhase.OBJECTIVE -> board.cells
+                .filter { cell -> !cell.isGiven && cell.value == null }
+                .take(6)
+                .map { cell -> cell.id }
+
+            GuidedTutorialPhase.ROW_RULE -> board.rows[anchorCell.row].map { cell -> cell.id }
+            GuidedTutorialPhase.COLUMN_RULE -> board.cols[anchorCell.col].map { cell -> cell.id }
+            GuidedTutorialPhase.BOX_RULE -> board.boxes[anchorCell.box].map { cell -> cell.id }
+            GuidedTutorialPhase.MOVE -> emptyList()
+        }
+
+        val highlightedBoxes = if (phase == GuidedTutorialPhase.BOX_RULE) {
+            listOf(anchorCell.box)
+        } else {
+            emptyList()
+        }
+
+        val description = when (phase) {
+            GuidedTutorialPhase.OBJECTIVE ->
+                "El objetivo es completar las casillas vacías con números del 1 al 9. " +
+                    "Cada fila, columna y caja 3x3 termina usando esos números."
+
+            GuidedTutorialPhase.ROW_RULE ->
+                "Mirá la fila resaltada: dentro de una misma fila no puede repetirse ningún número."
+
+            GuidedTutorialPhase.COLUMN_RULE ->
+                "Ahora mirá la columna resaltada. La misma regla se mantiene de arriba hacia abajo."
+
+            GuidedTutorialPhase.BOX_RULE ->
+                "Y en cada caja 3x3 también se juega del 1 al 9 sin repetir. " +
+                    "Con esas tres reglas ya podés empezar a resolver."
+
+            GuidedTutorialPhase.MOVE -> ""
+        }
+
+        return SudokuHint(
+            strategyName = "Cómo jugar",
+            description = description,
+            highlightCells = highlightedCells,
+            highlightBoxes = highlightedBoxes,
+            stepBoard = board
+        )
     }
 
     private fun finishGuidedTutorial(markSeen: Boolean) {
@@ -762,13 +833,42 @@ class GameViewModel @Inject constructor(
             it.copy(
                 showHowToPlayDialog = false,
                 isHowToPlayFirstGameIntro = false,
+                guidedTutorial = createGuidedTutorialLessonState(
+                    board = it.board,
+                    phase = GuidedTutorialPhase.OBJECTIVE
+                ),
                 activeHints = emptyList(),
                 currentHintIndex = 0,
                 tutorialInputMessage = null,
                 isNoteMode = false
             )
         }
-        loadGuidedTutorialStep(step = 1)
+    }
+
+    fun onNextGuidedTutorialStep() {
+        val currentTutorial = _uiState.value.guidedTutorial ?: return
+        when (currentTutorial.phase) {
+            GuidedTutorialPhase.OBJECTIVE -> showGuidedTutorialLesson(GuidedTutorialPhase.ROW_RULE)
+            GuidedTutorialPhase.ROW_RULE -> showGuidedTutorialLesson(GuidedTutorialPhase.COLUMN_RULE)
+            GuidedTutorialPhase.COLUMN_RULE -> showGuidedTutorialLesson(GuidedTutorialPhase.BOX_RULE)
+            GuidedTutorialPhase.BOX_RULE -> loadGuidedTutorialStep(step = 1)
+            GuidedTutorialPhase.MOVE -> Unit
+        }
+    }
+
+    private fun showGuidedTutorialLesson(phase: GuidedTutorialPhase) {
+        _uiState.update {
+            it.copy(
+                guidedTutorial = createGuidedTutorialLessonState(
+                    board = it.board,
+                    phase = phase
+                ),
+                selectedCellId = null,
+                highlightedCellIds = emptySet(),
+                sameValueCellIds = emptySet(),
+                tutorialInputMessage = null
+            )
+        }
     }
 
     fun onSkipGuidedTutorial() {

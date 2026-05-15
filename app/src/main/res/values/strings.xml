@@ -21,7 +21,7 @@
     <string name="difficulty_hard_title">Difícil</string>
     <string name="difficulty_hard_pill">Desafío</string>
     <string name="difficulty_hard_description">Patrones encadenados y tableros más cerrados.</string>
-    <string name="difficulty_expert_title">Experta</string>
+    <string name="difficulty_expert_title">Experto</string>
     <string name="difficulty_expert_pill">Avanzada</string>
     <string name="difficulty_expert_description">Técnicas exigentes y sesiones con más análisis.</string>
 

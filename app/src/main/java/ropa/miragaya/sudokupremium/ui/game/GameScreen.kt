@@ -222,6 +222,7 @@ fun GameScreen(
             onNextHint = viewModel::onNextHint,
             onPrevHint = viewModel::onPrevHint,
             onSkipGuidedTutorial = viewModel::onSkipGuidedTutorial,
+            onNextGuidedTutorialStep = viewModel::onNextGuidedTutorialStep,
             modifier = modifier
         )
 
@@ -458,11 +459,14 @@ fun GameContent(
     onNextHint: () -> Unit,
     onPrevHint: () -> Unit,
     onSkipGuidedTutorial: () -> Unit,
+    onNextGuidedTutorialStep: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val guidedTutorial = uiState.guidedTutorial
     val activeHint = uiState.activeHint
     val boardHint = guidedTutorial?.currentHint ?: activeHint
+    val isGuidedTutorialActive = guidedTutorial != null
+    val shouldScrollContent = activeHint != null && !isGuidedTutorialActive
     val contentScrollState = rememberScrollState()
     val boardTopSpacerHeight by animateDpAsState(
         targetValue = if (boardHint != null) 0.dp else 28.dp,
@@ -499,40 +503,61 @@ fun GameContent(
                 .animateContentSize(animationSpec = tween(320))
                 .padding(16.dp)
                 .then(
-                    if (boardHint != null) Modifier.verticalScroll(contentScrollState) else Modifier
+                    if (shouldScrollContent) Modifier.verticalScroll(contentScrollState) else Modifier
                 ),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
             Spacer(modifier = Modifier.height(boardTopSpacerHeight))
 
-            AnimatedContent(
-                targetState = uiState.isLoading,
-                transitionSpec = {
-                    (fadeIn(animationSpec = tween(600)))
-                        .togetherWith(
-                            fadeOut(animationSpec = tween(600))
-                        )
-                },
-                label = "BoardTransition"
-            ) { isLoading ->
-                if (isLoading) {
-                    SudokuDecodingBoard()
+            Box(
+                modifier = if (isGuidedTutorialActive) {
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
                 } else {
-                    val displayBoard = boardHint?.stepBoard ?: uiState.board
+                    Modifier.fillMaxWidth()
+                },
+                contentAlignment = Alignment.Center
+            ) {
+                AnimatedContent(
+                    targetState = uiState.isLoading,
+                    transitionSpec = {
+                        (fadeIn(animationSpec = tween(600)))
+                            .togetherWith(
+                                fadeOut(animationSpec = tween(600))
+                            )
+                    },
+                    label = "BoardTransition"
+                ) { isLoading ->
+                    if (isLoading) {
+                        SudokuDecodingBoard()
+                    } else {
+                        val displayBoard = boardHint?.stepBoard ?: uiState.board
+                        val boardModifier = if (isGuidedTutorialActive) {
+                            Modifier
+                                .aspectRatio(1f, matchHeightConstraintsFirst = true)
+                                .fillMaxSize()
+                        } else {
+                            Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(1f)
+                        }
 
-                    SudokuBoardView(
-                        board = displayBoard,
-                        selectedCellId = uiState.selectedCellId,
-                        highlightedIds = uiState.highlightedCellIds,
-                        sameValueIds = uiState.sameValueCellIds,
-                        activeHint = boardHint,
-                        onCellClick = onCellClick
-                    )
+                        SudokuBoardView(
+                            board = displayBoard,
+                            selectedCellId = uiState.selectedCellId,
+                            highlightedIds = uiState.highlightedCellIds,
+                            sameValueIds = uiState.sameValueCellIds,
+                            activeHint = boardHint,
+                            onCellClick = onCellClick,
+                            modifier = boardModifier
+                        )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(if (boardHint != null) 12.dp else 30.dp))
+            Spacer(modifier = Modifier.height(if (boardHint != null) 10.dp else 30.dp))
 
             AnimatedVisibility(
                 visible = guidedTutorial != null,
@@ -552,6 +577,7 @@ fun GameContent(
                         tutorial = tutorial,
                         inputMessage = uiState.tutorialInputMessage,
                         onSkip = onSkipGuidedTutorial,
+                        onNext = onNextGuidedTutorialStep,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -584,8 +610,8 @@ fun GameContent(
                 }
             }
 
-            if (guidedTutorial != null && !uiState.isLoading) {
-                Spacer(modifier = Modifier.height(16.dp))
+            if (guidedTutorial?.isMoveStep == true && !uiState.isLoading) {
+                Spacer(modifier = Modifier.height(10.dp))
 
                 NumberPad(
                     onNumberClick = onNumberInput,
@@ -594,7 +620,7 @@ fun GameContent(
                     highlightedNumber = guidedTutorial.currentHint.valueToSet
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(6.dp))
             } else if (activeHint == null && !uiState.isLoading) {
                 GameControls(
                     isNoteMode = uiState.isNoteMode,
@@ -623,17 +649,18 @@ private fun GuidedTutorialCard(
     tutorial: GuidedTutorialUiState,
     inputMessage: String?,
     onSkip: () -> Unit,
+    onNext: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(14.dp),
         color = SudokuPalette.HomePanel,
         border = BorderStroke(1.dp, SudokuPalette.CellHintBorder.copy(alpha = 0.42f))
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -641,11 +668,15 @@ private fun GuidedTutorialCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = stringResource(
-                        R.string.guided_tutorial_step_count,
-                        tutorial.currentStep,
-                        tutorial.totalSteps
-                    ),
+                    text = if (tutorial.isMoveStep) {
+                        stringResource(
+                            R.string.guided_tutorial_step_count,
+                            tutorial.currentStep,
+                            tutorial.totalSteps
+                        )
+                    } else {
+                        stringResource(R.string.how_to_play_title)
+                    },
                     color = SudokuPalette.CellHintBorder,
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold
@@ -661,14 +692,25 @@ private fun GuidedTutorialCard(
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold
             )
-            Text(
-                text = stringResource(
-                    R.string.guided_tutorial_instruction,
-                    tutorial.currentHint.valueToSet ?: 0
-                ),
-                color = SudokuPalette.TextSecondary,
-                style = MaterialTheme.typography.bodyMedium
-            )
+            if (tutorial.isMoveStep) {
+                Text(
+                    text = stringResource(
+                        R.string.guided_tutorial_instruction,
+                        tutorial.currentHint.valueToSet ?: 0
+                    ),
+                    color = SudokuPalette.TextSecondary,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onNext) {
+                        Text(stringResource(R.string.action_next), color = SudokuPalette.CellHintBorder)
+                    }
+                }
+            }
             if (inputMessage != null) {
                 Text(
                     text = inputMessage,
@@ -688,12 +730,11 @@ fun SudokuBoardView(
     highlightedIds: Set<Int>,
     sameValueIds: Set<Int>,
     activeHint: SudokuHint?,
-    onCellClick: (Int) -> Unit
+    onCellClick: (Int) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(1f)
+        modifier = modifier
             .clip(RoundedCornerShape(15.dp))
             .background(SudokuPalette.BoardBackground)
             .border(2.dp, SudokuPalette.GridLine, RoundedCornerShape(15.dp))
@@ -811,20 +852,21 @@ fun CellView(
     }
     val weight = if (cell.isGiven) FontWeight.Bold else FontWeight.Medium
 
-    val cellModifier = when {
+    val cellBorderModifier = when {
         isHintTarget && cell.value == null && notesToCrossOut.isEmpty() ->
-            modifier.border(2.dp, SudokuPalette.CellHintBorder)
+            Modifier.border(2.dp, SudokuPalette.CellHintBorder)
 
         isHintElimination ->
-            modifier.border(1.dp, SudokuPalette.CellEliminationBorder)
+            Modifier.border(1.dp, SudokuPalette.CellEliminationBorder)
 
-        else -> modifier
+        else -> Modifier
     }
 
     Box(
-        modifier = cellModifier
+        modifier = modifier
             .fillMaxSize()
             .background(bgColor)
+            .then(cellBorderModifier)
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
@@ -1308,6 +1350,7 @@ fun GameScreenPreview(@PreviewParameter(GamePreviewProvider::class) uiState: Gam
         onNextHint = {},
         onPrevHint = {},
         onSkipGuidedTutorial = {},
+        onNextGuidedTutorialStep = {},
         onUndo = {}
     )
 }

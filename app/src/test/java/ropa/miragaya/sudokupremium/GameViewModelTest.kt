@@ -47,6 +47,7 @@ import ropa.miragaya.sudokupremium.monetization.RewardedHintAdResult
 import ropa.miragaya.sudokupremium.settings.AppSettings
 import ropa.miragaya.sudokupremium.settings.AppSettingsRepository
 import ropa.miragaya.sudokupremium.ui.game.GameViewModel
+import ropa.miragaya.sudokupremium.ui.game.GuidedTutorialPhase
 import ropa.miragaya.sudokupremium.ui.navigation.GameRoute
 import ropa.miragaya.sudokupremium.util.DispatcherProvider
 
@@ -211,9 +212,14 @@ class GameViewModelTest {
         viewModel.onStartGuidedTutorial()
         runCurrent()
 
-        assertEquals(1, hintProvider.requestCount)
+        assertEquals(0, hintProvider.requestCount)
         assertEquals(0, viewModel.uiState.value.hintsUsed)
         assertTrue(viewModel.uiState.value.activeHints.isEmpty())
+        assertEquals(GuidedTutorialPhase.OBJECTIVE, viewModel.uiState.value.guidedTutorial?.phase)
+
+        advancePastTutorialLessons(viewModel)
+
+        assertEquals(1, hintProvider.requestCount)
         assertEquals(1, viewModel.uiState.value.guidedTutorial?.currentStep)
 
         viewModel.pauseTimer()
@@ -230,6 +236,7 @@ class GameViewModelTest {
 
         viewModel.onStartGuidedTutorial()
         runCurrent()
+        advancePastTutorialLessons(viewModel)
         viewModel.onCellClicked(80)
         viewModel.onNumberInput(wrongValueFor(80))
         runCurrent()
@@ -255,6 +262,7 @@ class GameViewModelTest {
 
         viewModel.onStartGuidedTutorial()
         runCurrent()
+        advancePastTutorialLessons(viewModel)
 
         tutorialCells.forEachIndexed { index, cellId ->
             assertEquals(index + 1, viewModel.uiState.value.guidedTutorial?.currentStep)
@@ -698,6 +706,13 @@ class GameViewModelTest {
 
     private fun wrongValueFor(cellId: Int): Int {
         return if (solutionValue(cellId) == 1) 2 else 1
+    }
+
+    private fun TestScope.advancePastTutorialLessons(viewModel: GameViewModel) {
+        repeat(4) {
+            viewModel.onNextGuidedTutorialStep()
+            runCurrent()
+        }
     }
 }
 

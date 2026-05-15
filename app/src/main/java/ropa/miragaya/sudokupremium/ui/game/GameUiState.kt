@@ -43,7 +43,19 @@ data class GameUiState(
 }
 
 data class GuidedTutorialUiState(
+    val phase: GuidedTutorialPhase,
     val currentStep: Int,
     val totalSteps: Int = 5,
     val currentHint: SudokuHint
-)
+) {
+    val isMoveStep: Boolean
+        get() = phase == GuidedTutorialPhase.MOVE
+}
+
+enum class GuidedTutorialPhase {
+    OBJECTIVE,
+    ROW_RULE,
+    COLUMN_RULE,
+    BOX_RULE,
+    MOVE
+}
