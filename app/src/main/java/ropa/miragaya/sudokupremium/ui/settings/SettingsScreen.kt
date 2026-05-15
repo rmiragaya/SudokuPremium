@@ -28,12 +28,10 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -74,7 +72,6 @@ fun SettingsScreen(
         uiState = uiState,
         onBackClick = onBackClick,
         onOpenPremiumClick = onOpenPremiumClick,
-        onHapticsEnabledChanged = viewModel::onHapticsEnabledChanged,
         onDebugResetPremiumClick = viewModel::onDebugResetPremiumClick,
         modifier = modifier
     )
@@ -103,7 +100,6 @@ private fun SettingsContent(
     uiState: SettingsUiState,
     onBackClick: () -> Unit,
     onOpenPremiumClick: () -> Unit,
-    onHapticsEnabledChanged: (Boolean) -> Unit,
     onDebugResetPremiumClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -121,21 +117,14 @@ private fun SettingsContent(
                 .padding(horizontal = 18.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            SettingsSectionTitle(stringResource(R.string.settings_section_game))
-            SettingsSwitchRow(
-                icon = Icons.Default.TouchApp,
-                title = stringResource(R.string.settings_haptics_title),
-                description = stringResource(R.string.settings_haptics_description),
-                checked = uiState.hapticsEnabled,
-                onCheckedChange = onHapticsEnabledChanged
-            )
-
-            SettingsSectionTitle(stringResource(R.string.settings_section_appearance))
-            SettingsInfoRow(
-                icon = Icons.Default.Palette,
-                title = stringResource(R.string.settings_board_style_title),
-                description = stringResource(R.string.settings_board_style_description)
-            )
+            if (BuildConfig.DEBUG) {
+                SettingsSectionTitle(stringResource(R.string.settings_section_appearance))
+                SettingsInfoRow(
+                    icon = Icons.Default.Palette,
+                    title = stringResource(R.string.settings_board_style_title),
+                    description = stringResource(R.string.settings_board_style_description)
+                )
+            }
 
             SettingsSectionTitle(stringResource(R.string.settings_section_premium))
             SettingsPremiumRow(
@@ -277,23 +266,6 @@ private fun SettingsSectionTitle(text: String) {
         style = MaterialTheme.typography.labelLarge,
         fontWeight = FontWeight.Bold
     )
-}
-
-@Composable
-private fun SettingsSwitchRow(
-    icon: ImageVector,
-    title: String,
-    description: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    SettingsRowContainer {
-        SettingsIcon(imageVector = icon)
-        Column(modifier = Modifier.weight(1f)) {
-            SettingsRowText(title = title, description = description)
-        }
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
-    }
 }
 
 @Composable
@@ -659,7 +631,6 @@ private fun SettingsScreenPreview() {
             uiState = SettingsUiState(),
             onBackClick = {},
             onOpenPremiumClick = {},
-            onHapticsEnabledChanged = {},
             onDebugResetPremiumClick = {},
             modifier = Modifier.fillMaxSize()
         )

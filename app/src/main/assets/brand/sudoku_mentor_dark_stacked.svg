@@ -1,0 +1,59 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+<defs>
+  <linearGradient id="darkBg" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#10172B"/>
+    <stop offset="1" stop-color="#0A0F1E"/>
+  </linearGradient>
+
+  <radialGradient id="darkGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(520 170) rotate(90) scale(680)">
+    <stop offset="0" stop-color="#1B2D55" stop-opacity="0.42"/>
+    <stop offset="1" stop-color="#1B2D55" stop-opacity="0"/>
+  </radialGradient>
+
+  <linearGradient id="blueText" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#69C5FF"/>
+    <stop offset="1" stop-color="#2D8DDF"/>
+  </linearGradient>
+
+  <linearGradient id="goldFill" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#F9D85E"/>
+    <stop offset="0.55" stop-color="#F2C84B"/>
+    <stop offset="1" stop-color="#D6A430"/>
+  </linearGradient>
+
+  <filter id="softLogoShadow" x="-20%" y="-20%" width="140%" height="150%" color-interpolation-filters="sRGB">
+    <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#000000" flood-opacity="0.28"/>
+  </filter>
+
+  <filter id="goldInsetShadow" x="-20%" y="-20%" width="140%" height="150%" color-interpolation-filters="sRGB">
+    <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#000000" flood-opacity="0.18"/>
+    <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#F2C84B" flood-opacity="0.18"/>
+  </filter>
+
+  <filter id="textShadow" x="-5%" y="-10%" width="110%" height="130%" color-interpolation-filters="sRGB">
+    <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#000000" flood-opacity="0.24"/>
+  </filter>
+</defs>
+
+<rect width="1024" height="1024" fill="url(#darkBg)"/><rect width="1024" height="1024" fill="url(#darkGlow)"/>
+<g filter="url(#softLogoShadow)">
+<rect x="335" y="110" width="354" height="354" rx="22" fill="#121827"/>
+<rect x="348.00" y="123.00" width="92.00" height="92.00" rx="12.10" fill="url(#goldFill)" filter="url(#goldInsetShadow)"/>
+<path d="M356.00 131.00 C370.00 126.00 414.00 126.00 431.00 133.00" stroke="#FFF2B0" stroke-width="3" stroke-opacity="0.30" stroke-linecap="round" fill="none"/>
+<rect x="466.00" y="359.00" width="92.00" height="92.00" rx="12.10" fill="url(#goldFill)" filter="url(#goldInsetShadow)"/>
+<path d="M474.00 367.00 C488.00 362.00 532.00 362.00 549.00 369.00" stroke="#FFF2B0" stroke-width="3" stroke-opacity="0.30" stroke-linecap="round" fill="none"/>
+<rect x="335" y="110" width="354" height="354" rx="22" fill="none" stroke="#F8FAFC" stroke-width="11" stroke-linejoin="round"/>
+<line x1="453.00" y1="115.50" x2="453.00" y2="458.50" stroke="#F8FAFC" stroke-width="11" stroke-linecap="butt"/>
+<line x1="340.50" y1="228.00" x2="683.50" y2="228.00" stroke="#F8FAFC" stroke-width="11" stroke-linecap="butt"/>
+<line x1="571.00" y1="115.50" x2="571.00" y2="458.50" stroke="#F8FAFC" stroke-width="11" stroke-linecap="butt"/>
+<line x1="340.50" y1="346.00" x2="683.50" y2="346.00" stroke="#F8FAFC" stroke-width="11" stroke-linecap="butt"/>
+</g>
+
+<g filter="url(#textShadow)" text-anchor="middle" font-family="Montserrat, Gotham, Avenir Next, Inter, Arial, sans-serif">
+  <text x="512" y="610" fill="url(#blueText)" font-size="112.0" font-weight="900" letter-spacing="4.0">SUDOKU</text>
+  <text x="512" y="715.0" fill="url(#blueText)" font-size="112.0" font-weight="900" letter-spacing="4.0">MENTOR</text>
+  <text x="512" y="780.0" fill="#F8FAFC" font-size="42.0" font-weight="800" letter-spacing="5.5">PUZZLE GAME</text>
+</g>
+
+</svg>

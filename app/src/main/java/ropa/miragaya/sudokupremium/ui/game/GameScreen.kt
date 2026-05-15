@@ -68,6 +68,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -90,6 +91,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -106,7 +108,6 @@ import ropa.miragaya.sudokupremium.ui.game.component.GameWonDialog
 import ropa.miragaya.sudokupremium.ui.game.component.HintOverlayCard
 import ropa.miragaya.sudokupremium.ui.game.component.MistakeDialog
 import ropa.miragaya.sudokupremium.ui.game.component.SudokuDecodingBoard
-import ropa.miragaya.sudokupremium.ui.game.component.VictoryKonfettiOverlay
 import ropa.miragaya.sudokupremium.ui.home.DifficultySelectionSheet
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
 import ropa.miragaya.sudokupremium.util.toFormattedTime
@@ -126,6 +127,7 @@ fun GameScreen(
     val activity = context as? Activity
     val view = LocalView.current
     var showVictoryDifficultySheet by remember { mutableStateOf(false) }
+    var showVictoryDialog by remember { mutableStateOf(false) }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     val debugDumpLabel = stringResource(R.string.debug_json_label)
@@ -134,6 +136,15 @@ fun GameScreen(
         getDebugDump(viewModel, context, debugDumpLabel, debugDumpCopiedMessage)
     } else {
         {}
+    }
+
+    LaunchedEffect(uiState.isComplete) {
+        if (uiState.isComplete) {
+            showVictoryDialog = true
+        } else {
+            showVictoryDialog = false
+            showVictoryDifficultySheet = false
+        }
     }
 
     DisposableEffect(lifecycleOwner) {
@@ -188,22 +199,32 @@ fun GameScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         GameContent(
             uiState = uiState,
-            onCellClick = viewModel::onCellClicked,
+            onCellClick = { cellId ->
+                if (!uiState.isComplete) viewModel.onCellClicked(cellId)
+            },
             onNumberInput = { number ->
-                performSudokuHaptic(context, view, uiState.hapticsEnabled, HapticFeedbackConstants.KEYBOARD_TAP)
-                viewModel.onNumberInput(number)
+                if (!uiState.isComplete) {
+                    performSudokuHaptic(context, view, uiState.hapticsEnabled, HapticFeedbackConstants.KEYBOARD_TAP)
+                    viewModel.onNumberInput(number)
+                }
             },
             onDeleteInput = {
-                performSudokuHaptic(context, view, uiState.hapticsEnabled, HapticFeedbackConstants.VIRTUAL_KEY)
-                viewModel.onDeleteInput()
+                if (!uiState.isComplete) {
+                    performSudokuHaptic(context, view, uiState.hapticsEnabled, HapticFeedbackConstants.VIRTUAL_KEY)
+                    viewModel.onDeleteInput()
+                }
             },
             onToggleNoteMode = {
-                performSudokuHaptic(context, view, uiState.hapticsEnabled, HapticFeedbackConstants.VIRTUAL_KEY)
-                viewModel.toggleNoteMode()
+                if (!uiState.isComplete) {
+                    performSudokuHaptic(context, view, uiState.hapticsEnabled, HapticFeedbackConstants.VIRTUAL_KEY)
+                    viewModel.toggleNoteMode()
+                }
             },
             onUndo = {
-                performSudokuHaptic(context, view, uiState.hapticsEnabled, HapticFeedbackConstants.VIRTUAL_KEY)
-                viewModel.onUndo()
+                if (!uiState.isComplete) {
+                    performSudokuHaptic(context, view, uiState.hapticsEnabled, HapticFeedbackConstants.VIRTUAL_KEY)
+                    viewModel.onUndo()
+                }
             },
             onBackClick = onBackClick,
             onHintClick = {
@@ -226,11 +247,14 @@ fun GameScreen(
             onPrevHint = viewModel::onPrevHint,
             onSkipGuidedTutorial = viewModel::onSkipGuidedTutorial,
             onNextGuidedTutorialStep = viewModel::onNextGuidedTutorialStep,
+            onVictoryNewGameClick = {
+                showVictoryDialog = false
+                showVictoryDifficultySheet = true
+            },
             modifier = modifier
         )
 
         if (uiState.isComplete) {
-            VictoryKonfettiOverlay(modifier = Modifier.fillMaxSize())
             if (showVictoryDifficultySheet) {
                 DifficultySelectionSheet(
                     onDismiss = { showVictoryDifficultySheet = false },
@@ -239,12 +263,16 @@ fun GameScreen(
                         viewModel.startNewGame(difficulty)
                     }
                 )
-            } else {
+            } else if (showVictoryDialog) {
                 GameWonDialog(
                     difficulty = uiState.difficulty.name,
                     elapsedTimeSeconds = uiState.elapsedTimeSeconds,
                     hintsUsed = uiState.hintsUsed,
-                    onStartNewGame = { showVictoryDifficultySheet = true }
+                    onStartNewGame = {
+                        showVictoryDialog = false
+                        showVictoryDifficultySheet = true
+                    },
+                    onDismiss = { showVictoryDialog = false }
                 )
             }
         }
@@ -304,50 +332,65 @@ private fun HintLimitDialog(
     onUnlockPremium: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = SudokuPalette.HomePanel,
-        title = {
-            Text(
-                text = stringResource(R.string.hint_limit_title),
-                color = SudokuPalette.TextPrimary,
-                fontWeight = FontWeight.Bold
-            )
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.9f),
+            shape = RoundedCornerShape(28.dp),
+            color = SudokuPalette.HomePanel,
+            border = BorderStroke(1.dp, SudokuPalette.HomeBorder),
+            tonalElevation = 10.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = stringResource(R.string.hint_limit_title),
+                    color = SudokuPalette.TextPrimary,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
                 Text(
                     text = stringResource(R.string.hint_limit_message, freeHintsPerGame),
-                    color = SudokuPalette.TextSecondary
+                    color = SudokuPalette.TextSecondary,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.fillMaxWidth()
                 )
+
                 if (showError) {
                     Text(
                         text = stringResource(R.string.hint_limit_ad_error),
-                        color = SudokuPalette.TextError
+                        color = SudokuPalette.TextError,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
-            }
-        },
-        confirmButton = {
-            MentorButton(
-                text = stringResource(R.string.hint_limit_watch_ad),
-                onClick = onWatchAd,
-                enabled = !isLoading,
-                isLoading = isLoading,
-                height = 46.dp
-            )
-        },
-        dismissButton = {
-            Column(horizontalAlignment = Alignment.End) {
+
+                Spacer(modifier = Modifier.height(2.dp))
+
+                MentorButton(
+                    text = stringResource(R.string.hint_limit_watch_ad),
+                    onClick = onWatchAd,
+                    enabled = !isLoading,
+                    isLoading = isLoading,
+                    height = 50.dp,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
                 TextButton(onClick = onUnlockPremium) {
                     Text(stringResource(R.string.premium_unlock), color = SudokuPalette.TextAccent)
                 }
+
                 TextButton(onClick = onDismiss) {
                     Text(stringResource(R.string.action_now_not), color = SudokuPalette.TextSecondary)
                 }
             }
         }
-    )
+    }
 }
 
 @Composable
@@ -473,6 +516,7 @@ fun GameContent(
     onPrevHint: () -> Unit,
     onSkipGuidedTutorial: () -> Unit,
     onNextGuidedTutorialStep: () -> Unit,
+    onVictoryNewGameClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val guidedTutorial = uiState.guidedTutorial
@@ -623,7 +667,14 @@ fun GameContent(
                 }
             }
 
-            if (guidedTutorial?.isMoveStep == true && !uiState.isLoading) {
+            if (uiState.isComplete && !uiState.isLoading) {
+                GameCompleteActions(
+                    onNewGameClick = onVictoryNewGameClick,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+            } else if (guidedTutorial?.isMoveStep == true && !uiState.isLoading) {
                 Spacer(modifier = Modifier.height(10.dp))
 
                 NumberPad(
@@ -653,6 +704,38 @@ fun GameContent(
 
                 Spacer(modifier = Modifier.height(16.dp))
             }
+        }
+    }
+}
+
+@Composable
+private fun GameCompleteActions(
+    onNewGameClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(18.dp),
+        color = SudokuPalette.HomePanel,
+        border = BorderStroke(1.dp, SudokuPalette.HomeBorder)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = stringResource(R.string.victory_title),
+                color = SudokuPalette.TextPrimary,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            MentorButton(
+                text = stringResource(R.string.home_new_game),
+                onClick = onNewGameClick,
+                height = 50.dp,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }
@@ -1364,6 +1447,7 @@ fun GameScreenPreview(@PreviewParameter(GamePreviewProvider::class) uiState: Gam
         onPrevHint = {},
         onSkipGuidedTutorial = {},
         onNextGuidedTutorialStep = {},
+        onVictoryNewGameClick = {},
         onUndo = {}
     )
 }

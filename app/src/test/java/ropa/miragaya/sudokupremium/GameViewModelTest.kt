@@ -485,6 +485,49 @@ class GameViewModelTest {
     }
 
     @Test
+    fun `dismissed rewarded hint can be reopened without showing limit sheet again`() = runTestWithDispatcher {
+        val board = boardWithEmptyCells(80)
+        val hint = SudokuHint(
+            strategyName = "Naked Single",
+            description = "Pista",
+            targetCellIndex = 80,
+            valueToSet = solutionValue(80),
+            stepBoard = board
+        )
+        val hintProvider = FakeHintProvider(listOf(hint))
+        val adManager = FakeRewardedHintAdManager(RewardedHintAdResult.Earned)
+        val viewModel = createViewModel(
+            repository = FakeGameRepository(
+                SavedGame(
+                    board = board,
+                    solvedBoard = solvedBoard,
+                    elapsedTimeSeconds = 0,
+                    difficulty = Difficulty.EASY,
+                    hintsUsed = 3
+                )
+            ),
+            hintProvider = hintProvider,
+            rewardedHintAdManager = adManager
+        )
+        runCurrent()
+
+        viewModel.onWatchRewardedHintAdClick(FakeActivity())
+        runCurrent()
+        viewModel.onDismissHint()
+        viewModel.onRequestHint()
+        runCurrent()
+
+        assertEquals(1, adManager.requestCount)
+        assertEquals(1, hintProvider.requestCount)
+        assertEquals(4, viewModel.uiState.value.hintsUsed)
+        assertEquals(0, viewModel.uiState.value.rewardedHintsAvailable)
+        assertFalse(viewModel.uiState.value.showHintLimitSheet)
+        assertEquals(listOf(hint), viewModel.uiState.value.activeHints)
+
+        viewModel.pauseTimer()
+    }
+
+    @Test
     fun `premium user can request hints after free limit`() = runTestWithDispatcher {
         val board = boardWithEmptyCells(80)
         val hint = SudokuHint(

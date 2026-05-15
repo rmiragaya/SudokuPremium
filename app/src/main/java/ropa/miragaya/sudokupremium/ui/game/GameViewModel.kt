@@ -45,6 +45,12 @@ import ropa.miragaya.sudokupremium.util.DispatcherProvider
 private const val USE_DEBUG_BOARD = false
 private const val GUIDED_TUTORIAL_TOTAL_STEPS = 4
 
+private data class DismissedHintSnapshot(
+    val board: Board,
+    val hints: List<SudokuHint>,
+    val currentHintIndex: Int
+)
+
 @HiltViewModel
 class GameViewModel @Inject constructor(
     private val repository: GameRepository,
@@ -70,6 +76,7 @@ class GameViewModel @Inject constructor(
 
     private var timerJob: Job? = null
     private var mistakesRevealedForGame = 0
+    private var dismissedHintSnapshot: DismissedHintSnapshot? = null
 
     private val history = ArrayDeque<Board>()
 
@@ -564,6 +571,7 @@ class GameViewModel @Inject constructor(
 
     fun startNewGame(difficulty: Difficulty) {
         pauseTimer()
+        dismissedHintSnapshot = null
         crashReporter.log("Starting new game: difficulty=$difficulty")
         val settings = appSettingsRepository.settings.value
         val shouldOfferFirstGameTutorial =
@@ -637,6 +645,8 @@ class GameViewModel @Inject constructor(
     }
 
     fun onRequestHint() {
+        if (restoreDismissedHintForCurrentBoard()) return
+
         if (!canRequestHintNow()) {
             val state = _uiState.value
             analyticsTracker.logHintLimitReached(state.difficulty, state.hintsUsed)
@@ -675,6 +685,7 @@ class GameViewModel @Inject constructor(
             val hints = hintProvider.findAllHints(currentState.board)
 
             if (hints.isNotEmpty()) {
+                dismissedHintSnapshot = null
                 val shouldConsumeRewardedHint = shouldConsumeRewardedHint(currentState)
                 val newHintsUsed = currentState.hintsUsed + 1
                 val newRewardedHintsAvailable = if (shouldConsumeRewardedHint) {
@@ -704,6 +715,24 @@ class GameViewModel @Inject constructor(
                 _uiState.update { it.copy(showNoHintFound = true) }
             }
         }
+    }
+
+    private fun restoreDismissedHintForCurrentBoard(): Boolean {
+        val snapshot = dismissedHintSnapshot ?: return false
+        val state = _uiState.value
+
+        if (snapshot.board != state.board || snapshot.hints.isEmpty()) return false
+
+        _uiState.update {
+            it.copy(
+                activeHints = snapshot.hints,
+                currentHintIndex = snapshot.currentHintIndex.coerceIn(0, snapshot.hints.lastIndex),
+                showNoHintFound = false,
+                showHintLimitSheet = false,
+                showRewardedHintError = false
+            )
+        }
+        return true
     }
 
     private fun canRequestHintNow(): Boolean {
@@ -911,6 +940,15 @@ class GameViewModel @Inject constructor(
     }
 
     fun onDismissHint() {
+        val state = _uiState.value
+        if (state.activeHints.isNotEmpty()) {
+            dismissedHintSnapshot = DismissedHintSnapshot(
+                board = state.board,
+                hints = state.activeHints,
+                currentHintIndex = state.currentHintIndex
+            )
+        }
+
         _uiState.update { it.copy(activeHints = emptyList(), showNoHintFound = false) }
     }
 

@@ -1,7 +1,9 @@
 package ropa.miragaya.sudokupremium.ui.game.component
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,18 +16,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.animateLottieCompositionAsState
-import com.airbnb.lottie.compose.rememberLottieComposition
 import ropa.miragaya.sudokupremium.R
 import ropa.miragaya.sudokupremium.ui.component.MentorButton
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
@@ -40,84 +38,80 @@ fun GameWonDialog(
     onDismiss: () -> Unit = {}
 ) {
     Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = RoundedCornerShape(28.dp),
-            color = SudokuPalette.HomePanel,
-            border = BorderStroke(1.dp, SudokuPalette.HomeBorder),
-            tonalElevation = 10.dp,
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(22.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+        Box {
+            Surface(
+                shape = RoundedCornerShape(28.dp),
+                color = SudokuPalette.HomePanel,
+                border = BorderStroke(1.dp, SudokuPalette.HomeBorder),
+                tonalElevation = 10.dp,
+                modifier = Modifier.padding(16.dp)
             ) {
-                VictoryGlyph()
-
-                Spacer(modifier = Modifier.height(18.dp))
-
-                Text(
-                    text = stringResource(R.string.victory_title),
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = SudokuPalette.TextPrimary,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = stringResource(R.string.victory_body),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = SudokuPalette.TextSecondary,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    VictoryStatRow(
-                        label = stringResource(R.string.victory_time),
-                        value = elapsedTimeSeconds.toFormattedTime()
-                    )
-                    VictoryStatRow(
-                        label = stringResource(R.string.victory_difficulty),
-                        value = difficulty.toDifficultyLabel()
-                    )
-                    VictoryStatRow(
-                        label = stringResource(R.string.victory_hints),
-                        value = hintsUsed.toHintsLabel()
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(22.dp))
-
-                MentorButton(
-                    text = stringResource(R.string.home_new_game),
-                    onClick = onStartNewGame,
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                )
+                        .padding(22.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    VictoryGlyph()
+
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    Text(
+                        text = stringResource(R.string.victory_title),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = SudokuPalette.TextPrimary,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = stringResource(R.string.victory_body),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = SudokuPalette.TextSecondary,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        VictoryStatRow(
+                            label = stringResource(R.string.victory_time),
+                            value = elapsedTimeSeconds.toFormattedTime()
+                        )
+                        VictoryStatRow(
+                            label = stringResource(R.string.victory_difficulty),
+                            value = difficulty.toDifficultyLabel()
+                        )
+                        VictoryStatRow(
+                            label = stringResource(R.string.victory_hints),
+                            value = hintsUsed.toHintsLabel()
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(22.dp))
+
+                    MentorButton(
+                        text = stringResource(R.string.home_new_game),
+                        onClick = onStartNewGame,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                }
             }
+
+            VictoryKonfettiOverlay(modifier = Modifier.matchParentSize())
         }
     }
 }
 
 @Composable
 private fun VictoryGlyph() {
-    val composition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(R.raw.victory_sudoku_logic)
-    )
-    val progress by animateLottieCompositionAsState(
-        composition = composition,
-        iterations = 1
-    )
-
-    LottieAnimation(
-        composition = composition,
-        progress = { progress },
-        modifier = Modifier.size(124.dp)
+    Image(
+        painter = painterResource(R.drawable.sudoku_mentor_icon_dark_transparent_png),
+        contentDescription = null,
+        modifier = Modifier.size(126.dp)
     )
 }
 

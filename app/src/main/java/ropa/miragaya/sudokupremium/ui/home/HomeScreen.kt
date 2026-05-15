@@ -1,6 +1,7 @@
 package ropa.miragaya.sudokupremium.ui.home
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,6 +28,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -40,7 +42,6 @@ import ropa.miragaya.sudokupremium.R
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
 import ropa.miragaya.sudokupremium.ui.component.MentorButton
 import ropa.miragaya.sudokupremium.ui.component.MentorButtonVariant
-import ropa.miragaya.sudokupremium.ui.component.MentorLogoMark
 import ropa.miragaya.sudokupremium.ui.theme.SudokuPalette
 
 private val HomeBodyFont = FontFamily.SansSerif
@@ -120,10 +121,10 @@ fun HomeScreenContent(hasSavedGame: Boolean, onNewGameClick: () -> Unit, onConti
 
 @Composable
 private fun HomeLogo(modifier: Modifier = Modifier) {
-    MentorLogoMark(
+    Image(
+        painter = painterResource(R.drawable.sudoku_mentor_icon_dark_transparent_png),
+        contentDescription = stringResource(R.string.home_title),
         modifier = modifier,
-        outerRadius = 44.dp,
-        cellRadius = 10.dp
     )
 }
 
