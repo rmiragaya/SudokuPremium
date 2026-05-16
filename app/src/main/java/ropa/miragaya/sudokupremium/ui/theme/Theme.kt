@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 private val DarkColorScheme = darkColorScheme(
     primary = SudokuPalette.PrimaryButtonSolid,
     onPrimary = SudokuPalette.TextOnAccent,
-    secondary = SudokuPalette.CellHintBorder,
+    secondary = SudokuPalette.MentorPurple,
     onSecondary = SudokuPalette.ScreenBackground,
     tertiary = SudokuPalette.CellEliminationBorder,
     background = SudokuPalette.ScreenBackground,

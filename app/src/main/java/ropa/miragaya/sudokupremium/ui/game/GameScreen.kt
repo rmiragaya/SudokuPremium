@@ -1091,7 +1091,7 @@ fun SudokuButton(
     }
     val contentColor = when {
         isDestructive -> SudokuPalette.ButtonDestructiveContent
-        isHighlighted -> SudokuPalette.BoardBackground
+        isHighlighted -> SudokuPalette.Night
         else -> SudokuPalette.ButtonContent
     }
 
@@ -1103,7 +1103,7 @@ fun SudokuButton(
             contentColor = contentColor
         ),
         enabled = enabled,
-        shape = MaterialTheme.shapes.small,
+        shape = RoundedCornerShape(14.dp),
         contentPadding = PaddingValues(0.dp)
     ) {
         Text(
@@ -1349,7 +1349,7 @@ fun GameControls(
                 containerColor = SudokuPalette.ButtonContainer,
                 contentColor = SudokuPalette.ButtonContent
             ),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(14.dp),
             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 12.dp),
             modifier = Modifier.weight(1f)
         ) {
@@ -1364,7 +1364,7 @@ fun GameControls(
 
         // notas
         val containerColor =
-            if (isNoteMode) SudokuPalette.PrimaryButtonSolid else SudokuPalette.ButtonContainer
+            if (isNoteMode) SudokuPalette.MentorIndigo else SudokuPalette.ButtonContainer
         val contentColor =
             if (isNoteMode) SudokuPalette.TextOnAccent else SudokuPalette.TextAccent
 
@@ -1374,7 +1374,7 @@ fun GameControls(
                 containerColor = containerColor,
                 contentColor = contentColor
             ),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(14.dp),
             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 12.dp),
             modifier = Modifier.weight(1f)
         ) {
@@ -1402,7 +1402,7 @@ fun GameControls(
                 containerColor = SudokuPalette.CellHint,
                 contentColor = SudokuPalette.CellHintBorder
             ),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(14.dp),
             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 12.dp),
             modifier = Modifier.weight(1f)
         ) {
@@ -1419,7 +1419,7 @@ fun GameControls(
 
 @Preview(
     showBackground = true,
-    backgroundColor = 0xFF161823
+    backgroundColor = 0xFF010413
 )
 @Composable
 fun GameScreenPreview(@PreviewParameter(GamePreviewProvider::class) uiState: GameUiState) {

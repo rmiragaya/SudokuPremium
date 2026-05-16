@@ -2,10 +2,10 @@
 <resources>
 
     <style name="Theme.SudokuPremium" parent="android:style/Theme.Material.NoActionBar">
-        <item name="android:windowBackground">#12141C</item>
-        <item name="android:colorAccent">#64B5F6</item>
-        <item name="android:navigationBarColor">#12141C</item>
-        <item name="android:statusBarColor">#12141C</item>
+        <item name="android:windowBackground">@color/mentor_night</item>
+        <item name="android:colorAccent">@color/mentor_cyan</item>
+        <item name="android:navigationBarColor">@color/mentor_night</item>
+        <item name="android:statusBarColor">@color/mentor_night</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
     </style>

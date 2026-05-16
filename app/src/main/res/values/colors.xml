@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+    <color name="mentor_night">#010413</color>
+    <color name="mentor_night_panel">#080D22</color>
+    <color name="mentor_cyan">#50D8FF</color>
+    <color name="mentor_blue">#005DFF</color>
+    <color name="mentor_indigo">#2834F4</color>
+    <color name="mentor_purple">#9B2CFF</color>
+    <color name="mentor_warm_white">#F4F0E7</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 </resources>

@@ -93,7 +93,7 @@ fun DifficultySelectionSheet(onDismiss: () -> Unit, onDifficultySelected: (Diffi
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.48f))
+                    .background(SudokuPalette.Night.copy(alpha = 0.66f))
                     .clickable { closeSheet() }
             )
         }
@@ -191,7 +191,7 @@ fun DifficultyItem(difficulty: Difficulty, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(18.dp),
-        color = SudokuPalette.ButtonContainer,
+        color = SudokuPalette.ButtonContainer.copy(alpha = 0.92f),
         border = BorderStroke(1.dp, SudokuPalette.HomeBorder)
     ) {
         Row(
@@ -303,7 +303,7 @@ private fun Difficulty.spec(): DifficultySpec {
             pillRes = R.string.difficulty_easy_pill,
             descriptionRes = R.string.difficulty_easy_description,
             level = 1,
-            accent = Color(0xFF6ED6A5),
+            accent = SudokuPalette.MentorCyan,
             icon = Icons.Default.School
         )
 
@@ -321,7 +321,7 @@ private fun Difficulty.spec(): DifficultySpec {
             pillRes = R.string.difficulty_hard_pill,
             descriptionRes = R.string.difficulty_hard_description,
             level = 3,
-            accent = Color(0xFFFFB86B),
+            accent = SudokuPalette.MentorGold,
             icon = Icons.Default.Bolt
         )
 
@@ -330,7 +330,7 @@ private fun Difficulty.spec(): DifficultySpec {
             pillRes = R.string.difficulty_expert_pill,
             descriptionRes = R.string.difficulty_expert_description,
             level = 4,
-            accent = Color(0xFFFF6B8A),
+            accent = SudokuPalette.MentorPurple,
             icon = Icons.Default.SportsScore
         )
     }

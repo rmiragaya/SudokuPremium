@@ -53,7 +53,8 @@ fun MentorButton(
     showGlow: Boolean = false,
     height: Dp = 50.dp
 ) {
-    val shape = RoundedCornerShape(26.dp)
+    val shapeRadius = 14.dp
+    val shape = RoundedCornerShape(shapeRadius)
     val contentColor = when (variant) {
         MentorButtonVariant.Primary -> SudokuPalette.TextOnAccent
         MentorButtonVariant.Secondary -> SudokuPalette.PrimaryButtonSecondaryContent
@@ -71,7 +72,7 @@ fun MentorButton(
         modifier = modifier
             .height(height)
             .defaultMinSize(minWidth = 124.dp)
-            .then(glowModifier(showGlow = showGlow, shapeRadius = 26.dp))
+            .then(glowModifier(showGlow = showGlow, shapeRadius = shapeRadius))
             .then(backgroundModifier)
             .border(1.dp, borderColor, shape)
             .alpha(if (enabled) 1f else 0.48f)
@@ -128,9 +129,9 @@ private fun glowModifier(showGlow: Boolean, shapeRadius: Dp): Modifier {
             brush = Brush.linearGradient(
                 colors = listOf(
                     Color.Transparent,
-                    SudokuPalette.PrimaryButtonBorder.copy(alpha = 0.48f),
-                    SudokuPalette.CellHintBorder.copy(alpha = 0.82f),
-                    SudokuPalette.PrimaryButtonBorder.copy(alpha = 0.42f),
+                    SudokuPalette.MentorCyan.copy(alpha = 0.48f),
+                    SudokuPalette.MentorPurple.copy(alpha = 0.82f),
+                    SudokuPalette.MentorCyan.copy(alpha = 0.42f),
                     Color.Transparent
                 ),
                 start = Offset(startX, 0f),

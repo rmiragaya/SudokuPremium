@@ -34,10 +34,11 @@ private fun victoryParty(position: Position, angle: Int): Party {
         damping = 0.88f,
         timeToLive = 2300L,
         colors = listOf(
-            0xFF64B5F6.toInt(),
-            0xFFFFD54F.toInt(),
-            0xFF6ED6A5.toInt(),
-            0xFFFFFFFF.toInt()
+            0xFF50D8FF.toInt(),
+            0xFF2834F4.toInt(),
+            0xFF9B2CFF.toInt(),
+            0xFFF2C84B.toInt(),
+            0xFFF4F0E7.toInt()
         ),
         position = position,
         emitter = Emitter(duration = 950, TimeUnit.MILLISECONDS).max(95)

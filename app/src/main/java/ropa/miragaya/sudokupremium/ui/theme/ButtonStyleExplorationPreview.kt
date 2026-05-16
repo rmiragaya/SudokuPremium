@@ -230,7 +230,7 @@ private sealed interface ButtonVisual {
 @Preview(
     name = "Button Style Exploration",
     showBackground = true,
-    backgroundColor = 0xFF12141C,
+    backgroundColor = 0xFF010413,
     widthDp = 360,
     heightDp = 720
 )

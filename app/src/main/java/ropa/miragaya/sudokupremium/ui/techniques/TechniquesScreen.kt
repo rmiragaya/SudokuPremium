@@ -749,7 +749,7 @@ private val techniques = listOf(
         result = "Se agrega un número al tablero. Es la pista más directa y suele abrir nuevas oportunidades cerca.",
         sourceUrl = "https://www.sudokuwiki.org/Getting_Started",
         examples = TechniqueTutorialFixtures.forTechnique("naked_single"),
-        accent = Color(0xFF6ED6A5),
+        accent = SudokuPalette.MentorCyan,
         icon = Icons.Default.School
     ),
     TechniqueUiModel(
@@ -768,7 +768,7 @@ private val techniques = listOf(
         result = "Se coloca un número aunque la casilla todavía tenga otros candidatos visibles.",
         sourceUrl = "https://www.sudokuwiki.org/Getting_Started",
         examples = TechniqueTutorialFixtures.forTechnique("hidden_single"),
-        accent = Color(0xFF6ED6A5),
+        accent = SudokuPalette.MentorCyan,
         icon = Icons.Default.School
     ),
     TechniqueUiModel(
@@ -891,7 +891,7 @@ private val techniques = listOf(
         ),
         sourceUrl = "https://www.sudokuwiki.org/Naked_Candidates",
         examples = TechniqueTutorialFixtures.forTechnique("naked_triple"),
-        accent = Color(0xFFFFB86B),
+        accent = SudokuPalette.MentorGold,
         icon = Icons.Default.Bolt
     ),
     TechniqueUiModel(
@@ -933,7 +933,7 @@ private val techniques = listOf(
         ),
         sourceUrl = "https://www.sudokuwiki.org/X_Wing_Strategy",
         examples = TechniqueTutorialFixtures.forTechnique("x_wing"),
-        accent = Color(0xFFFFB86B),
+        accent = SudokuPalette.MentorGold,
         icon = Icons.Default.Bolt
     ),
     TechniqueUiModel(
@@ -975,18 +975,18 @@ private val techniques = listOf(
         ),
         sourceUrl = "https://www.sudokuwiki.org/Y_Wing_Strategy",
         examples = TechniqueTutorialFixtures.forTechnique("y_wing"),
-        accent = Color(0xFFFF6B8A),
+        accent = SudokuPalette.MentorPurple,
         icon = Icons.Default.SportsScore
     )
 )
 
-@Preview(showBackground = true, backgroundColor = 0xFF12141C)
+@Preview(showBackground = true, backgroundColor = 0xFF010413)
 @Composable
 fun TechniquesScreenPreview() {
     TechniquesScreen(onTechniqueClick = {}, onBackClick = {})
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF12141C)
+@Preview(showBackground = true, backgroundColor = 0xFF010413)
 @Composable
 fun TechniqueDetailScreenPreview() {
     TechniqueDetailScreen(techniqueId = "naked_pair", onBackClick = {})
