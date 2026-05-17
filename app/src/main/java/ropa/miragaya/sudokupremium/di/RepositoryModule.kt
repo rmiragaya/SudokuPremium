@@ -29,8 +29,10 @@ import ropa.miragaya.sudokupremium.monetization.PremiumEntitlementRepository
 import ropa.miragaya.sudokupremium.monetization.RewardedHintAdManager
 import ropa.miragaya.sudokupremium.settings.AppSettingsRepository
 import ropa.miragaya.sudokupremium.settings.SharedPreferencesAppSettingsRepository
+import ropa.miragaya.sudokupremium.util.AndroidStringProvider
 import ropa.miragaya.sudokupremium.util.DefaultDispatcherProvider
 import ropa.miragaya.sudokupremium.util.DispatcherProvider
+import ropa.miragaya.sudokupremium.util.StringProvider
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -55,6 +57,9 @@ abstract class RepositoryModule {
 
     @Binds
     abstract fun bindDispatcherProvider(defaultDispatcherProvider: DefaultDispatcherProvider): DispatcherProvider
+
+    @Binds
+    abstract fun bindStringProvider(androidStringProvider: AndroidStringProvider): StringProvider
 
     @Binds
     @Singleton

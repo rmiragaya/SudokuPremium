@@ -356,7 +356,7 @@ private fun HomeHeader() {
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
             val compact = maxWidth < 330.dp
             Text(
-                text = "SUDOKU MENTOR",
+                text = stringResource(R.string.home_display_title),
                 modifier = Modifier.fillMaxWidth(),
                 fontSize = if (compact) 20.sp else 22.sp,
                 fontFamily = HomeBodyFont,
@@ -371,7 +371,7 @@ private fun HomeHeader() {
         Spacer(modifier = Modifier.height(34.dp))
 
         Text(
-            text = "Pensado para resolver,\nno para adivinar.",
+            text = stringResource(R.string.home_subtitle),
             fontSize = 17.sp,
             fontFamily = HomeBodyFont,
             fontWeight = FontWeight.Light,

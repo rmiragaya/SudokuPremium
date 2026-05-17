@@ -7,7 +7,8 @@
     <string name="home_continue">Continuar</string>
     <string name="home_badge">Entrenador lógico</string>
     <string name="home_title">Sudoku Mentor</string>
-    <string name="home_subtitle">Pensado para resolver, no adivinar.</string>
+    <string name="home_display_title">SUDOKU MENTOR</string>
+    <string name="home_subtitle">Pensado para resolver,\nno para adivinar.</string>
 
     <!-- Difficulty -->
     <string name="difficulty_sheet_title">Elegí dificultad</string>
@@ -66,6 +67,16 @@
     <string name="how_to_play_skip">Saltar</string>
     <string name="guided_tutorial_step_count">Paso %1$d de %2$d</string>
     <string name="guided_tutorial_instruction">Tocá la casilla resaltada y después el %1$d resaltado.</string>
+    <string name="guided_tutorial_message_read_explanation">Leé la explicación y tocá Siguiente.</string>
+    <string name="guided_tutorial_message_select_cell">Tocá primero la casilla resaltada.</string>
+    <string name="guided_tutorial_message_try_target">Probá con la casilla y el número resaltados.</string>
+    <string name="guided_tutorial_message_move_unavailable">Ese movimiento ya no está disponible.</string>
+    <string name="guided_tutorial_message_place_highlighted">En la guía solo necesitás colocar el número resaltado.</string>
+    <string name="guided_tutorial_message_finish_before_undo">Terminá o saltá la guía para deshacer movimientos.</string>
+    <string name="guided_tutorial_objective_description">El objetivo es completar el tablero con números del 1 al 9. Mirá la fila resaltada como ejemplo: al final cada fila, columna y caja 3x3 usa esos números.</string>
+    <string name="guided_tutorial_row_description">Mirá la fila resaltada: dentro de una misma fila no puede repetirse ningún número.</string>
+    <string name="guided_tutorial_column_description">Ahora mirá la columna resaltada. La misma regla se mantiene de arriba hacia abajo.</string>
+    <string name="guided_tutorial_box_description">Y en cada caja 3x3 también se juega del 1 al 9 sin repetir. Con esas tres reglas ya podés empezar a resolver.</string>
 
     <!-- Hint limit and hint card -->
     <string name="hint_limit_title">Pistas agotadas</string>

@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import ropa.miragaya.sudokupremium.BuildConfig
+import ropa.miragaya.sudokupremium.R
 import ropa.miragaya.sudokupremium.analytics.AnalyticsTracker
 import ropa.miragaya.sudokupremium.config.RemoteConfigProvider
 import ropa.miragaya.sudokupremium.crash.CrashReporter
@@ -41,6 +42,7 @@ import ropa.miragaya.sudokupremium.settings.AppSettingsRepository
 import ropa.miragaya.sudokupremium.ui.model.PremiumStatusMessage
 import ropa.miragaya.sudokupremium.ui.navigation.GameRoute
 import ropa.miragaya.sudokupremium.util.DispatcherProvider
+import ropa.miragaya.sudokupremium.util.StringProvider
 
 private const val USE_DEBUG_BOARD = false
 private const val GUIDED_TUTORIAL_TOTAL_STEPS = 4
@@ -66,6 +68,7 @@ class GameViewModel @Inject constructor(
     private val premiumEntitlementRepository: PremiumEntitlementRepository,
     private val rewardedHintAdManager: RewardedHintAdManager,
     private val appSettingsRepository: AppSettingsRepository,
+    private val stringProvider: StringProvider,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -248,17 +251,23 @@ class GameViewModel @Inject constructor(
         val targetValue = tutorial.currentHint.valueToSet
 
         if (!tutorial.isMoveStep || targetCellId == null || targetValue == null) {
-            _uiState.update { it.copy(tutorialInputMessage = "Leé la explicación y tocá Siguiente.") }
+            _uiState.update {
+                it.copy(tutorialInputMessage = stringProvider.get(R.string.guided_tutorial_message_read_explanation))
+            }
             return
         }
 
         if (selectedCellId == null) {
-            _uiState.update { it.copy(tutorialInputMessage = "Tocá primero la casilla resaltada.") }
+            _uiState.update {
+                it.copy(tutorialInputMessage = stringProvider.get(R.string.guided_tutorial_message_select_cell))
+            }
             return
         }
 
         if (selectedCellId != targetCellId || number != targetValue) {
-            _uiState.update { it.copy(tutorialInputMessage = "Probá con la casilla y el número resaltados.") }
+            _uiState.update {
+                it.copy(tutorialInputMessage = stringProvider.get(R.string.guided_tutorial_message_try_target))
+            }
             return
         }
 
@@ -273,7 +282,9 @@ class GameViewModel @Inject constructor(
             )
 
             if (boardAfterMove == state.board) {
-                return@update state.copy(tutorialInputMessage = "Ese movimiento ya no está disponible.")
+                return@update state.copy(
+                    tutorialInputMessage = stringProvider.get(R.string.guided_tutorial_message_move_unavailable)
+                )
             }
 
             val finalBoard = autoCleanNotes(boardAfterMove, selectedCellId, number)
@@ -385,27 +396,17 @@ class GameViewModel @Inject constructor(
             emptyList()
         }
 
-        val description = when (phase) {
-            GuidedTutorialPhase.OBJECTIVE ->
-                "El objetivo es completar el tablero con números del 1 al 9. " +
-                    "Mirá la fila resaltada como ejemplo: al final cada fila, columna y caja 3x3 usa esos números."
-
-            GuidedTutorialPhase.ROW_RULE ->
-                "Mirá la fila resaltada: dentro de una misma fila no puede repetirse ningún número."
-
-            GuidedTutorialPhase.COLUMN_RULE ->
-                "Ahora mirá la columna resaltada. La misma regla se mantiene de arriba hacia abajo."
-
-            GuidedTutorialPhase.BOX_RULE ->
-                "Y en cada caja 3x3 también se juega del 1 al 9 sin repetir. " +
-                    "Con esas tres reglas ya podés empezar a resolver."
-
-            GuidedTutorialPhase.MOVE -> ""
+        val descriptionResId = when (phase) {
+            GuidedTutorialPhase.OBJECTIVE -> R.string.guided_tutorial_objective_description
+            GuidedTutorialPhase.ROW_RULE -> R.string.guided_tutorial_row_description
+            GuidedTutorialPhase.COLUMN_RULE -> R.string.guided_tutorial_column_description
+            GuidedTutorialPhase.BOX_RULE -> R.string.guided_tutorial_box_description
+            GuidedTutorialPhase.MOVE -> null
         }
 
         return SudokuHint(
-            strategyName = "Cómo jugar",
-            description = description,
+            strategyName = stringProvider.get(R.string.how_to_play_title),
+            description = descriptionResId?.let(stringProvider::get).orEmpty(),
             highlightCells = highlightedCells,
             highlightBoxes = highlightedBoxes,
             stepBoard = board
@@ -464,7 +465,9 @@ class GameViewModel @Inject constructor(
 
     fun onDeleteInput() {
         if (_uiState.value.guidedTutorial != null) {
-            _uiState.update { it.copy(tutorialInputMessage = "En la guía solo necesitás colocar el número resaltado.") }
+            _uiState.update {
+                it.copy(tutorialInputMessage = stringProvider.get(R.string.guided_tutorial_message_place_highlighted))
+            }
             return
         }
 
@@ -548,7 +551,9 @@ class GameViewModel @Inject constructor(
 
     fun onUndo() {
         if (_uiState.value.guidedTutorial != null) {
-            _uiState.update { it.copy(tutorialInputMessage = "Terminá o saltá la guía para deshacer movimientos.") }
+            _uiState.update {
+                it.copy(tutorialInputMessage = stringProvider.get(R.string.guided_tutorial_message_finish_before_undo))
+            }
             return
         }
 
