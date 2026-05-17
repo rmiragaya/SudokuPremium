@@ -371,10 +371,7 @@ class GameViewModel @Inject constructor(
             ?: board.cells.getOrElse(40) { board.cells.first() }
 
         val highlightedCells = when (phase) {
-            GuidedTutorialPhase.OBJECTIVE -> board.cells
-                .filter { cell -> !cell.isGiven && cell.value == null }
-                .take(6)
-                .map { cell -> cell.id }
+            GuidedTutorialPhase.OBJECTIVE -> board.rows[anchorCell.row].map { cell -> cell.id }
 
             GuidedTutorialPhase.ROW_RULE -> board.rows[anchorCell.row].map { cell -> cell.id }
             GuidedTutorialPhase.COLUMN_RULE -> board.cols[anchorCell.col].map { cell -> cell.id }
@@ -390,8 +387,8 @@ class GameViewModel @Inject constructor(
 
         val description = when (phase) {
             GuidedTutorialPhase.OBJECTIVE ->
-                "El objetivo es completar las casillas vacías con números del 1 al 9. " +
-                    "Cada fila, columna y caja 3x3 termina usando esos números."
+                "El objetivo es completar el tablero con números del 1 al 9. " +
+                    "Mirá la fila resaltada como ejemplo: al final cada fila, columna y caja 3x3 usa esos números."
 
             GuidedTutorialPhase.ROW_RULE ->
                 "Mirá la fila resaltada: dentro de una misma fila no puede repetirse ningún número."
