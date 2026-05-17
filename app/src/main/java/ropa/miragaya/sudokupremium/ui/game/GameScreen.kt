@@ -709,10 +709,7 @@ fun GameContent(
 }
 
 @Composable
-private fun GameCompleteActions(
-    onNewGameClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+private fun GameCompleteActions(onNewGameClick: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(18.dp),
@@ -868,32 +865,23 @@ fun SudokuBoardView(
                     val isHighlighted = highlightedIds.contains(cell.id)
                     val isSameValue = sameValueIds.contains(cell.id)
 
-                    // NUEVA LÓGICA DE PISTAS:
-                    // 1. ¿Es la celda donde se va a poner el número final?
                     val isTargetCell = activeHint?.targetCellIndex == cell.id
-
-                    // 2. ¿Es una celda a la que se le van a borrar notas?
                     val notesToRemoveInThisCell = activeHint?.notesToRemove?.get(cell.id) ?: emptyList()
                     val hasNotesToRemove = notesToRemoveInThisCell.isNotEmpty()
-
-                    // 3. ¿Es una celda que queremos iluminar como "explicación"?
                     val isExplanationCell = activeHint?.highlightCells?.contains(cell.id) == true
 
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight()
-                            // todo hacerlo con canvas
                             .drawWithContent {
                                 drawContent()
-                                // linea derecha
                                 drawLine(
                                     color = SudokuPalette.GridLine,
                                     start = Offset(size.width, 0f),
                                     end = Offset(size.width, size.height),
                                     strokeWidth = rightBorder.toPx()
                                 )
-                                // linea abajo
                                 drawLine(
                                     color = SudokuPalette.GridLine,
                                     start = Offset(0f, size.height),
@@ -909,7 +897,7 @@ fun SudokuBoardView(
                             isSameValue = isSameValue,
                             isHintTarget = isTargetCell || isExplanationCell,
                             isHintElimination = hasNotesToRemove,
-                            notesToCrossOut = notesToRemoveInThisCell, // Pasamos las notas a borrar
+                            notesToCrossOut = notesToRemoveInThisCell,
                             onClick = { onCellClick(cell.id) }
                         )
                     }
@@ -1034,7 +1022,6 @@ fun NumberPad(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // 1 al 5
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -1050,7 +1037,6 @@ fun NumberPad(
             }
         }
 
-        // 9 al X
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -1064,9 +1050,8 @@ fun NumberPad(
                     isHighlighted = highlightedNumber == number
                 )
             }
-            // boton de borrar
             SudokuButton(
-                text = "X",
+                text = stringResource(R.string.game_delete_short),
                 onClick = onDeleteClick,
                 isDestructive = true,
                 modifier = Modifier.weight(1f)

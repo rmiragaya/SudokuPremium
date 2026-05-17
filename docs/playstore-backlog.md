@@ -1,115 +1,147 @@
 # Sudoku Mentor - Backlog Para Play Store
 
-Este documento es la lista viva de pendientes para llevar Sudoku Mentor a una app robusta, completa y digna de Play Store. La idea es actualizarlo cada vez que aparezca una deuda nueva o una mejora importante.
+Lista viva de pendientes para llevar Sudoku Mentor a una app publicable, estable y presentable como portfolio.
 
-## Objetivo Del Producto
+## Norte Del Producto
 
-Sudoku Mentor debe sentirse como una app tranquila, profesional y enfocada en aprender a resolver sudokus con lógica: pensado para resolver, no adivinar.
+Sudoku Mentor debe sentirse tranquila, profesional y centrada en resolver con logica: pensado para resolver, no adivinar.
 
-La prioridad no es agregar features por volumen, sino construir una experiencia estable, clara, pulida y presentable como portfolio.
+La prioridad sigue siendo calidad, claridad y pulido antes que volumen de features.
+
+## P0 - Antes De Enviar A Produccion
+
+- [ ] Probar en dispositivo real el flujo completo:
+  - Nueva partida.
+  - Continuar partida.
+  - Tutorial automatico en primera partida facil.
+  - Tutorial no automatico si la primera partida general no es facil.
+  - Como jugar desde menu.
+  - Pedir pista.
+  - Cerrar y reabrir la misma pista sin consumir anuncio/pista extra.
+  - Limite de pistas.
+  - Ver anuncio para pista.
+  - Premium.
+  - Victoria.
+  - Nueva partida despues de victoria.
+  - Settings.
+  - Biblioteca de tecnicas.
+
+- [ ] Revisar pantallas chicas:
+  - Tablero sin scroll innecesario.
+  - Tutorial debajo del tablero sin tapar controles importantes.
+  - Dialog de pistas agotadas.
+  - Dialog de victoria.
+  - Bottom sheet de dificultad.
+  - Home con y sin partida guardada.
+
+- [ ] Completar ficha visual de Play Store:
+  - Screenshots finales.
+  - Icono final.
+  - Feature graphic final.
+  - Confirmar que los assets en `play-console-assets/` sean los ultimos.
+
+- [ ] QA de monetizacion:
+  - Billing: compra exitosa.
+  - Billing: compra cancelada.
+  - Billing: compra pendiente.
+  - Billing: restauracion.
+  - Reinstalacion y recuperacion de Premium.
+  - Rewarded ads con test ad.
+  - Ads apagados por Remote Config hasta que UMP/AdMob este listo.
+
+- [ ] Revisar privacidad/Play Console:
+  - Data Safety.
+  - Ads.
+  - Compras dentro de la app.
+  - Clasificacion de contenido.
+  - Politica de privacidad publicada.
+  - Reglas de Firestore.
+  - App Check.
+
+- [ ] Revisar pre-launch report:
+  - Crashes.
+  - ANRs.
+  - Accesibilidad.
+  - Rendimiento.
+  - Capturas automaticas.
 
 ## UI Y Pulido Visual
 
-- [ ] Rediseñar el sistema visual general.
-  - Mejorar botones, estados presionados, radios, sombras/bordes y jerarquía visual.
-  - Sumar algún color de acento adicional para detalles puntuales sin romper la calma de la app.
-  - Revisar si el azul actual necesita un segundo color de soporte.
+- [x] Rediseñar Home con nuevo estilo visual oscuro.
+- [x] Ajustar logo de Home con fondo transparente.
+- [x] Ajustar launcher adaptive icon para evitar cortes.
+- [x] Preparar assets basicos de Play Console.
+- [x] Mejorar dialog de pistas agotadas.
+- [x] Mejorar pantalla/dialog de victoria.
+- [x] Mejorar acceso desde hint a tecnica.
+- [x] Ocultar opciones no listas en release cuando aplica.
 
-- [ ] Crear ícono de app definitivo.
-  - Launcher icon.
-  - Adaptive icon.
-  - Posible versión monocromática si aplica.
+- [ ] Llevar el estilo visual nuevo al resto de la app:
+  - Game.
+  - Premium.
+  - Settings.
+  - Biblioteca de tecnicas.
+  - Dialogs.
+  - Bottom sheets.
 
-- [ ] Definir tokens de diseño reales.
+- [ ] Consolidar tokens visuales:
   - Colores.
   - Espaciados.
   - Radios.
-  - Tipografías.
-  - Elevaciones/bordes.
-  - Estados interactivos.
+  - Bordes.
+  - Estados pressed/disabled.
+  - Tipografia.
 
-- [ ] Revisar botones principales y secundarios.
+- [ ] Revisar botones principales y secundarios:
   - Home.
   - Game actions.
   - Premium.
   - Settings.
   - Dialogs.
 
-- [x] Mejorar el dialog de error en hints.
-  - El dialog actual quedó viejo y visualmente pobre.
-  - Debe explicar mejor qué pasó cuando hay errores en el tablero.
-  - Debe mantener el tono calmo de la app.
+- [ ] Revisar animaciones:
+  - Logo Home.
+  - Victoria.
+  - Confetti.
+  - Reducir movimiento si se agrega setting de accesibilidad.
 
-- [x] Mejorar la pantalla/dialog de victoria.
-  - Agregar algún efecto visual de resolución.
-  - Mostrar resumen claro: dificultad, tiempo, hints usadas, errores, quizá técnica final.
-  - Hacer que se sienta como cierre de partida, no solo un popup.
+## Tutorial Y Aprendizaje
 
-- [ ] Agregar confetti al ganar una partida.
-  - Evaluar la librería Konfetti: https://github.com/DanielMartinus/Konfetti
-  - Usarlo con moderación para que se sienta celebratorio sin romper el tono calmo de la app.
-  - Activarlo solo en victoria real, no en estados debug o previews.
+- [x] Agregar `Como jugar` al menu de tres puntitos.
+- [x] Agregar tutorial interactivo automatico solo si la primera partida general es facil.
+- [x] Explicar reglas basicas con tablero: fila, columna y caja 3x3.
+- [x] Guiar los primeros 4 movimientos reales.
+- [x] Permitir saltar tutorial.
+- [x] Guardar flags locales de tutorial/primera partida.
 
-- [x] Mejorar el acceso desde hint a técnica.
-  - Hoy tocar el nombre de la técnica es poco evidente.
-  - Agregar un affordance más claro: icono, texto secundario o botón "Ver técnica".
+- [ ] QA manual del tutorial:
+  - Instalar limpio e iniciar facil.
+  - Instalar limpio e iniciar media/dificil/experto.
+  - Luego de primera no facil, iniciar facil y confirmar que no aparece automatico.
+  - Tocar numero incorrecto.
+  - Saltar tutorial.
+  - Completar los 4 pasos.
 
-- [ ] Revisar pantallas en varios tamaños.
-  - Pixel 7 Pro.
-  - Pantallas chicas.
-  - Landscape si se decide soportar.
-  - Tablets si se mantiene habilitado.
+- [ ] Revisar copy del tutorial:
+  - Que explique claramente del 1 al 9.
+  - Que no repita texto innecesario.
+  - Que el resaltado coincida con la explicacion.
 
-## Internacionalización Y Textos
+## Gameplay, Hints Y Tecnicas
 
-- [ ] Mover textos hardcodeados a `strings.xml`.
-  - Preparar estructura para múltiples idiomas.
-  - Separar textos de UI, hints, técnicas, premium, errores y release.
-  - Primera pasada hecha para textos cortos de home, juego, settings, premium, dialogs y shell de técnicas.
-  - Pendiente: textos pedagógicos largos, mensajes dinámicos de ViewModels y templates de hints.
+- [x] Evitar que una pista cerrada por error consuma anuncio/pista extra si el tablero no cambio.
+- [x] La guia tutorial no consume pistas ni anuncios.
+- [x] Nueva partida desde victoria abre selector de dificultad.
+- [x] Back desde selector de dificultad cierra el modal.
+- [x] Back desde victoria vuelve al tablero.
 
-- [ ] Preparar localización.
-  - `values/strings.xml` base.
-  - `values-es/strings.xml`.
-  - Evaluar `values-en/strings.xml` para publicación internacional.
+- [ ] Auditar todas las pistas:
+  - Logica correcta.
+  - Texto alineado con celdas resaltadas.
+  - Eliminaciones entendibles.
+  - No esconder fallos del solver con fallback invalido.
 
-- [ ] Corrección completa de textos.
-  - Ortografía.
-  - Tildes.
-  - Consistencia de tono.
-  - Claridad de hints.
-  - Claridad de técnicas.
-  - Copy de Premium.
-
-- [ ] Revisar si se entiende todo el flujo de aprendizaje.
-  - Qué es una pista.
-  - Qué es una técnica.
-  - Por qué la app no invita a adivinar.
-  - Qué beneficios da Premium.
-
-## Gameplay, Hints Y Técnicas
-
-- [ ] Auditar todas las pistas.
-  - Confirmar que la lógica sea correcta.
-  - Confirmar que el texto corresponda a las celdas resaltadas.
-  - Confirmar que las eliminaciones y objetivos sean entendibles.
-
-- [ ] Validar todos los ejemplos de técnicas.
-  - Los tableros de tutorial deben representar realmente la técnica.
-  - Especial atención a X-Wing y Y-Wing.
-  - Mantener divisiones de cajas 3x3 bien visibles.
-
-- [ ] Mejorar biblioteca de técnicas.
-  - Textos más profundos para técnicas complejas.
-  - Más de un ejemplo por técnica cuando ayude.
-  - Posible uso de coordenadas tipo A1, B4 si mejora la explicación.
-
-- [ ] Evaluar modo práctica por técnica.
-  - Generar o cargar ejemplos para practicar una técnica concreta.
-  - Ejemplo: "Practicar Naked Pair", "Practicar X-Wing".
-  - Puede ser un beneficio Premium futuro.
-
-- [ ] Revisar si hay que agregar más técnicas.
+- [ ] Validar ejemplos de tecnicas:
   - Naked Single.
   - Hidden Single.
   - Naked Pair.
@@ -118,234 +150,168 @@ La prioridad no es agregar features por volumen, sino construir una experiencia 
   - Naked Triple.
   - X-Wing.
   - Y-Wing.
-  - Futuras técnicas candidatas.
 
-## Settings, Vibración Y Preferencias
+- [ ] Mejorar biblioteca de tecnicas:
+  - Revisar profundidad de textos.
+  - Revisar ejemplos multiples por tecnica.
+  - Evaluar coordenadas tipo A1/B4 solo si mejora claridad.
 
-- [ ] Resolver vibración.
-  - Hoy sigue sin funcionar bien en prueba real.
-  - Revisar permisos, APIs, configuración del dispositivo y fallback.
-  - Si no queda confiable, quitarla antes de release.
+- [ ] Evaluar modo practica por tecnica:
+  - Puede ser feature futura o Premium.
 
-- [ ] Expandir configuración.
-  - Sonido opcional.
-  - Mostrar/ocultar timer.
-  - Tamaño de números.
-  - Contraste del tablero.
-  - Animaciones reducidas.
+## Settings, Preferencias Y Accesibilidad
 
-- [ ] Explorar estilos/skins.
+- [ ] Resolver o quitar vibracion:
+  - Actualmente no es confiable en prueba real.
+  - Si no queda bien, no mostrarla en release.
+
+- [ ] Diseñar pantalla de estilos antes de mostrarla en release:
   - Temas de color.
   - Variantes de tablero.
-  - Posible feature Premium si suma valor real.
+  - Alto contraste.
+  - Posible Premium futuro si aporta valor real.
 
-## Premium, Monetización Y Ads
+- [ ] Expandir settings solo cuando sea util:
+  - Sonido opcional.
+  - Mostrar/ocultar timer.
+  - Tamaño de numeros.
+  - Contraste del tablero.
+  - Reducir animaciones.
 
-- [ ] Definir beneficios Premium V1 y futuros.
-  - V1: hints ilimitadas, sin anuncios para pedir pistas, apoyar desarrollo.
-  - Futuro: skins, estadísticas avanzadas, práctica por técnica, revisión post-partida.
+- [ ] Revisar accesibilidad:
+  - Content descriptions.
+  - Tamaños tactiles.
+  - Contraste.
+  - TalkBack basico.
+  - Textos que no se corten.
 
-- [ ] Revisar pantalla Premium.
-  - Hacerla más llamativa sin parecer agresiva.
-  - Mejorar visual del tablero si hace falta.
-  - Confirmar que el copy sea legal, claro y no engañoso.
+## Textos E Internacionalizacion
 
-- [ ] Probar Billing de punta a punta.
-  - Compra exitosa.
-  - Compra cancelada.
-  - Compra pendiente.
-  - Restore.
-  - Desinstalar/reinstalar y recuperar Premium.
+- [x] Primera pasada de textos cortos de UI a `strings.xml`.
+- [x] Mensajes del tutorial en `GameViewModel` usando `StringProvider`.
+- [x] `values-en/strings.xml` queda como scaffold vacio para no mezclar idiomas.
 
+- [ ] Definir estrategia para contenido pedagogico largo:
+  - `TechniqueTutorialFixtures.kt`.
+  - `TechniquesScreen.kt`.
+  - `StrategyContext.kt`.
+  - `SudokuHint.kt`.
+
+- [ ] Correccion completa de copy:
+  - Tildes.
+  - Consistencia de tono.
+  - Claridad de hints.
+  - Claridad de tecnicas.
+  - Copy de Premium.
+  - Copy de Play Store.
+
+- [ ] Preparar localizacion real si se decide publicar en ingles:
+  - Espanol base.
+  - Ingles completo.
+  - Evitar mezcla parcial de idiomas.
+
+## Premium, Ads Y Monetizacion
+
+- [ ] Definir beneficios Premium V1 definitivos:
+  - Hints ilimitadas.
+  - Sin anuncios para pedir pistas.
+  - Apoyar desarrollo.
+
+- [ ] Revisar pantalla Premium:
+  - Mas atractiva sin ser agresiva.
+  - Copy legal y claro.
+  - Confirmar que no prometa mas de lo implementado.
+
+- [ ] Probar Play Billing de punta a punta.
 - [ ] Probar rewarded ads de punta a punta.
-  - Debug con test ad.
-  - Release con Remote Config apagado.
-  - Release con Remote Config prendido cuando AdMob esté listo.
-  - Error amable si no carga anuncio.
+- [ ] Revisar UMP/consentimiento antes de activar anuncios reales.
+- [ ] Confirmar Remote Config seguro para release:
+  - Ads apagados si no esta todo listo.
+  - Premium activado solo si el producto esta listo.
 
-- [ ] Revisar UMP/consentimiento para ads.
-  - Confirmar que está correcto antes de activar anuncios reales.
-  - Revisar países/regiones y privacidad.
+## Datos, Firebase Y Privacidad
 
-## Login, Usuario Y Datos
+- [x] Documento de privacidad/data safety en `docs/privacy-data-safety.md`.
+- [x] Politica de privacidad publicada en Google Sites.
+- [x] `allowBackup=false`.
+- [x] `data_extraction_rules.xml` excluye backup/transfer.
 
-- [ ] Agregar sección para enviar comentarios.
-  - Permitir que el usuario mande feedback desde Settings o una pantalla dedicada.
-  - Recomendación inicial: guardar en Firestore, no enviar email directo desde la app.
-  - Asociar el comentario al usuario anónimo si existe, versión de app, dispositivo y fecha.
-  - Poner límite de caracteres razonable, por ejemplo 500 o 1000.
-  - Validar input en cliente y reglas/backend: no vacío, largo máximo, texto plano.
-  - Evitar renderizar contenido como HTML/Markdown ejecutable en herramientas internas.
-  - Agregar rate limit o protección equivalente para evitar spam.
-  - Evaluar más adelante Cloud Function para reenviar comentarios importantes por mail.
-  - Revisar App Check y reglas de Firestore antes de publicarlo.
-
-- [ ] Evaluar login con Google.
-  - Hoy existe anonymous login.
-  - Google login podría servir para sincronizar progreso, rankings o restaurar identidad.
-  - Evitar hacerlo invasivo si no aporta valor inmediato.
-
-- [ ] Definir qué datos vale la pena asociar al usuario.
-  - Partidas terminadas.
-  - Dificultad.
-  - Tiempo.
-  - Hints usadas.
-  - Técnicas vistas/practicadas.
-  - Estado Premium viene de Play Billing, no de Firestore como fuente principal.
-
-- [ ] Revisar política de privacidad.
-  - Auth.
-  - Analytics.
-  - Crashlytics.
-  - Firestore.
-  - AdMob.
-  - Billing.
-  - Documento de trabajo: `docs/privacy-data-safety.md`.
+- [ ] Revisar reglas de Firestore.
+- [ ] Revisar App Check.
+- [ ] Confirmar que no se guarden tableros completos en Firestore.
+- [ ] Revisar costos potenciales de Analytics/Firestore.
+- [ ] Agregar forma de solicitar borrado de datos si Play Console lo exige para la configuracion final.
 
 ## Play Store Y Release
 
-- [ ] Resolver advertencias de Play Console.
-  - Archivo de desofuscación si se activa R8/ProGuard.
-  - Símbolos nativos si Play vuelve a advertir.
-  - Cualquier warning del pre-launch report.
+- [x] Checklist de release creado en `docs/release-checklist.md`.
+- [x] Room schema export activo y versionado.
+- [x] `applicationId` publicado documentado en `AGENTS.md`.
 
-- [ ] Completar ficha de Play Store.
-  - Descripción corta.
-  - Descripción completa.
+- [ ] Completar ficha de Play Store:
+  - Descripcion corta.
+  - Descripcion completa.
   - Screenshots.
   - Feature graphic.
-  - Categoría.
+  - Categoria.
   - Tags.
-  - Política de privacidad.
+  - Politica de privacidad.
 
-- [ ] Completar Data Safety.
-  - Datos recolectados.
-  - Datos compartidos.
-  - Propósito de uso.
-  - Borrado de datos si aplica.
-  - Usar como base `docs/privacy-data-safety.md`.
+- [ ] Completar formularios:
+  - Data Safety.
+  - Ads.
+  - Compras dentro de la app.
+  - Clasificacion de contenido.
+  - Acceso a la app.
 
-- [ ] Revisar clasificación de contenido.
-  - Confirmar que sea apta para todo público.
-  - Confirmar ads y compras dentro de la app.
-
-- [x] Preparar checklist de release.
-  - Version code/name.
-  - AAB firmado.
-  - Release notes.
-  - Remote Config seguro.
-  - Ads reales apagados hasta validar.
-  - Crashlytics funcionando.
-  - Billing activo.
-  - Checklist creado en `docs/release-checklist.md`.
-
-- [ ] Revisar pre-launch report.
-  - Crashes.
-  - ANRs.
-  - Accesibilidad.
-  - Rendimiento.
-  - Capturas automáticas.
+- [ ] Antes de release productivo:
+  - Ejecutar `bundleRelease`.
+  - Revisar versionCode/versionName.
+  - Revisar signing config.
+  - Revisar mapping si se activa minify/R8.
 
 ## Arquitectura, Calidad Y Tests
 
-- [ ] Completar internacionalización sin ensuciar ViewModels.
-  - Evitar meter strings Android en dominio puro.
-  - Definir dónde se formatean textos dinámicos de hints.
+- [x] Tests base de `GameViewModel`.
+- [x] Tests para tutorial interactivo.
+- [x] Tests de generacion/hints/solver existentes.
+- [x] Limpieza de archivos muertos recientes.
 
-- [ ] Separar archivos grandes.
+- [ ] Separar archivos grandes:
   - `GameScreen.kt`.
   - `TechniquesScreen.kt`.
-  - Componentes de settings/premium si siguen creciendo.
 
-- [ ] Consolidar theme/tokens.
-  - `Dimens` está poco usado.
-  - Material theme conserva rastros de template.
-  - Alinear todo al diseño final.
+- [ ] Mejorar cobertura:
+  - SettingsViewModel.
+  - Premium/Billing con fakes.
+  - Fixtures de tecnicas.
+  - Reglas de tutorial en casos limite.
 
-- [ ] Mejorar cobertura de tests.
-  - GameViewModel ya tiene base.
-  - Agregar tests para SettingsViewModel.
-  - Agregar tests para premium/billing con fakes.
-  - Agregar tests de fixtures de técnicas.
-
-- [x] Revisar Room antes de release.
-  - `exportSchema = true`.
-  - Schema v4 versionado en `app/schemas`.
-  - Migraciones reales.
-  - No usar destructive migrations en release.
-
-- [ ] Revisar generación de sudokus.
-  - Mantener seeds random en producción.
-  - Mantener testabilidad determinística donde haga falta.
-  - Evitar dependencias Android innecesarias en dominio.
-
-- [ ] Revisar performance.
-  - Generación de tablero.
+- [ ] Revisar performance:
+  - Generacion de tablero.
+  - Recomposition del tablero.
   - Animaciones.
-  - Pantalla de técnicas.
-  - Uso de recompositions en tablero.
+  - Biblioteca de tecnicas.
 
-- [ ] Revisar accesibilidad.
-  - Content descriptions.
-  - Tamaños táctiles.
-  - Contraste.
-  - TalkBack básico.
-  - Textos que no se corten.
-
-## Analytics, Crashlytics Y Observabilidad
-
-- [ ] Revisar eventos Analytics.
-  - Inicio de partida.
-  - Partida terminada.
-  - Dificultad.
-  - Hints usadas.
-  - Límite de hints alcanzado.
-  - Ads rewarded.
-  - Premium.
-  - Técnicas abiertas.
-
-- [ ] Revisar agregados en Firestore.
-  - Mantenerlos compactos para controlar costos.
-  - No guardar eventos individuales innecesarios.
-
-- [ ] Mejorar contexto de Crashlytics.
-  - Dificultad.
-  - Estado premium.
-  - Hints usadas.
-  - Versión de app.
-  - Última acción relevante si sirve.
+- [ ] Revisar dependencias:
+  - Mantener solo librerias necesarias.
+  - Confirmar que Lottie/Konfetti aportan valor real.
+  - Evitar assets pesados sin uso.
 
 ## Ideas Futuras
 
-- [ ] Estadísticas avanzadas.
-  - Tiempo promedio por dificultad.
-  - Técnicas más usadas.
-  - Rachas.
-  - Progreso de aprendizaje.
-
-- [ ] Revisión post-partida.
-  - Qué técnicas aparecieron.
-  - Cuántas pistas se usaron.
-  - Dónde se cometieron errores.
-
-- [ ] Modo entrenamiento.
-  - Elegir técnica.
-  - Resolver micro-ejercicios.
-  - Feedback guiado.
-
+- [ ] Feedback del usuario desde Settings.
+- [ ] Estadisticas avanzadas.
+- [ ] Revision post-partida.
+- [ ] Modo entrenamiento por tecnica.
 - [ ] Temas visuales premium.
-  - Clásico.
-  - Alto contraste.
-  - Nocturno suave.
-  - Azul actual pulido.
+- [ ] Sincronizacion futura con login Google solo si aporta valor.
 
-- [ ] Sincronización futura.
-  - Requiere decidir si Google login aporta valor suficiente.
+## Decisiones Vigentes
 
-## Notas De Decisión
-
+- No cambiar `applicationId`.
+- No usar destructive migrations en release.
+- No dejar debug boards activos.
 - No agregar features invasivas antes de consolidar calidad.
-- No esconder ayudas importantes detrás de Premium de forma agresiva.
-- Premium debe sentirse como apoyo y entrenamiento extendido, no como bloqueo artificial.
-- Ads solo rewarded y por elección explícita del usuario.
-- La UI final debe verse seria y profesional, no como demo.
+- Premium debe sentirse como apoyo/entrenamiento extendido, no como bloqueo agresivo.
+- Ads solo rewarded y por eleccion explicita del usuario.

@@ -49,6 +49,7 @@
     <string name="game_note_mode_off">OFF</string>
     <string name="game_hint">Pista</string>
     <string name="game_delete">Borrar</string>
+    <string name="game_delete_short">X</string>
     <string name="debug_json_label">SudokuDump</string>
     <string name="debug_json_copied">JSON copiado</string>
 

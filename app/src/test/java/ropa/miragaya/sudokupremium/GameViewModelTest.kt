@@ -50,6 +50,7 @@ import ropa.miragaya.sudokupremium.ui.game.GameViewModel
 import ropa.miragaya.sudokupremium.ui.game.GuidedTutorialPhase
 import ropa.miragaya.sudokupremium.ui.navigation.GameRoute
 import ropa.miragaya.sudokupremium.util.DispatcherProvider
+import ropa.miragaya.sudokupremium.util.StringProvider
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GameViewModelTest {
@@ -690,6 +691,7 @@ class GameViewModelTest {
         premiumEntitlementRepository: FakePremiumEntitlementRepository = FakePremiumEntitlementRepository(),
         rewardedHintAdManager: FakeRewardedHintAdManager = FakeRewardedHintAdManager(),
         appSettingsRepository: FakeAppSettingsRepository = FakeAppSettingsRepository(),
+        stringProvider: StringProvider = FakeStringProvider(),
         route: GameRoute = GameRoute(createNew = false)
     ): GameViewModel {
         return GameViewModel(
@@ -706,6 +708,7 @@ class GameViewModelTest {
             premiumEntitlementRepository = premiumEntitlementRepository,
             rewardedHintAdManager = rewardedHintAdManager,
             appSettingsRepository = appSettingsRepository,
+            stringProvider = stringProvider,
             savedStateHandle = savedStateHandleFor(route)
         )
     }
@@ -897,6 +900,12 @@ private class FakeAppSettingsRepository(initialSettings: AppSettings = AppSettin
     }
 }
 
+private class FakeStringProvider : StringProvider {
+    override fun get(resId: Int): String {
+        return resId.toString()
+    }
+}
+
 private class FakeActivity : Activity()
 
 private class FakeGameRepository(initialSavedGame: SavedGame? = null) : GameRepository {
@@ -949,10 +958,8 @@ private class FakeHintProvider(private val hints: List<SudokuHint> = emptyList()
     }
 }
 
-private class GuidedTutorialHintProvider(
-    private val targetCellIds: List<Int>,
-    private val solvedBoard: Board
-) : HintProvider {
+private class GuidedTutorialHintProvider(private val targetCellIds: List<Int>, private val solvedBoard: Board) :
+    HintProvider {
     var requestCount = 0
         private set
 

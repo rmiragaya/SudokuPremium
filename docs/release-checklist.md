@@ -73,9 +73,9 @@ $env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat bundle
   - Descripcion corta.
   - Descripcion completa.
   - Screenshots.
-  - Feature graphic.
+  - Feature graphic. Assets base en `play-console-assets/`.
   - Categoria y tags.
-  - Politica de privacidad.
+  - Politica de privacidad: `https://sites.google.com/view/sudoku-mentor-privacy`.
 - Completar formularios:
   - Data Safety.
   - Clasificacion de contenido.
@@ -84,9 +84,10 @@ $env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat bundle
 
 ## Pendientes Antes De Produccion
 
-- Room schema export configurado y schemas versionados en `app/schemas`.
-- Cerrar politica de privacidad publica.
 - Revisar reglas de Firestore y App Check.
+- Cerrar QA de Billing, rewarded ads y UMP.
+- Revisar tutorial interactivo en dispositivo real y pantallas chicas.
+- Capturas finales para Play Store.
 - Probar en dispositivo real al menos:
   - Nueva partida.
   - Continuar partida.

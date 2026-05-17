@@ -47,11 +47,7 @@ import ropa.miragaya.sudokupremium.util.StringProvider
 private const val USE_DEBUG_BOARD = false
 private const val GUIDED_TUTORIAL_TOTAL_STEPS = 4
 
-private data class DismissedHintSnapshot(
-    val board: Board,
-    val hints: List<SudokuHint>,
-    val currentHintIndex: Int
-)
+private data class DismissedHintSnapshot(val board: Board, val hints: List<SudokuHint>, val currentHintIndex: Int)
 
 @HiltViewModel
 class GameViewModel @Inject constructor(
@@ -103,11 +99,8 @@ class GameViewModel @Inject constructor(
 
     private fun initializeGame() {
         if (BuildConfig.DEBUG && USE_DEBUG_BOARD) {
-            // Tiene nakedTriple y Y-Wing.
+            // Tablero fijo para pruebas manuales cuando USE_DEBUG_BOARD=true.
             val debugBoard = debugBoardSource.loadBoardFromJson("board1-intersection-removal-1.txt")
-//            val debugBoard = debugBoardLoader.loadBoardFromJson("board2-naked-pair-1.txt")
-//            val debugBoard = debugBoardLoader.loadBoardFromJson("board2-naked-pair-2.txt")
-//            val debugBoard = debugBoardLoader.loadBoardFromGrid()
 
             if (debugBoard == null) {
                 Log.e(tag, "No se pudo cargar el debug board")
@@ -361,10 +354,7 @@ class GameViewModel @Inject constructor(
             ?.copy(stepBoard = board)
     }
 
-    private fun createGuidedTutorialLessonState(
-        board: Board,
-        phase: GuidedTutorialPhase
-    ): GuidedTutorialUiState {
+    private fun createGuidedTutorialLessonState(board: Board, phase: GuidedTutorialPhase): GuidedTutorialUiState {
         return GuidedTutorialUiState(
             phase = phase,
             currentStep = 0,
@@ -373,10 +363,7 @@ class GameViewModel @Inject constructor(
         )
     }
 
-    private fun createGuidedTutorialLessonHint(
-        board: Board,
-        phase: GuidedTutorialPhase
-    ): SudokuHint {
+    private fun createGuidedTutorialLessonHint(board: Board, phase: GuidedTutorialPhase): SudokuHint {
         val anchorCell = board.cells
             .firstOrNull { cell -> cell.isGiven && cell.value != null }
             ?: board.cells.getOrElse(40) { board.cells.first() }
