@@ -804,6 +804,8 @@ private class FakeAnalyticsTracker : AnalyticsTracker {
 
     override fun logRewardedHintAdEarned() = Unit
 
+    override fun logRewardedHintAdDismissed() = Unit
+
     override fun logRewardedHintAdFailed(reason: String?) = Unit
 
     override fun logPremiumPurchaseStarted() = Unit
@@ -935,6 +937,22 @@ private class FakeUserStatsRepository : UserStatsRepository {
         hintsUsed: Int,
         mistakesRevealed: Int
     ) = Unit
+
+    override fun trackHintLimitReached() = Unit
+
+    override fun trackRewardedHintAdRequested() = Unit
+
+    override fun trackRewardedHintAdEarned() = Unit
+
+    override fun trackRewardedHintAdDismissed() = Unit
+
+    override fun trackRewardedHintAdFailed(reason: String?) = Unit
+
+    override fun trackPremiumPurchaseStarted() = Unit
+
+    override fun trackPremiumPurchased() = Unit
+
+    override fun trackPremiumRestored() = Unit
 }
 
 private data class FakeVictory(val time: Long, val difficulty: Difficulty)

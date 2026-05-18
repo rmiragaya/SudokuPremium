@@ -639,6 +639,7 @@ class GameViewModel @Inject constructor(
         if (!canRequestHintNow()) {
             val state = _uiState.value
             analyticsTracker.logHintLimitReached(state.difficulty, state.hintsUsed)
+            userStatsRepository.trackHintLimitReached()
             _uiState.update { it.copy(showHintLimitSheet = true, showRewardedHintError = false) }
             updateCrashGameContext()
             return
@@ -759,16 +760,19 @@ class GameViewModel @Inject constructor(
         if (activity == null) {
             _uiState.update { it.copy(showRewardedHintError = true) }
             analyticsTracker.logRewardedHintAdFailed("Activity unavailable")
+            userStatsRepository.trackRewardedHintAdFailed("Activity unavailable")
             return
         }
 
         _uiState.update { it.copy(isRewardedHintLoading = true, showRewardedHintError = false) }
         analyticsTracker.logRewardedHintAdRequested()
+        userStatsRepository.trackRewardedHintAdRequested()
 
         rewardedHintAdManager.showRewardedHintAd(activity) { result ->
             when (result) {
                 RewardedHintAdResult.Earned -> {
                     analyticsTracker.logRewardedHintAdEarned()
+                    userStatsRepository.trackRewardedHintAdEarned()
                     _uiState.update {
                         it.copy(
                             rewardedHintsAvailable = it.rewardedHintsAvailable + 1,
@@ -782,11 +786,14 @@ class GameViewModel @Inject constructor(
                 }
 
                 RewardedHintAdResult.Dismissed -> {
+                    analyticsTracker.logRewardedHintAdDismissed()
+                    userStatsRepository.trackRewardedHintAdDismissed()
                     _uiState.update { it.copy(isRewardedHintLoading = false) }
                 }
 
                 is RewardedHintAdResult.Failed -> {
                     analyticsTracker.logRewardedHintAdFailed(result.reason)
+                    userStatsRepository.trackRewardedHintAdFailed(result.reason)
                     _uiState.update {
                         it.copy(
                             isRewardedHintLoading = false,

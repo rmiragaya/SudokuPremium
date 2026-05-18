@@ -87,6 +87,10 @@ class FirebaseAnalyticsTracker @Inject constructor(private val firebaseAnalytics
         logEvent(name = EVENT_REWARDED_HINT_AD_EARNED)
     }
 
+    override fun logRewardedHintAdDismissed() {
+        logEvent(name = EVENT_REWARDED_HINT_AD_DISMISSED)
+    }
+
     override fun logRewardedHintAdFailed(reason: String?) {
         logEvent(
             name = EVENT_REWARDED_HINT_AD_FAILED,
@@ -141,6 +145,7 @@ class FirebaseAnalyticsTracker @Inject constructor(private val firebaseAnalytics
         const val EVENT_HINT_LIMIT_REACHED = "hint_limit_reached"
         const val EVENT_REWARDED_HINT_AD_REQUESTED = "rewarded_hint_ad_requested"
         const val EVENT_REWARDED_HINT_AD_EARNED = "rewarded_hint_ad_earned"
+        const val EVENT_REWARDED_HINT_AD_DISMISSED = "rewarded_hint_ad_dismissed"
         const val EVENT_REWARDED_HINT_AD_FAILED = "rewarded_hint_ad_failed"
         const val EVENT_PREMIUM_PURCHASE_STARTED = "premium_purchase_started"
         const val EVENT_PREMIUM_PURCHASE_COMPLETED = "premium_purchase_completed"

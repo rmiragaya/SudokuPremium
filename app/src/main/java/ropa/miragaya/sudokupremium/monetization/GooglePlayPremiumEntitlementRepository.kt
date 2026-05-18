@@ -24,12 +24,14 @@ import ropa.miragaya.sudokupremium.BuildConfig
 import ropa.miragaya.sudokupremium.analytics.AnalyticsTracker
 import ropa.miragaya.sudokupremium.config.RemoteConfigProvider
 import ropa.miragaya.sudokupremium.crash.CrashReporter
+import ropa.miragaya.sudokupremium.domain.stats.UserStatsRepository
 
 @Singleton
 class GooglePlayPremiumEntitlementRepository @Inject constructor(
     @ApplicationContext context: Context,
     private val analyticsTracker: AnalyticsTracker,
     private val crashReporter: CrashReporter,
+    private val userStatsRepository: UserStatsRepository,
     private val remoteConfigProvider: RemoteConfigProvider
 ) : PremiumEntitlementRepository {
 
@@ -40,6 +42,7 @@ class GooglePlayPremiumEntitlementRepository @Inject constructor(
     override val purchaseState: StateFlow<PremiumPurchaseState> = _purchaseState.asStateFlow()
 
     private var premiumProductDetails: ProductDetails? = null
+    private var hasTrackedPremiumEntitlementThisSession = false
 
     private val purchasesUpdatedListener = PurchasesUpdatedListener { billingResult, purchases ->
         when (billingResult.responseCode) {
@@ -90,6 +93,7 @@ class GooglePlayPremiumEntitlementRepository @Inject constructor(
 
         _purchaseState.value = PremiumPurchaseState.Loading
         analyticsTracker.logPremiumPurchaseStarted()
+        userStatsRepository.trackPremiumPurchaseStarted()
 
         ensureConnected {
             queryPremiumProductDetails { productDetails ->
@@ -198,10 +202,14 @@ class GooglePlayPremiumEntitlementRepository @Inject constructor(
                 _isPremium.value = true
                 acknowledgeIfNeeded(premiumPurchase)
                 _purchaseState.value = if (restored) PremiumPurchaseState.Restored else PremiumPurchaseState.Purchased
-                if (restored) {
-                    analyticsTracker.logPremiumPurchaseRestored()
-                } else {
+                if (!restored) {
                     analyticsTracker.logPremiumPurchaseCompleted()
+                    userStatsRepository.trackPremiumPurchased()
+                    hasTrackedPremiumEntitlementThisSession = true
+                } else if (!hasTrackedPremiumEntitlementThisSession) {
+                    analyticsTracker.logPremiumPurchaseRestored()
+                    userStatsRepository.trackPremiumRestored()
+                    hasTrackedPremiumEntitlementThisSession = true
                 }
             }
 

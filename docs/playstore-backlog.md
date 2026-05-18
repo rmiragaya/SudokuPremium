@@ -247,6 +247,7 @@ La prioridad sigue siendo calidad, claridad y pulido antes que volumen de featur
 - [x] Checklist de release creado en `docs/release-checklist.md`.
 - [x] Room schema export activo y versionado.
 - [x] `applicationId` publicado documentado en `AGENTS.md`.
+- [x] Separar builds por flavor `dev`/`prod` para Firebase Dev y Firebase Prod.
 
 - [ ] Completar ficha de Play Store:
   - Descripcion corta.
@@ -269,6 +270,12 @@ La prioridad sigue siendo calidad, claridad y pulido antes que volumen de featur
   - Revisar versionCode/versionName.
   - Revisar signing config.
   - Revisar mapping si se activa minify/R8.
+  - Revisar advertencia de Play Console sobre archivo de desofuscacion:
+    - Si se activa `minifyEnabled`/R8, generar y subir el mapping file.
+    - Si R8 sigue apagado, documentar que la advertencia no aplica.
+  - Revisar advertencia de Play Console sobre simbolos nativos:
+    - Identificar que dependencias aportan `.so`.
+    - Subir simbolos nativos si Play lo sigue recomendando para produccion.
 
 ## Arquitectura, Calidad Y Tests
 

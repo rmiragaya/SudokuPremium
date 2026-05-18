@@ -27,8 +27,8 @@ android {
         applicationId = "ropa.miragaya.sudokumentor"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -59,6 +59,23 @@ android {
             )
         }
     }
+
+    flavorDimensions += "environment"
+
+    productFlavors {
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            buildConfigField("String", "ENVIRONMENT", "\"dev\"")
+        }
+
+        create("prod") {
+            dimension = "environment"
+            buildConfigField("String", "ENVIRONMENT", "\"prod\"")
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11

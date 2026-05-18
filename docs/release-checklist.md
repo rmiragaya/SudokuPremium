@@ -8,16 +8,35 @@ Checklist operativo para publicar builds internas, cerradas o productivas sin de
 - Android namespace/code package: `ropa.miragaya.sudokupremium`
 - Published applicationId: `ropa.miragaya.sudokumentor`
 - Firebase Android package: `ropa.miragaya.sudokumentor`
-- Current version: `versionCode = 1`, `versionName = 1.0`
+- Current version: `versionCode = 2`, `versionName = 1.0.1`
 
 El `applicationId` ya se uso para una version de testers internos. Tratarlo como estable para Play Console, Firebase, AdMob y Play Billing.
 
+## Ambientes Firebase
+
+- Flavor `dev`:
+  - `applicationId`: `ropa.miragaya.sudokumentor.dev`
+  - App name: `Sudoku Mentor Dev`
+  - Firebase project: Dev
+  - Config local esperada: `app/src/dev/google-services.json`
+- Flavor `prod`:
+  - `applicationId`: `ropa.miragaya.sudokumentor`
+  - App name: `Sudoku Mentor`
+  - Firebase project: Prod/Play Store
+  - Config local esperada: `app/src/prod/google-services.json`
+
+Usar `prodRelease` para builds de Play Console. No subir builds `dev` a la app productiva.
+
 ## Archivos Locales Requeridos
 
-- `app/google-services.json`
+- `app/src/prod/google-services.json`
   - Debe existir localmente.
   - No debe commitearse.
   - El package interno debe coincidir con `ropa.miragaya.sudokumentor`.
+- `app/src/dev/google-services.json`
+  - Debe existir localmente para builds `dev`.
+  - No debe commitearse.
+  - El package interno debe coincidir con `ropa.miragaya.sudokumentor.dev`.
 - `keystore.properties`
   - Debe existir solo para builds firmadas de release.
   - No debe commitearse.
@@ -32,14 +51,14 @@ Ejecutar desde la raiz con cache local:
 
 ```powershell
 $env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat ktlintCheck
-$env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat testDebugUnitTest
-$env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat assembleDebug
+$env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat testProdDebugUnitTest
+$env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat assembleProdDebug
 ```
 
 Antes de subir a Play Console, agregar:
 
 ```powershell
-$env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat bundleRelease
+$env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat bundleProdRelease
 ```
 
 ## Release Guardrails
@@ -60,6 +79,9 @@ $env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat bundle
   - Restauracion.
   - Reinstalacion y recuperacion de Premium.
 - Confirmar que UMP/consentimiento funciona antes de activar anuncios reales.
+- Para release productivo, revisar advertencias de Play Console:
+  - Mapping de desofuscacion: si se activa minify/R8, generar y subir el mapping file.
+  - Simbolos nativos: si Play sigue detectando codigo nativo de dependencias, evaluar/subir simbolos de depuracion.
 
 ## Play Console
 

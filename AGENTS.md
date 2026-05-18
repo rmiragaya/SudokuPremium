@@ -17,18 +17,22 @@ Commands
 Run Gradle with the local project cache:
 ```powershell
 $env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat ktlintCheck
-$env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat testDebugUnitTest
-$env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat assembleDebug
+$env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat testProdDebugUnitTest
+$env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat assembleProdDebug
 ```
 Preferred validation order after meaningful changes:
 `ktlintCheck`
-`testDebugUnitTest`
-`assembleDebug`
+`testProdDebugUnitTest`
+`assembleProdDebug`
 For UI work, install/run the debug build on an emulator or device when practical and capture screenshots if visual behavior matters.
 Release Identity
 The Play Store/Firebase/AdMob/Billing identity is the published `applicationId`, currently `ropa.miragaya.sudokumentor`.
 Do not change `applicationId` casually: after internal testing/publication it represents the app identity in Play Console and related Google services.
 The Kotlin namespace/package remains `ropa.miragaya.sudokupremium`; this difference is intentional.
+Firebase environments use product flavors:
+- `dev`: `applicationId` = `ropa.miragaya.sudokumentor.dev`, app name `Sudoku Mentor Dev`, Firebase Dev.
+- `prod`: `applicationId` = `ropa.miragaya.sudokumentor`, app name `Sudoku Mentor`, Firebase/Play production.
+Use `prodRelease` for Play Console builds.
 Architecture Notes
 Domain models and solver logic live under `app/src/main/java/ropa/miragaya/sudokupremium/domain`.
 Sudoku solving strategies live under `domain/solver/strategies`.

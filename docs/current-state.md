@@ -12,6 +12,9 @@ Este documento existe para que un proximo Codex pueda entrar al proyecto sin rec
 - Namespace/codigo Kotlin: `ropa.miragaya.sudokupremium`.
 - Application ID publicado: `ropa.miragaya.sudokumentor`.
 - El `applicationId` ya se uso en Play Console para testers internos. No cambiarlo salvo decision explicita.
+- Flavors de ambiente:
+  - `dev`: `ropa.miragaya.sudokumentor.dev`, Firebase Dev, app name `Sudoku Mentor Dev`.
+  - `prod`: `ropa.miragaya.sudokumentor`, Firebase Prod/Play Store, app name `Sudoku Mentor`.
 - Stack: Kotlin, Jetpack Compose, Material 3, Navigation Compose tipado, Hilt, Room, Firebase, Play Billing, AdMob rewarded ads.
 
 ## Direccion De Producto
@@ -84,6 +87,7 @@ Eso es intencional por ahora: moverlo a recursos requiere un refactor de conteni
 
 Documentos relevantes:
 
+- `docs/firebase-environments.md`
 - `docs/privacy-data-safety.md`
 - `docs/release-checklist.md`
 - `docs/playstore-backlog.md`
@@ -106,15 +110,15 @@ Ultima validacion corrida en esta PC:
 
 ```powershell
 $env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat ktlintCheck --no-daemon --console=plain
-$env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat testDebugUnitTest --no-daemon --console=plain
-$env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat assembleDebug --no-daemon --console=plain
+$env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat testProdDebugUnitTest --no-daemon --console=plain
+$env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat assembleProdDebug --no-daemon --console=plain
 ```
 
 Resultado:
 
 - `ktlintCheck`: pasa.
-- `testDebugUnitTest`: pasa.
-- `assembleDebug`: pasa.
+- `testProdDebugUnitTest`: pasa.
+- `assembleProdDebug`: pasa.
 
 ## Pendientes Principales Para Continuar
 
@@ -131,7 +135,7 @@ El backlog vivo esta en `docs/playstore-backlog.md`. Lo mas importante ahora:
 ## Cuidado Al Continuar
 
 - No cambiar `applicationId`.
-- No commitear `app/google-services.json`, `keystore.properties` ni `local.properties`.
+- No commitear `app/src/dev/google-services.json`, `app/src/prod/google-services.json`, `keystore.properties` ni `local.properties`.
 - Mantener `USE_DEBUG_BOARD = false`.
 - No reactivar opciones debug en release.
 - No agregar destructive Room migrations.

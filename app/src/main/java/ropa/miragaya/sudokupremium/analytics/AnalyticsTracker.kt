@@ -25,6 +25,8 @@ interface AnalyticsTracker {
 
     fun logRewardedHintAdEarned()
 
+    fun logRewardedHintAdDismissed()
+
     fun logRewardedHintAdFailed(reason: String?)
 
     fun logPremiumPurchaseStarted()

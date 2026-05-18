@@ -65,8 +65,14 @@ Datos guardados:
   - Pistas usadas.
   - Errores revelados.
   - Fecha de completado.
+- Estadisticas agregadas de monetizacion:
+  - Llega al limite de pistas.
+  - Anuncios rewarded solicitados, completados, cerrados o fallidos.
+  - Inicio y confirmacion/restauracion de Premium.
+  - Estado `isPremium` como resumen operativo.
 
 No se guarda el tablero completo en Firestore actualmente.
+No se guardan tokens de compra, precios, tarjetas, emails ni metodos de pago en Firestore.
 
 ### Analytics
 
