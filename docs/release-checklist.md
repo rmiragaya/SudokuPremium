@@ -103,6 +103,10 @@ $env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat bundle
   - Clasificacion de contenido.
   - Ads.
   - Compras dentro de la app.
+- Revisar factores de forma antes de produccion:
+  - No habilitar Google Play Games en PC salvo que se haga QA especifico.
+  - No prometer soporte Automotive/autos.
+  - Mantener foco inicial en telefonos y tablets.
 
 ## Pendientes Antes De Produccion
 

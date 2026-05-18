@@ -526,7 +526,7 @@ fun GameContent(
     val shouldScrollContent = activeHint != null && !isGuidedTutorialActive
     val contentScrollState = rememberScrollState()
     val boardTopSpacerHeight by animateDpAsState(
-        targetValue = if (boardHint != null) 0.dp else 28.dp,
+        targetValue = if (boardHint != null) 0.dp else 18.dp,
         animationSpec = tween(320),
         label = "BoardTopSpacer"
     )
@@ -558,7 +558,7 @@ fun GameContent(
             modifier = Modifier
                 .fillMaxSize()
                 .animateContentSize(animationSpec = tween(320))
-                .padding(16.dp)
+                .padding(horizontal = 14.dp, vertical = 6.dp)
                 .then(
                     if (shouldScrollContent) Modifier.verticalScroll(contentScrollState) else Modifier
                 ),
@@ -614,7 +614,7 @@ fun GameContent(
                 }
             }
 
-            Spacer(modifier = Modifier.height(if (boardHint != null) 10.dp else 30.dp))
+            Spacer(modifier = Modifier.height(if (boardHint != null) 8.dp else 18.dp))
 
             AnimatedVisibility(
                 visible = guidedTutorial != null,
@@ -675,7 +675,7 @@ fun GameContent(
 
                 Spacer(modifier = Modifier.height(16.dp))
             } else if (guidedTutorial?.isMoveStep == true && !uiState.isLoading) {
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 NumberPad(
                     onNumberClick = onNumberInput,
@@ -684,7 +684,7 @@ fun GameContent(
                     highlightedNumber = guidedTutorial.currentHint.valueToSet
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
             } else if (activeHint == null && !uiState.isLoading) {
                 GameControls(
                     isNoteMode = uiState.isNoteMode,
@@ -694,7 +694,7 @@ fun GameContent(
                     enabled = true
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 NumberPad(
                     onNumberClick = onNumberInput,
@@ -702,7 +702,7 @@ fun GameContent(
                     completedNumbers = uiState.completedNumbers
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }
@@ -752,8 +752,8 @@ private fun GuidedTutorialCard(
         border = BorderStroke(1.dp, SudokuPalette.CellHintBorder.copy(alpha = 0.42f))
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -774,15 +774,20 @@ private fun GuidedTutorialCard(
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold
                 )
-                TextButton(onClick = onSkip) {
-                    Text(stringResource(R.string.how_to_play_skip), color = SudokuPalette.TextSecondary)
-                }
+                Text(
+                    text = stringResource(R.string.how_to_play_skip),
+                    color = SudokuPalette.TextSecondary,
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier
+                        .clickable(onClick = onSkip)
+                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                )
             }
 
             Text(
                 text = tutorial.currentHint.description,
                 color = SudokuPalette.TextPrimary,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold
             )
             if (tutorial.isMoveStep) {
@@ -792,23 +797,29 @@ private fun GuidedTutorialCard(
                         tutorial.currentHint.valueToSet ?: 0
                     ),
                     color = SudokuPalette.TextSecondary,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodySmall
                 )
             } else {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    TextButton(onClick = onNext) {
-                        Text(stringResource(R.string.action_next), color = SudokuPalette.CellHintBorder)
-                    }
+                    Text(
+                        text = stringResource(R.string.action_next),
+                        color = SudokuPalette.CellHintBorder,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .clickable(onClick = onNext)
+                            .padding(horizontal = 8.dp, vertical = 2.dp)
+                    )
                 }
             }
             if (inputMessage != null) {
                 Text(
                     text = inputMessage,
                     color = SudokuPalette.CellHintBorder,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -1020,11 +1031,11 @@ fun NumberPad(
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(7.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(7.dp)
         ) {
             (1..5).forEach { number ->
                 SudokuButton(
@@ -1039,7 +1050,7 @@ fun NumberPad(
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(7.dp)
         ) {
             (6..9).forEach { number ->
                 SudokuButton(
@@ -1082,18 +1093,18 @@ fun SudokuButton(
 
     Button(
         onClick = onClick,
-        modifier = modifier.height(50.dp),
+        modifier = modifier.height(46.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
             contentColor = contentColor
         ),
         enabled = enabled,
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(13.dp),
         contentPadding = PaddingValues(0.dp)
     ) {
         Text(
             text = text,
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
     }
@@ -1119,7 +1130,7 @@ fun GameTopBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .height(48.dp)
             .padding(horizontal = 16.dp)
     ) {
         Icon(
@@ -1282,7 +1293,7 @@ fun GameTimerPill(elapsedTimeSeconds: Long, modifier: Modifier = Modifier) {
         border = BorderStroke(1.dp, SudokuPalette.GridLine)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
@@ -1290,7 +1301,7 @@ fun GameTimerPill(elapsedTimeSeconds: Long, modifier: Modifier = Modifier) {
                 painter = painterResource(id = android.R.drawable.ic_menu_recent_history),
                 contentDescription = null,
                 tint = SudokuPalette.TextAccent,
-                modifier = Modifier.size(15.dp)
+                modifier = Modifier.size(14.dp)
             )
 
             Text(
@@ -1325,7 +1336,7 @@ fun GameControls(
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(7.dp)
     ) {
         Button(
             onClick = onUndo,
@@ -1334,17 +1345,17 @@ fun GameControls(
                 containerColor = SudokuPalette.ButtonContainer,
                 contentColor = SudokuPalette.ButtonContent
             ),
-            shape = RoundedCornerShape(14.dp),
-            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 12.dp),
-            modifier = Modifier.weight(1f)
+            shape = RoundedCornerShape(13.dp),
+            contentPadding = PaddingValues(0.dp),
+            modifier = Modifier
+                .weight(0.62f)
+                .height(46.dp)
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.Undo,
                 contentDescription = stringResource(R.string.game_undo),
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(23.dp)
             )
-            Spacer(modifier = Modifier.size(8.dp))
-            Text(stringResource(R.string.game_undo), style = MaterialTheme.typography.labelLarge)
         }
 
         // notas
@@ -1359,23 +1370,25 @@ fun GameControls(
                 containerColor = containerColor,
                 contentColor = contentColor
             ),
-            shape = RoundedCornerShape(14.dp),
-            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 12.dp),
-            modifier = Modifier.weight(1f)
+            shape = RoundedCornerShape(13.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+            modifier = Modifier
+                .weight(1f)
+                .height(46.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.Edit,
                 contentDescription = stringResource(R.string.game_note_mode),
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(22.dp)
             )
-            Spacer(modifier = Modifier.size(8.dp))
+            Spacer(modifier = Modifier.size(6.dp))
             Text(
                 text = if (isNoteMode) {
                     stringResource(R.string.game_note_mode_on)
                 } else {
                     stringResource(R.string.game_note_mode_off)
                 },
-                style = MaterialTheme.typography.labelLarge,
+                style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -1387,17 +1400,19 @@ fun GameControls(
                 containerColor = SudokuPalette.CellHint,
                 contentColor = SudokuPalette.CellHintBorder
             ),
-            shape = RoundedCornerShape(14.dp),
-            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 12.dp),
-            modifier = Modifier.weight(1f)
+            shape = RoundedCornerShape(13.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+            modifier = Modifier
+                .weight(1f)
+                .height(46.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.Lightbulb,
                 contentDescription = stringResource(R.string.game_hint),
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(22.dp)
             )
-            Spacer(modifier = Modifier.size(8.dp))
-            Text(stringResource(R.string.game_hint), style = MaterialTheme.typography.labelLarge)
+            Spacer(modifier = Modifier.size(6.dp))
+            Text(stringResource(R.string.game_hint), style = MaterialTheme.typography.labelMedium)
         }
     }
 }

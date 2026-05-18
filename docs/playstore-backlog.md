@@ -57,6 +57,10 @@ La prioridad sigue siendo calidad, claridad y pulido antes que volumen de featur
   - Politica de privacidad publicada.
   - Reglas de Firestore.
   - App Check.
+  - Factores de forma:
+    - Confirmar que no quede habilitado Google Play Games en PC si no se va a soportar.
+    - Confirmar que no se prometa soporte para autos/Automotive.
+    - Mantener foco inicial en telefonos y tablets.
 
 - [ ] Revisar pre-launch report:
   - Crashes.

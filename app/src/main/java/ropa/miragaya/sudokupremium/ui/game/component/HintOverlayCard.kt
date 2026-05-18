@@ -51,16 +51,16 @@ fun HintOverlayCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = SudokuPalette.BoardBackground),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         modifier = modifier
     ) {
         Column(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(12.dp)
                 .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             HintHeader(
                 strategyName = hint.strategyName,
@@ -76,12 +76,12 @@ fun HintOverlayCard(
 
             Text(
                 text = hint.description,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = SudokuPalette.TextPrimary,
                 textAlign = TextAlign.Start,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 142.dp)
+                    .heightIn(max = 112.dp)
                     .verticalScroll(rememberScrollState())
             )
 
@@ -90,7 +90,7 @@ fun HintOverlayCard(
                 onClick = onDismiss,
                 modifier = Modifier
                     .fillMaxWidth(),
-                height = 44.dp
+                height = 40.dp
             )
         }
     }
@@ -112,7 +112,7 @@ private fun HintHeader(
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Surface(
             shape = RoundedCornerShape(12.dp),
@@ -124,15 +124,15 @@ private fun HintHeader(
                 contentDescription = null,
                 tint = SudokuPalette.CellHintBorder,
                 modifier = Modifier
-                    .padding(8.dp)
-                    .size(20.dp)
+                    .padding(7.dp)
+                    .size(18.dp)
             )
         }
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = strategyName,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleSmall,
                 color = SudokuPalette.CellHintBorder,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
@@ -141,7 +141,7 @@ private fun HintHeader(
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 if (totalSteps > 1) {
                     Text(
@@ -159,7 +159,7 @@ private fun HintHeader(
                         .clickable(onClick = onTechniqueClick)
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
@@ -184,7 +184,7 @@ private fun HintHeader(
             IconButton(
                 onClick = onPrev,
                 enabled = canGoPrev,
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(32.dp)
             ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
@@ -195,7 +195,7 @@ private fun HintHeader(
             IconButton(
                 onClick = onNext,
                 enabled = canGoNext,
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(32.dp)
             ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowForward,
@@ -207,7 +207,7 @@ private fun HintHeader(
 
         IconButton(
             onClick = onDismiss,
-            modifier = Modifier.size(36.dp)
+            modifier = Modifier.size(32.dp)
         ) {
             Icon(
                 Icons.Default.Close,
@@ -227,7 +227,7 @@ private fun HintMetaRow(hint: SudokuHint) {
 
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         actionLabel?.let {
             HintChip(
@@ -253,11 +253,11 @@ private fun HintChip(text: String, modifier: Modifier = Modifier) {
     ) {
         Text(
             text = text,
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.labelSmall,
             color = SudokuPalette.TextSecondary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
         )
     }
 }
