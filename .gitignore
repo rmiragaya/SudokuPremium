@@ -21,6 +21,8 @@ keystore.properties
 
 # Local release artifacts
 app/release/
+app/prod/
+app/dev/
 
 # Log files
 *.log

@@ -8,7 +8,7 @@ Checklist operativo para publicar builds internas, cerradas o productivas sin de
 - Android namespace/code package: `ropa.miragaya.sudokupremium`
 - Published applicationId: `ropa.miragaya.sudokumentor`
 - Firebase Android package: `ropa.miragaya.sudokumentor`
-- Current version: `versionCode = 2`, `versionName = 1.0.1`
+- Current version: `versionCode = 3`, `versionName = 1.0.2`
 
 El `applicationId` ya se uso para una version de testers internos. Tratarlo como estable para Play Console, Firebase, AdMob y Play Billing.
 
@@ -80,8 +80,9 @@ $env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat bundle
   - Reinstalacion y recuperacion de Premium.
 - Confirmar que UMP/consentimiento funciona antes de activar anuncios reales.
 - Para release productivo, revisar advertencias de Play Console:
-  - Mapping de desofuscacion: si se activa minify/R8, generar y subir el mapping file.
-  - Simbolos nativos: si Play sigue detectando codigo nativo de dependencias, evaluar/subir simbolos de depuracion.
+  - Mapping de desofuscacion: R8/minify esta activo en `release`; el AAB incluye `BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map`.
+  - Simbolos nativos: `release` usa `debugSymbolLevel = "SYMBOL_TABLE"`; verificar en Play Console si la advertencia desaparece despues del proximo AAB.
+  - Firestore/App Check: revisar `docs/firebase-security-hardening.md` antes de activar enforcement.
 
 ## Play Console
 

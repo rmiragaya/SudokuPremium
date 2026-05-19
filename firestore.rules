@@ -1,0 +1,102 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function validDifficulty(difficulty) {
+      return difficulty in ['easy', 'medium', 'hard', 'expert'];
+    }
+
+    function validUserRootKeys() {
+      return request.resource.data.keys().hasOnly([
+        'lastSeenAt',
+        'isAnonymous',
+        'isPremium',
+        'premiumUpdatedAt'
+      ]);
+    }
+
+    function validStatsKeys() {
+      return request.resource.data.keys().hasOnly([
+        'difficulty',
+        'gamesStarted',
+        'gamesCompleted',
+        'totalCompletionTimeSeconds',
+        'hintsUsed',
+        'mistakesRevealed',
+        'hintLimitReached',
+        'rewardedHintAdsRequested',
+        'rewardedHintAdsEarned',
+        'rewardedHintAdsDismissed',
+        'rewardedHintAdsFailed',
+        'premiumPurchasesStarted',
+        'premiumPurchasesCompleted',
+        'lastPlayedAt',
+        'lastCompletedAt',
+        'lastHintLimitReachedAt',
+        'lastRewardedHintAdRequestedAt',
+        'lastRewardedHintAdEarnedAt',
+        'lastRewardedHintAdDismissedAt',
+        'lastRewardedHintAdFailedAt',
+        'lastRewardedHintAdFailureReason',
+        'lastPremiumPurchaseStartedAt',
+        'lastPremiumPurchasedAt',
+        'lastPremiumRestoredAt',
+        'isPremium',
+        'updatedAt'
+      ]);
+    }
+
+    function validCompletedGame() {
+      return request.resource.data.keys().hasOnly([
+        'difficulty',
+        'elapsedSeconds',
+        'hintsUsed',
+        'mistakesRevealed',
+        'completedAt'
+      ]) &&
+        validDifficulty(request.resource.data.difficulty) &&
+        request.resource.data.elapsedSeconds is int &&
+        request.resource.data.hintsUsed is int &&
+        request.resource.data.mistakesRevealed is int;
+    }
+
+    match /users/{userId} {
+      allow get, list: if isOwner(userId);
+      allow create, update: if isOwner(userId) && validUserRootKeys();
+      allow delete: if false;
+
+      match /stats/{statsDocument} {
+        allow get, list: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validStatsKeys();
+        allow delete: if false;
+
+        match /items/{itemDocument} {
+          allow get, list: if isOwner(userId);
+          allow create, update: if isOwner(userId) &&
+            statsDocument == 'byDifficulty' &&
+            validDifficulty(itemDocument) &&
+            validStatsKeys();
+          allow delete: if false;
+        }
+      }
+
+      match /completedGames/{gameId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && validCompletedGame();
+        allow update, delete: if false;
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

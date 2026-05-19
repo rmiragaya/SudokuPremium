@@ -12,10 +12,17 @@
 #   public *;
 #}
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Preserve useful crash stack information when R8 is enabled.
+-keepattributes SourceFile,LineNumberTable
 
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
-#-renamesourcefileattribute SourceFile
+-renamesourcefileattribute SourceFile
+
+# Room stores Board as Gson JSON. Keep these field names stable so saved games
+# survive app updates from non-minified to minified builds.
+-keep class ropa.miragaya.sudokupremium.domain.model.Board { *; }
+-keep class ropa.miragaya.sudokupremium.domain.model.Cell { *; }
+
+# Keep typed navigation routes stable for Navigation Compose serialization.
+-keep class ropa.miragaya.sudokupremium.ui.navigation.** { *; }
