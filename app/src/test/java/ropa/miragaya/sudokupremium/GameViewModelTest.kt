@@ -834,6 +834,15 @@ private class FakeCrashReporter : CrashReporter {
         isComplete: Boolean
     ) = Unit
 
+    override fun setRewardedAdContext(
+        stage: String,
+        reason: String?,
+        adsEnabled: Boolean,
+        rewardedHintsEnabled: Boolean,
+        adUnitConfigured: Boolean,
+        canRequestAds: Boolean?
+    ) = Unit
+
     override fun clearGameContext() = Unit
 
     override fun throwTestCrash() = Unit

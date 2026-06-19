@@ -19,6 +19,15 @@ interface CrashReporter {
         isComplete: Boolean
     )
 
+    fun setRewardedAdContext(
+        stage: String,
+        reason: String?,
+        adsEnabled: Boolean,
+        rewardedHintsEnabled: Boolean,
+        adUnitConfigured: Boolean,
+        canRequestAds: Boolean?
+    )
+
     fun clearGameContext()
 
     fun throwTestCrash()

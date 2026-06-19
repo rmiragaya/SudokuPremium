@@ -758,6 +758,9 @@ class GameViewModel @Inject constructor(
 
     fun onWatchRewardedHintAdClick(activity: Activity?) {
         if (activity == null) {
+            crashReporter.recordNonFatal(
+                IllegalStateException("Rewarded hint ad failed: Activity unavailable")
+            )
             _uiState.update { it.copy(showRewardedHintError = true) }
             analyticsTracker.logRewardedHintAdFailed("Activity unavailable")
             userStatsRepository.trackRewardedHintAdFailed("Activity unavailable")

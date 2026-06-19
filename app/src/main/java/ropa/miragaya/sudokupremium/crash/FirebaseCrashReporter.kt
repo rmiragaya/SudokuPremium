@@ -49,6 +49,23 @@ class FirebaseCrashReporter @Inject constructor(private val crashlytics: Firebas
         crashlytics.setCustomKey(KEY_GAME_IS_COMPLETE, false)
     }
 
+    override fun setRewardedAdContext(
+        stage: String,
+        reason: String?,
+        adsEnabled: Boolean,
+        rewardedHintsEnabled: Boolean,
+        adUnitConfigured: Boolean,
+        canRequestAds: Boolean?
+    ) {
+        crashlytics.setCustomKey(KEY_REWARDED_AD_STAGE, stage)
+        crashlytics.setCustomKey(KEY_REWARDED_AD_REASON, reason?.take(MAX_CRASHLYTICS_VALUE_LENGTH) ?: VALUE_NONE)
+        crashlytics.setCustomKey(KEY_REWARDED_ADS_ENABLED, adsEnabled)
+        crashlytics.setCustomKey(KEY_REWARDED_HINTS_ENABLED, rewardedHintsEnabled)
+        crashlytics.setCustomKey(KEY_REWARDED_AD_UNIT_CONFIGURED, adUnitConfigured)
+        crashlytics.setCustomKey(KEY_REWARDED_CAN_REQUEST_ADS, canRequestAds ?: false)
+        crashlytics.setCustomKey(KEY_REWARDED_CAN_REQUEST_ADS_KNOWN, canRequestAds != null)
+    }
+
     override fun throwTestCrash() {
         check(BuildConfig.DEBUG) { "Crashlytics test crash is only available in debug builds." }
         crashlytics.log("Manual Crashlytics test crash requested from debug menu.")
@@ -63,6 +80,14 @@ class FirebaseCrashReporter @Inject constructor(private val crashlytics: Firebas
         const val KEY_IS_PREMIUM = "is_premium"
         const val KEY_GAME_MISTAKES_REVEALED = "game_mistakes_revealed"
         const val KEY_GAME_IS_COMPLETE = "game_is_complete"
+        const val KEY_REWARDED_AD_STAGE = "rewarded_ad_stage"
+        const val KEY_REWARDED_AD_REASON = "rewarded_ad_reason"
+        const val KEY_REWARDED_ADS_ENABLED = "rewarded_ads_enabled"
+        const val KEY_REWARDED_HINTS_ENABLED = "rewarded_hints_enabled"
+        const val KEY_REWARDED_AD_UNIT_CONFIGURED = "rewarded_ad_unit_configured"
+        const val KEY_REWARDED_CAN_REQUEST_ADS = "rewarded_can_request_ads"
+        const val KEY_REWARDED_CAN_REQUEST_ADS_KNOWN = "rewarded_can_request_ads_known"
         const val VALUE_NONE = "none"
+        const val MAX_CRASHLYTICS_VALUE_LENGTH = 100
     }
 }

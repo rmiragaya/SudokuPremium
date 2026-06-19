@@ -45,6 +45,7 @@ Ya existe:
 - Biblioteca de tecnicas con ejemplos visuales.
 - Flujo de victoria con resumen y accion para nueva partida.
 - Premium/ads/rewarded hints integrados a nivel app, pendientes de QA completo de release.
+- Rewarded ads ahora devuelven fallo en errores de UMP/carga/show para no dejar el loading colgado.
 - Firebase Auth anonimo, Analytics, Crashlytics, Firestore y Remote Config.
 - Room schema export activo y schemas versionados en `app/schemas`.
 
@@ -103,6 +104,32 @@ Notas:
 - Usa Analytics, Crashlytics, Firestore, Remote Config, Billing, AdMob rewarded ads y UMP.
 - `allowBackup=false` esta configurado.
 - `data_extraction_rules.xml` excluye backup/transfer.
+
+## Diagnostico De Ads
+
+Si el usuario toca `Ver anuncio para 1 pista` y algo falla:
+
+- Logcat:
+  - Filtrar por tag `RewardedHintAds`.
+- Crashlytics:
+  - Buscar non-fatals con mensajes `Rewarded ad failed...` o `UMP...`.
+  - Los logs previos incluyen inicio de request, carga y resultado.
+  - Custom keys nuevas:
+    - `rewarded_ad_stage`
+    - `rewarded_ad_reason`
+    - `rewarded_ads_enabled`
+    - `rewarded_hints_enabled`
+    - `rewarded_ad_unit_configured`
+    - `rewarded_can_request_ads`
+    - `rewarded_can_request_ads_known`
+- Analytics:
+  - Eventos `rewarded_hint_ad_requested`, `rewarded_hint_ad_failed`, `rewarded_hint_ad_earned`, `rewarded_hint_ad_dismissed`.
+- Firestore:
+  - En `users/{uid}` se actualizan contadores de rewarded ads y `lastRewardedHintAdFailureReason`.
+
+En debug se usa el ad unit de prueba de Google. En release el ad unit viene de Remote Config: `rewarded_hint_ad_unit_id`.
+
+La implementacion actual tiene timeout defensivo de 30 segundos: si UMP o AdMob no devuelve callback, se registra `timeout`, se manda `Failed` y la UI deja de mostrar loading.
 
 ## Validacion Reciente
 
