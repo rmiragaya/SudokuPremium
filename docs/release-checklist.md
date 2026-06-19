@@ -8,7 +8,7 @@ Checklist operativo para publicar builds internas, cerradas o productivas sin de
 - Android namespace/code package: `ropa.miragaya.sudokupremium`
 - Published applicationId: `ropa.miragaya.sudokumentor`
 - Firebase Android package: `ropa.miragaya.sudokumentor`
-- Current version: `versionCode = 3`, `versionName = 1.0.2`
+- Current version: `versionCode = 4`, `versionName = 1.0.3`
 
 El `applicationId` ya se uso para una version de testers internos. Tratarlo como estable para Play Console, Firebase, AdMob y Play Billing.
 
@@ -41,6 +41,7 @@ Usar `prodRelease` para builds de Play Console. No subir builds `dev` a la app p
   - Debe existir solo para builds firmadas de release.
   - No debe commitearse.
   - Debe apuntar al keystore correcto para la app de Play Console.
+  - La password sola no alcanza: tambien se necesita el archivo `.jks`/`.keystore` original de upload key.
 - `local.properties`
   - Debe apuntar al SDK local.
   - No debe commitearse.
@@ -60,6 +61,8 @@ Antes de subir a Play Console, agregar:
 ```powershell
 $env:GRADLE_USER_HOME = Join-Path (Get-Location) ".gradle"; .\gradlew.bat bundleProdRelease
 ```
+
+El AAB que se sube a Play debe estar firmado con la upload key correcta. Si Play Console muestra "Todos los bundles subidos deben estar firmados", revisar que `keystore.properties` exista y apunte al keystore real antes de regenerar el bundle.
 
 ## Release Guardrails
 

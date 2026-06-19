@@ -1,6 +1,6 @@
 # Sudoku Mentor - Estado Actual
 
-Ultima actualizacion: 2026-05-17.
+Ultima actualizacion: 2026-06-19.
 
 Este documento existe para que un proximo Codex pueda entrar al proyecto sin reconstruir todo el contexto de memoria.
 
@@ -48,6 +48,7 @@ Ya existe:
 - Rewarded ads ahora devuelven fallo en errores de UMP/carga/show para no dejar el loading colgado.
 - Firebase Auth anonimo, Analytics, Crashlytics, Firestore y Remote Config.
 - Room schema export activo y schemas versionados en `app/schemas`.
+- Version actual preparada para la proxima build: `versionCode = 4`, `versionName = 1.0.3`.
 
 ## Estado Visual
 
@@ -163,6 +164,7 @@ El backlog vivo esta en `docs/playstore-backlog.md`. Lo mas importante ahora:
 
 - No cambiar `applicationId`.
 - No commitear `app/src/dev/google-services.json`, `app/src/prod/google-services.json`, `keystore.properties` ni `local.properties`.
+- Esta PC no tiene `keystore.properties`/upload keystore de Play; para subir AAB a Play Console hay que regenerar `prodRelease` en la PC que tenga la keystore o copiar localmente el `.jks`/`.keystore` y crear `keystore.properties`.
 - Mantener `USE_DEBUG_BOARD = false`.
 - No reactivar opciones debug en release.
 - No agregar destructive Room migrations.
