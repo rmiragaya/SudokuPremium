@@ -121,11 +121,14 @@
     <string name="settings_section_game">Juego</string>
     <string name="settings_section_appearance">Apariencia</string>
     <string name="settings_section_premium">Premium</string>
+    <string name="settings_section_support">Soporte</string>
     <string name="settings_section_debug">Debug</string>
     <string name="settings_haptics_title">Vibración</string>
     <string name="settings_haptics_description">Respuesta suave al ingresar números y usar acciones del tablero.</string>
     <string name="settings_board_style_title">Estilo del tablero</string>
     <string name="settings_board_style_description">Preparado para temas visuales, contraste y tamaño de lectura.</string>
+    <string name="settings_support_code_title">Código de soporte</string>
+    <string name="settings_support_code_description">Compartilo si necesitás que revisemos un problema de esta instalación.</string>
     <string name="settings_debug_reset_premium_title">Resetear Premium</string>
     <string name="settings_debug_reset_premium_description">Vuelve a dejar la compra disponible para probar el flujo.</string>
     <string name="settings_debug_reset">Resetear</string>

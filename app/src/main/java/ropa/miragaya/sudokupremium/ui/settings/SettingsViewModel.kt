@@ -57,7 +57,12 @@ class SettingsViewModel @Inject constructor(
     private fun observeSettings() {
         viewModelScope.launch {
             appSettingsRepository.settings.collect { settings ->
-                _uiState.update { it.copy(hapticsEnabled = settings.hapticsEnabled) }
+                _uiState.update {
+                    it.copy(
+                        hapticsEnabled = settings.hapticsEnabled,
+                        supportCode = settings.supportCode
+                    )
+                }
             }
         }
     }

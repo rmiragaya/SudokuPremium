@@ -8,11 +8,13 @@ import javax.inject.Singleton
 import ropa.miragaya.sudokupremium.auth.AuthSessionManager
 import ropa.miragaya.sudokupremium.crash.CrashReporter
 import ropa.miragaya.sudokupremium.domain.model.Difficulty
+import ropa.miragaya.sudokupremium.settings.AppSettingsRepository
 
 @Singleton
 class FirebaseUserStatsRepository @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val authSessionManager: AuthSessionManager,
+    private val appSettingsRepository: AppSettingsRepository,
     private val crashReporter: CrashReporter
 ) : UserStatsRepository {
 
@@ -34,10 +36,7 @@ class FirebaseUserStatsRepository @Inject constructor(
         firestore.runBatch { batch ->
             batch.set(
                 userDocument,
-                mapOf(
-                    FIELD_LAST_SEEN_AT to FieldValue.serverTimestamp(),
-                    FIELD_IS_ANONYMOUS to true
-                ),
+                userSeenUpdate(FIELD_IS_ANONYMOUS to true),
                 SetOptions.merge()
             )
             batch.set(summaryDocument, startedStatsUpdate(), SetOptions.merge())
@@ -78,7 +77,7 @@ class FirebaseUserStatsRepository @Inject constructor(
 
             batch.set(
                 userDocument,
-                mapOf(FIELD_LAST_SEEN_AT to FieldValue.serverTimestamp()),
+                userSeenUpdate(),
                 SetOptions.merge()
             )
             batch.set(summaryDocument, completedUpdate, SetOptions.merge())
@@ -173,7 +172,7 @@ class FirebaseUserStatsRepository @Inject constructor(
         firestore.runBatch { batch ->
             batch.set(
                 userDocument,
-                mapOf(FIELD_LAST_SEEN_AT to FieldValue.serverTimestamp()),
+                userSeenUpdate(),
                 SetOptions.merge()
             )
             batch.set(
@@ -209,10 +208,9 @@ class FirebaseUserStatsRepository @Inject constructor(
         firestore.runBatch { batch ->
             batch.set(
                 userDocument,
-                mapOf(
+                userSeenUpdate(
                     FIELD_IS_PREMIUM to true,
-                    FIELD_PREMIUM_UPDATED_AT to FieldValue.serverTimestamp(),
-                    FIELD_LAST_SEEN_AT to FieldValue.serverTimestamp()
+                    FIELD_PREMIUM_UPDATED_AT to FieldValue.serverTimestamp()
                 ),
                 SetOptions.merge()
             )
@@ -247,6 +245,17 @@ class FirebaseUserStatsRepository @Inject constructor(
         )
     }
 
+    private fun userSeenUpdate(vararg extraFields: Pair<String, Any>): Map<String, Any> {
+        val supportCode = appSettingsRepository.settings.value.supportCode
+        return buildMap {
+            put(FIELD_LAST_SEEN_AT, FieldValue.serverTimestamp())
+            if (supportCode.isNotBlank()) {
+                put(FIELD_SUPPORT_CODE, supportCode)
+            }
+            extraFields.forEach { (field, value) -> put(field, value) }
+        }
+    }
+
     private fun Difficulty.statsKey(): String = name.lowercase()
 
     private companion object {
@@ -262,6 +271,7 @@ class FirebaseUserStatsRepository @Inject constructor(
         const val FIELD_LAST_SEEN_AT = "lastSeenAt"
         const val FIELD_IS_ANONYMOUS = "isAnonymous"
         const val FIELD_IS_PREMIUM = "isPremium"
+        const val FIELD_SUPPORT_CODE = "supportCode"
         const val FIELD_UPDATED_AT = "updatedAt"
         const val FIELD_LAST_PLAYED_AT = "lastPlayedAt"
         const val FIELD_LAST_COMPLETED_AT = "lastCompletedAt"

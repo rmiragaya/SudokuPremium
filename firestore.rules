@@ -14,17 +14,59 @@ service cloud.firestore {
       return difficulty in ['easy', 'medium', 'hard', 'expert'];
     }
 
-    function validUserRootKeys() {
+    function validUserRootCreateKeys() {
       return request.resource.data.keys().hasOnly([
         'lastSeenAt',
         'isAnonymous',
         'isPremium',
+        'supportCode',
         'premiumUpdatedAt'
       ]);
     }
 
-    function validStatsKeys() {
+    function validUserRootUpdateKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'lastSeenAt',
+        'isAnonymous',
+        'isPremium',
+        'supportCode',
+        'premiumUpdatedAt'
+      ]);
+    }
+
+    function validStatsCreateKeys() {
       return request.resource.data.keys().hasOnly([
+        'difficulty',
+        'gamesStarted',
+        'gamesCompleted',
+        'totalCompletionTimeSeconds',
+        'hintsUsed',
+        'mistakesRevealed',
+        'hintLimitReached',
+        'rewardedHintAdsRequested',
+        'rewardedHintAdsEarned',
+        'rewardedHintAdsDismissed',
+        'rewardedHintAdsFailed',
+        'premiumPurchasesStarted',
+        'premiumPurchasesCompleted',
+        'lastPlayedAt',
+        'lastCompletedAt',
+        'lastHintLimitReachedAt',
+        'lastRewardedHintAdRequestedAt',
+        'lastRewardedHintAdEarnedAt',
+        'lastRewardedHintAdDismissedAt',
+        'lastRewardedHintAdFailedAt',
+        'lastRewardedHintAdFailureReason',
+        'lastPremiumPurchaseStartedAt',
+        'lastPremiumPurchasedAt',
+        'lastPremiumRestoredAt',
+        'isPremium',
+        'updatedAt'
+      ]);
+    }
+
+    function validStatsUpdateKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
         'difficulty',
         'gamesStarted',
         'gamesCompleted',
@@ -70,20 +112,26 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow get, list: if isOwner(userId);
-      allow create, update: if isOwner(userId) && validUserRootKeys();
+      allow create: if isOwner(userId) && validUserRootCreateKeys();
+      allow update: if isOwner(userId) && validUserRootUpdateKeys();
       allow delete: if false;
 
       match /stats/{statsDocument} {
         allow get, list: if isOwner(userId);
-        allow create, update: if isOwner(userId) && validStatsKeys();
+        allow create: if isOwner(userId) && validStatsCreateKeys();
+        allow update: if isOwner(userId) && validStatsUpdateKeys();
         allow delete: if false;
 
         match /items/{itemDocument} {
           allow get, list: if isOwner(userId);
-          allow create, update: if isOwner(userId) &&
+          allow create: if isOwner(userId) &&
             statsDocument == 'byDifficulty' &&
             validDifficulty(itemDocument) &&
-            validStatsKeys();
+            validStatsCreateKeys();
+          allow update: if isOwner(userId) &&
+            statsDocument == 'byDifficulty' &&
+            validDifficulty(itemDocument) &&
+            validStatsUpdateKeys();
           allow delete: if false;
         }
       }

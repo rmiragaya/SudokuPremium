@@ -32,6 +32,7 @@ Room guarda una partida activa:
 SharedPreferences guarda preferencias:
 
 - Vibracion/haptics activada o desactivada.
+- Codigo de soporte local (`supportCode`) generado por la app para identificar una instalacion en diagnosticos.
 
 Estos datos son funcionales para continuar la experiencia de juego. `allowBackup=false` esta configurado en el manifest, por lo que no se intenta backup automatico de app data.
 
@@ -51,6 +52,7 @@ Datos guardados:
 
 - `isAnonymous`.
 - `lastSeenAt`.
+- `supportCode` tecnico de la instalacion.
 - Estadisticas agregadas:
   - Partidas iniciadas.
   - Partidas completadas.

@@ -49,6 +49,11 @@ Ya existe:
 - Firebase Auth anonimo, Analytics, Crashlytics, Firestore y Remote Config.
 - Room schema export activo y schemas versionados en `app/schemas`.
 - Version actual preparada para la proxima build: `versionCode = 4`, `versionName = 1.0.3`.
+- Observabilidad inicial:
+  - Cada instalacion local genera un `supportCode` legible, por ejemplo `SM-7K4Q-92`.
+  - Settings muestra el codigo en la seccion `Soporte`.
+  - Crashlytics y Analytics reciben el mismo `support_code`.
+  - Firestore guarda `supportCode` en `users/{uid}` cuando se actualizan stats.
 
 ## Estado Visual
 
@@ -127,6 +132,7 @@ Si el usuario toca `Ver anuncio para 1 pista` y algo falla:
   - Eventos `rewarded_hint_ad_requested`, `rewarded_hint_ad_failed`, `rewarded_hint_ad_earned`, `rewarded_hint_ad_dismissed`.
 - Firestore:
   - En `users/{uid}` se actualizan contadores de rewarded ads y `lastRewardedHintAdFailureReason`.
+  - En `users/{uid}.supportCode` queda el codigo legible para identificar instalaciones de testers.
 
 En debug se usa el ad unit de prueba de Google. En release el ad unit viene de Remote Config: `rewarded_hint_ad_unit_id`.
 

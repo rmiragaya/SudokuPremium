@@ -13,6 +13,10 @@ class FirebaseCrashReporter @Inject constructor(private val crashlytics: Firebas
         crashlytics.setUserId(userId)
     }
 
+    override fun setSupportCode(supportCode: String) {
+        crashlytics.setCustomKey(KEY_SUPPORT_CODE, supportCode)
+    }
+
     override fun log(message: String) {
         crashlytics.log(message)
     }
@@ -78,6 +82,7 @@ class FirebaseCrashReporter @Inject constructor(private val crashlytics: Firebas
         const val KEY_GAME_HINTS_USED = "game_hints_used"
         const val KEY_GAME_REWARDED_HINTS_AVAILABLE = "rewarded_hints_available"
         const val KEY_IS_PREMIUM = "is_premium"
+        const val KEY_SUPPORT_CODE = "support_code"
         const val KEY_GAME_MISTAKES_REVEALED = "game_mistakes_revealed"
         const val KEY_GAME_IS_COMPLETE = "game_is_complete"
         const val KEY_REWARDED_AD_STAGE = "rewarded_ad_stage"

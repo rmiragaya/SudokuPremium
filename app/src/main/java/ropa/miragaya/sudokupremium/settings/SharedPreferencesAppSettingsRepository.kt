@@ -7,18 +7,27 @@ import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import ropa.miragaya.sudokupremium.diagnostics.SupportCodeGenerator
 
 @Singleton
 class SharedPreferencesAppSettingsRepository @Inject constructor(@ApplicationContext context: Context) :
     AppSettingsRepository {
 
     private val preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+    private val supportCode = preferences.getString(KEY_SUPPORT_CODE, null)
+        ?.takeIf { it.isNotBlank() }
+        ?: SupportCodeGenerator.generate().also { generatedCode ->
+            preferences.edit()
+                .putString(KEY_SUPPORT_CODE, generatedCode)
+                .apply()
+        }
 
     private val _settings = MutableStateFlow(
         AppSettings(
             hapticsEnabled = preferences.getBoolean(KEY_HAPTICS_ENABLED, true),
             hasStartedAnyGame = preferences.getBoolean(KEY_HAS_STARTED_ANY_GAME, false),
-            hasSeenHowToPlayTutorial = preferences.getBoolean(KEY_HAS_SEEN_HOW_TO_PLAY_TUTORIAL, false)
+            hasSeenHowToPlayTutorial = preferences.getBoolean(KEY_HAS_SEEN_HOW_TO_PLAY_TUTORIAL, false),
+            supportCode = supportCode
         )
     )
     override val settings: StateFlow<AppSettings> = _settings.asStateFlow()
@@ -49,5 +58,6 @@ class SharedPreferencesAppSettingsRepository @Inject constructor(@ApplicationCon
         const val KEY_HAPTICS_ENABLED = "haptics_enabled"
         const val KEY_HAS_STARTED_ANY_GAME = "has_started_any_game"
         const val KEY_HAS_SEEN_HOW_TO_PLAY_TUTORIAL = "has_seen_how_to_play_tutorial"
+        const val KEY_SUPPORT_CODE = "support_code"
     }
 }

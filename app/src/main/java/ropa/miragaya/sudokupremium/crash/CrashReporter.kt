@@ -5,6 +5,8 @@ import ropa.miragaya.sudokupremium.domain.model.Difficulty
 interface CrashReporter {
     fun setUserId(userId: String)
 
+    fun setSupportCode(supportCode: String)
+
     fun log(message: String)
 
     fun recordNonFatal(throwable: Throwable)

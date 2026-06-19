@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Settings
@@ -132,6 +133,9 @@ private fun SettingsContent(
                 premiumStatusMessage = uiState.premiumStatusMessage,
                 onOpenPremiumClick = onOpenPremiumClick
             )
+
+            SettingsSectionTitle(stringResource(R.string.settings_section_support))
+            SettingsSupportCodeRow(supportCode = uiState.supportCode)
 
             if (BuildConfig.DEBUG) {
                 SettingsSectionTitle(stringResource(R.string.settings_section_debug))
@@ -353,7 +357,35 @@ private val PremiumStatusMessage.stringRes: Int
         PremiumStatusMessage.PURCHASE_PENDING -> R.string.premium_status_purchase_pending
         PremiumStatusMessage.PURCHASE_CANCELED -> R.string.premium_status_purchase_canceled
         PremiumStatusMessage.PREMIUM_ACTIVATION_FAILED -> R.string.premium_status_activation_failed
+}
+
+@Composable
+private fun SettingsSupportCodeRow(supportCode: String) {
+    SettingsRowContainer {
+        SettingsIcon(imageVector = Icons.Default.Info, accent = SudokuPalette.TextAccent)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = stringResource(R.string.settings_support_code_title),
+                color = SudokuPalette.TextPrimary,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = supportCode,
+                color = SudokuPalette.TextAccent,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = stringResource(R.string.settings_support_code_description),
+                color = SudokuPalette.TextSecondary,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
     }
+}
 
 @Composable
 private fun SettingsDebugRow(onDebugResetPremiumClick: () -> Unit) {

@@ -15,6 +15,10 @@ class FirebaseAnalyticsTracker @Inject constructor(private val firebaseAnalytics
         firebaseAnalytics.setUserId(userId)
     }
 
+    override fun setSupportCode(supportCode: String) {
+        firebaseAnalytics.setUserProperty(USER_PROPERTY_SUPPORT_CODE, supportCode)
+    }
+
     override fun logScreenViewed(screenName: String) {
         firebaseAnalytics.logEvent(
             FirebaseAnalytics.Event.SCREEN_VIEW,
@@ -162,6 +166,7 @@ class FirebaseAnalyticsTracker @Inject constructor(private val firebaseAnalytics
         const val PARAM_TECHNIQUE_ID = "technique_id"
         const val PARAM_SOURCE = "source"
         const val PARAM_REASON = "reason"
+        const val USER_PROPERTY_SUPPORT_CODE = "support_code"
         const val VALUE_UNKNOWN = "unknown"
     }
 }

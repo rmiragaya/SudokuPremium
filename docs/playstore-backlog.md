@@ -239,6 +239,7 @@ La prioridad sigue siendo calidad, claridad y pulido antes que volumen de featur
 - [x] Politica de privacidad publicada en Google Sites.
 - [x] `allowBackup=false`.
 - [x] `data_extraction_rules.xml` excluye backup/transfer.
+- [x] Agregar `supportCode` local para identificar instalaciones de testers en Settings, Crashlytics, Analytics y Firestore.
 
 - [ ] Revisar reglas de Firestore.
 - [ ] Revisar App Check.

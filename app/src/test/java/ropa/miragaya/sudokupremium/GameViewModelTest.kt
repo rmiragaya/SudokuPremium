@@ -783,6 +783,8 @@ private class TestDispatcherProvider(private val dispatcher: CoroutineDispatcher
 private class FakeAnalyticsTracker : AnalyticsTracker {
     override fun setUserId(userId: String) = Unit
 
+    override fun setSupportCode(supportCode: String) = Unit
+
     override fun logScreenViewed(screenName: String) = Unit
 
     override fun logDifficultySelected(difficulty: Difficulty) = Unit
@@ -819,6 +821,8 @@ private class FakeAnalyticsTracker : AnalyticsTracker {
 
 private class FakeCrashReporter : CrashReporter {
     override fun setUserId(userId: String) = Unit
+
+    override fun setSupportCode(supportCode: String) = Unit
 
     override fun log(message: String) = Unit
 
